@@ -21,8 +21,8 @@ export default async function handler(req, res) {
     'solana-mainnet.g.alchemy.com',
     'api.dexscreener.com',
     'token.jup.ag',
-    'tokens.jup.ag'
-    'api.alternative.me'
+    'tokens.jup.ag',
+'api.alternative.me'
   ];
   if (!allowed.some(d => url.includes(d))) {
     return res.status(403).json({ error: 'Domain not allowed: ' + url });
