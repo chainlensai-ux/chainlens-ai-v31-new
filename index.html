@@ -3570,25 +3570,30 @@ async function updateGT(silent = false) {
   const holdings = Object.entries(gt.h).filter(([, pos]) => pos.qty > 0.000001);
   const ghd = document.getElementById('ghd');
 
-  // Fetch live prices — direct browser calls in parallel (no proxy = fast)
+  // Fetch live prices — single batched proxy call to avoid browser rate-limiting
   if (holdings.length) {
     if (!silent) ghd.innerHTML = '<div style="text-align:center;padding:8px;color:var(--cl-text-3);font-size:11px;"><span class="cl-spinner"></span> Refreshing prices...</div>';
     try {
-      await Promise.allSettled(holdings.map(async ([addr, pos]) => {
-        try {
-          const chain = pos.chain || 'ethereum';
-          const pairAddr = pos.pairAddress || addr;
-          const r = await fetch('https://api.dexscreener.com/latest/dex/pairs/' + chain + '/' + pairAddr, { signal: AbortSignal.timeout(4000) });
-          if (r.ok) {
-            const d = await r.json();
-            const pair = d.pair || (d.pairs && d.pairs[0]);
-            if (pair && pair.priceUsd) {
-              pos.price = parseFloat(pair.priceUsd);
-              pos.change24h = parseFloat(pair.priceChange?.h24 || 0);
-            }
+      const addrs = holdings.map(([addr]) => addr).join(',');
+      const r = await pfetch('https://api.dexscreener.com/latest/dex/tokens/' + addrs);
+      if (r.ok) {
+        const d = await r.json();
+        const pairs = d.pairs || [];
+        // Build a map from token address → best pair (highest liquidity)
+        const priceMap = {};
+        for (const pair of pairs) {
+          const tokenAddr = (pair.baseToken && pair.baseToken.address || '').toLowerCase();
+          if (!tokenAddr || !pair.priceUsd) continue;
+          const liq = parseFloat(pair.liquidity && pair.liquidity.usd || 0);
+          if (!priceMap[tokenAddr] || liq > priceMap[tokenAddr].liq) {
+            priceMap[tokenAddr] = { price: parseFloat(pair.priceUsd), change24h: parseFloat(pair.priceChange && pair.priceChange.h24 || 0), liq };
           }
-        } catch(e) {}
-      }));
+        }
+        for (const [addr, pos] of holdings) {
+          const hit = priceMap[addr.toLowerCase()];
+          if (hit) { pos.price = hit.price; pos.change24h = hit.change24h; }
+        }
+      }
     } catch(e) {}
   }
 
@@ -3639,8 +3644,8 @@ async function gtrade() {
   const amt = parseFloat(document.getElementById('gt-amount').value);
   if (!amt || amt <= 0) { toast('Enter amount', 'er'); return; }
   try {
-    const r = await fetch('https://api.dexscreener.com/latest/dex/pairs/' + gtToken.chain + '/' + (gtToken.pairAddress || gtToken.address), { signal: AbortSignal.timeout(4000) });
-    if (r.ok) { const d = await r.json(); const p = d.pair || (d.pairs && d.pairs[0]); if (p && p.priceUsd) gtToken.price = parseFloat(p.priceUsd); }
+    const r = await pfetch('https://api.dexscreener.com/latest/dex/tokens/' + gtToken.address);
+    if (r.ok) { const d = await r.json(); const pairs = d.pairs || []; const p = pairs.find(x => x.priceUsd) || pairs[0]; if (p && p.priceUsd) gtToken.price = parseFloat(p.priceUsd); }
   } catch(e) {}
   const price = gtToken.price;
   if (!price) { toast('Could not get live price', 'er'); return; }
