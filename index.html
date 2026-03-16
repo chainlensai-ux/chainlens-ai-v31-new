@@ -1133,6 +1133,214 @@ body::after {
   color: var(--cl-violet);
 }
 
+/* ════════════════════════════════════════════
+   WALLETSCAN™  —  Nansen/Arkham terminal UI
+════════════════════════════════════════════ */
+.ws-scanner-wrap { margin-bottom: 20px; }
+.ws-scanner-bar {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(0,255,200,0.12);
+  border-radius: 14px; padding: 8px 8px 8px 16px;
+  margin-bottom: 10px; transition: border-color 0.2s;
+}
+.ws-scanner-bar:focus-within { border-color: rgba(0,255,200,0.35); box-shadow: 0 0 0 3px rgba(0,255,200,0.05); }
+.ws-scan-icon { color: rgba(0,255,200,0.35); flex-shrink:0; display:flex; align-items:center; }
+.ws-input {
+  flex:1; background:transparent; border:none; outline:none;
+  font-family:'JetBrains Mono',monospace; font-size:13px; color:#e2e2e2; min-width:0;
+}
+.ws-input::placeholder { color: rgba(255,255,255,0.18); }
+.ws-scan-btn {
+  padding: 10px 22px; background: #00ffc8; border: none; border-radius: 10px;
+  font-size: 11px; font-weight: 900; color: #020208; cursor: pointer;
+  letter-spacing: 2px; font-family: 'DM Sans', sans-serif;
+  transition: opacity 0.2s, transform 0.15s; flex-shrink: 0; white-space: nowrap;
+}
+.ws-scan-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+.ws-scan-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+.ws-save-btn {
+  padding: 10px 14px; background: transparent; border: 1px solid rgba(0,255,200,0.18);
+  border-radius: 10px; font-size: 10px; font-weight: 800; color: rgba(0,255,200,0.55);
+  cursor: pointer; flex-shrink: 0; letter-spacing: 1.5px; font-family: 'DM Sans', sans-serif;
+  transition: all 0.2s;
+}
+.ws-save-btn:hover { border-color: rgba(0,255,200,0.4); color: #00ffc8; }
+.ws-chain-selector {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 10px 14px;
+  background: rgba(0,255,200,0.015); border: 1px solid rgba(0,255,200,0.07);
+  border-radius: 10px; margin-bottom: 10px;
+}
+.ws-chain-label {
+  font-size: 9px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+  color: rgba(0,255,200,0.4); font-family: 'DM Sans', sans-serif; white-space: nowrap;
+}
+.ws-chain-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.ws-chain-pill {
+  padding: 5px 13px; border-radius: 6px;
+  border: 1px solid rgba(0,255,200,0.12); background: transparent;
+  color: rgba(0,255,200,0.4); font-size: 9px; font-weight: 800; letter-spacing: 1.5px;
+  cursor: pointer; font-family: 'JetBrains Mono', monospace; transition: all 0.15s;
+}
+.ws-chain-pill:hover { border-color: rgba(0,255,200,0.3); color: rgba(0,255,200,0.75); }
+.ws-multi-chain-note { font-size: 10px; color: rgba(255,255,255,0.15); font-family: 'DM Sans', sans-serif; margin-left: auto; }
+.ws-network-badges { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ws-badge {
+  font-size: 9px; font-weight: 800; letter-spacing: 1.5px;
+  padding: 3px 9px; border-radius: 4px; font-family: 'JetBrains Mono', monospace;
+}
+.ws-badge--eth { background:rgba(120,88,192,0.1);  color:rgba(140,100,210,0.7); border:1px solid rgba(120,88,192,0.15); }
+.ws-badge--bnb { background:rgba(240,180,41,0.08); color:rgba(240,180,41,0.65); border:1px solid rgba(240,180,41,0.12); }
+.ws-badge--base{ background:rgba(80,130,220,0.08); color:rgba(100,150,230,0.65); border:1px solid rgba(80,130,220,0.12); }
+.ws-badge--sol { background:rgba(0,255,200,0.06);  color:rgba(0,255,200,0.55);  border:1px solid rgba(0,255,200,0.1);  }
+.ws-badge--btc { background:rgba(247,147,26,0.08); color:rgba(247,147,26,0.65); border:1px solid rgba(247,147,26,0.12); }
+.ws-badge-sep  { width:1px; height:14px; background:rgba(255,255,255,0.07); margin:0 2px; }
+.ws-placeholder {
+  text-align:center; padding:100px 20px;
+  display:flex; flex-direction:column; align-items:center; gap:14px;
+}
+.ws-placeholder-graphic {
+  width:84px; height:84px; display:flex; align-items:center; justify-content:center;
+  border:1px solid rgba(0,255,200,0.1); border-radius:50%;
+  background:rgba(0,255,200,0.025); margin-bottom:4px;
+}
+.ws-placeholder-title { font-size:15px; font-weight:600; color:rgba(255,255,255,0.3); font-family:'DM Sans',sans-serif; }
+.ws-placeholder-sub   { font-size:11px; color:rgba(255,255,255,0.15); font-family:'DM Sans',sans-serif; }
+@keyframes wsFadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+.ws-fade-in { animation: wsFadeIn 0.4s ease forwards; }
+.ws-portfolio-header {
+  display:flex; align-items:flex-start; justify-content:space-between; gap:24px;
+  background:rgba(255,255,255,0.025); border:1px solid rgba(0,255,200,0.12);
+  border-radius:16px; padding:26px 28px; margin-bottom:12px;
+  position:relative; overflow:hidden;
+}
+.ws-portfolio-header::before {
+  content:''; position:absolute; top:-50px; right:-50px;
+  width:220px; height:220px;
+  background:radial-gradient(circle,rgba(0,255,200,0.07) 0%,transparent 65%);
+  pointer-events:none;
+}
+.ws-portfolio-left { flex:1; min-width:0; }
+.ws-portfolio-label {
+  font-size:9px; font-weight:800; letter-spacing:2.5px; text-transform:uppercase;
+  color:rgba(0,255,200,0.45); font-family:'DM Sans',sans-serif; margin-bottom:8px;
+}
+.ws-portfolio-value {
+  font-family:'JetBrains Mono',monospace; font-size:42px; font-weight:900;
+  color:#00ffc8; line-height:1; margin-bottom:8px;
+}
+.ws-portfolio-sub {
+  font-family:'JetBrains Mono',monospace; font-size:11px;
+  color:rgba(255,255,255,0.28); margin-bottom:16px; min-height:16px;
+}
+.ws-stat-chips { display:flex; gap:6px; flex-wrap:wrap; }
+#ws-stat-pills > div {
+  padding: 4px 10px !important; border-radius: 5px !important;
+  font-size: 10px !important; font-weight: 700 !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  background: rgba(0,255,200,0.05) !important;
+  border: 1px solid rgba(0,255,200,0.1) !important;
+  color: rgba(0,255,200,0.65) !important;
+}
+.ws-degen-wrap { position:relative; flex-shrink:0; width:100px; height:100px; }
+.ws-degen-ring { width:100px; height:100px; display:block; }
+.ws-ring-track { fill:none; stroke:rgba(255,255,255,0.05); stroke-width:8; }
+.ws-ring-fill  {
+  fill:none; stroke:#00ffc8; stroke-width:8; stroke-linecap:round;
+  transform:rotate(-90deg); transform-origin:50px 50px;
+  transition:stroke-dashoffset 0.9s cubic-bezier(0.4,0,0.2,1), stroke 0.5s;
+}
+.ws-degen-center {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  text-align:center; pointer-events:none;
+}
+.ws-degen-score {
+  font-family:'JetBrains Mono',monospace; font-size:22px; font-weight:900;
+  color:#00ffc8; line-height:1;
+}
+.ws-degen-label {
+  font-size:7px; font-weight:800; letter-spacing:2px; text-transform:uppercase;
+  color:rgba(255,255,255,0.25); font-family:'DM Sans',sans-serif; margin-top:3px;
+}
+.ws-section {
+  background:rgba(255,255,255,0.025); border:1px solid rgba(0,255,200,0.08);
+  border-radius:16px; padding:20px 20px 0; margin-bottom:12px; overflow:hidden;
+}
+.ws-section-header {
+  display:flex; align-items:center; gap:8px; margin-bottom:16px;
+  padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.ws-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.ws-dot--mint { background:#00ffc8; box-shadow:0 0 7px rgba(0,255,200,0.6); }
+.ws-dot--dim  { background:rgba(255,255,255,0.2); }
+.ws-section-title {
+  font-size:9px; font-weight:800; letter-spacing:2.5px; text-transform:uppercase;
+  color:rgba(255,255,255,0.45); font-family:'DM Sans',sans-serif;
+}
+.ws-section-badge {
+  margin-left:auto; font-size:9px; padding:2px 8px; border-radius:4px; font-weight:700;
+  background:rgba(0,255,200,0.05); color:rgba(0,255,200,0.45);
+  border:1px solid rgba(0,255,200,0.08); font-family:'DM Sans',sans-serif; letter-spacing:0.5px;
+}
+.ws-section-sub { margin-left:auto; font-size:10px; color:rgba(255,255,255,0.22); font-family:'DM Sans',sans-serif; }
+#ws-intel-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; padding-bottom:20px; }
+#ws-intel-grid > div { border-radius:10px !important; padding:12px !important; background:rgba(0,255,200,0.03) !important; border:1px solid rgba(0,255,200,0.07) !important; }
+#ws-intel-grid > div > div:first-child { font-size:8px !important; letter-spacing:1.5px !important; color:rgba(255,255,255,0.28) !important; margin-bottom:5px !important; }
+#ws-intel-grid > div > div:nth-child(2) { font-size:12px !important; font-family:'JetBrains Mono',monospace !important; font-weight:700 !important; }
+.ws-terminal {
+  font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1.85;
+  color:rgba(255,255,255,0.6); padding-bottom:20px; min-height:40px;
+  white-space:pre-wrap; word-break:break-word;
+}
+.ws-terminal--active::after {
+  content:'▋'; display:inline-block; color:#00ffc8; font-size:11px; margin-left:2px;
+  animation:termBlink 1s step-end infinite;
+}
+@keyframes termBlink { 0%,100%{opacity:0} 50%{opacity:1} }
+.ws-assets-table-head {
+  display:grid; grid-template-columns:1fr auto auto; gap:12px;
+  padding:0 0 8px; border-bottom:1px solid rgba(255,255,255,0.04);
+  margin-bottom:2px; font-size:9px; font-weight:800; letter-spacing:1.5px;
+  text-transform:uppercase; color:rgba(255,255,255,0.18); font-family:'DM Sans',sans-serif;
+}
+#ws-all-assets { padding-bottom:8px; }
+#ws-all-assets > div > div { border-bottom-color:rgba(255,255,255,0.04) !important; }
+.ws-tx-list {
+  max-height:380px; overflow-y:auto; padding-bottom:8px;
+  scrollbar-width:thin; scrollbar-color:rgba(0,255,200,0.12) transparent;
+}
+.ws-tx-list::-webkit-scrollbar { width:3px; }
+.ws-tx-list::-webkit-scrollbar-thumb { background:rgba(0,255,200,0.12); border-radius:2px; }
+.ws-saved-bar {
+  margin-top:14px; padding:14px 16px;
+  background:rgba(255,255,255,0.018); border:1px solid rgba(0,255,200,0.06); border-radius:12px;
+}
+.ws-saved-label {
+  font-size:9px; font-weight:800; letter-spacing:2px; text-transform:uppercase;
+  color:rgba(255,255,255,0.2); font-family:'DM Sans',sans-serif; margin-bottom:10px;
+}
+.ws-saved-pills { display:flex; gap:6px; flex-wrap:wrap; }
+#saved-wallets-list > div { background:rgba(0,255,200,0.03) !important; border:1px solid rgba(0,255,200,0.1) !important; border-radius:6px !important; padding:5px 10px !important; }
+#saved-wallets-list > div > span { font-size:11px !important; color:rgba(0,255,200,0.65) !important; font-family:'JetBrains Mono',monospace !important; }
+#saved-wallets-list > div > button { color:rgba(255,255,255,0.22) !important; font-size:10px !important; transition:color 0.15s; }
+#saved-wallets-list > div > button:hover { color:rgba(239,71,111,0.8) !important; }
+@keyframes wsSkeleton { 0%,100%{opacity:0.25} 50%{opacity:0.55} }
+.ws-skeleton { height:11px; background:rgba(255,255,255,0.06); border-radius:4px; animation:wsSkeleton 1.4s ease infinite; margin-bottom:8px; }
+.ws-skeleton:nth-child(2){width:70%;animation-delay:.15s}
+.ws-skeleton:nth-child(3){width:85%;animation-delay:.3s}
+@media(max-width:640px){
+  .ws-portfolio-header{flex-direction:column-reverse;align-items:flex-start;padding:18px;}
+  .ws-portfolio-value{font-size:30px;}
+  .ws-degen-wrap{width:80px;height:80px;align-self:flex-end;}
+  .ws-degen-ring{width:80px;height:80px;}
+  .ws-multi-chain-note{display:none;}
+  #ws-intel-grid{grid-template-columns:1fr 1fr;}
+  .ws-section{padding:16px 14px 0;}
+  .ws-scanner-bar{padding:6px 6px 6px 12px;}
+}
+/* ── end WalletScan ────────────────────────────── */
+
 /* Quick prompt pills */
 .cl-quick-pill {
   padding: 5px 12px;
@@ -1993,119 +2201,143 @@ body::after {
 ═════════════════════════════════════ -->
 <div class="cl-page" id="pg-walletscan">
   <div class="cl-container"><div class="cl-page-inner">
-    <div class="cl-page-header">
-      <button class="cl-page-back" onclick="go('home')">← Back</button>
-      <div class="cl-page-title">WalletScan™</div>
-      <div class="cl-page-subtitle">Paste any wallet address — Ethereum, BNB Chain, Base, Bitcoin or Solana. Full portfolio breakdown and AI analysis.</div>
+
+    <!-- Back -->
+    <button class="cl-page-back" onclick="go('home')" style="margin-bottom:20px;">← Back</button>
+
+    <!-- ── Scanner Bar ─────────────────────────── -->
+    <div class="ws-scanner-wrap">
+      <div class="ws-scanner-bar">
+        <div class="ws-scan-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </div>
+        <input class="ws-input" id="wsi" placeholder="Paste any wallet — ETH / BNB / BASE / SOL / BTC" onkeydown="if(event.key==='Enter')doWS()"/>
+        <button class="ws-scan-btn" id="wsb" onclick="doWS()">SCAN</button>
+        <button class="ws-save-btn" id="save-wallet-btn" onclick="saveCurrentWallet()" style="display:none;">SAVE</button>
+      </div>
+
+      <!-- EVM chain selector — shown for 0x addresses -->
+      <div class="ws-chain-selector" id="evm-chain-row" style="display:none;">
+        <span class="ws-chain-label">Chain</span>
+        <div class="ws-chain-pills">
+          <button onclick="setEvmChain('eth',this)"     class="ws-chain-pill evm-chain-btn" style="border-color:rgba(0,255,200,0.35);color:#00ffc8;background:rgba(0,255,200,0.08);">ETH</button>
+          <button onclick="setEvmChain('bnb',this)"     class="ws-chain-pill evm-chain-btn">BNB</button>
+          <button onclick="setEvmChain('base',this)"    class="ws-chain-pill evm-chain-btn">BASE</button>
+          <button onclick="setEvmChain('polygon',this)" class="ws-chain-pill evm-chain-btn">MATIC</button>
+        </div>
+        <span class="ws-multi-chain-note">All EVM chains scanned simultaneously</span>
+      </div>
+
+      <!-- Supported network badges + currency -->
+      <div class="ws-network-badges">
+        <span class="ws-badge ws-badge--eth">ETH</span>
+        <span class="ws-badge ws-badge--bnb">BNB</span>
+        <span class="ws-badge ws-badge--base">BASE</span>
+        <span class="ws-badge ws-badge--sol">SOL</span>
+        <span class="ws-badge ws-badge--btc">BTC</span>
+        <div class="ws-badge-sep"></div>
+        <div id="ws-fx-btns" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;"></div>
+      </div>
     </div>
-    <div class="cl-card" style="margin-bottom:14px;">
-      <div class="cl-label">Wallet Address</div>
-      <div style="display:flex;gap:9px;margin-bottom:12px;">
-        <input class="cl-input" id="wsi" placeholder="ETH/BNB/Base: 0x... · BTC: 1... or bc1... · Solana: any" onkeydown="if(event.key==='Enter')doWS()" style="height:46px;"/>
-        <button class="cl-btn cl-btn--primary" id="wsb" onclick="doWS()" style="height:46px;">Scan →</button>
-        <button onclick="saveCurrentWallet()" id="save-wallet-btn" class="cl-btn cl-btn--ghost" style="display:none;">Save</button>
+
+    <!-- ── Empty state ──────────────────────────── -->
+    <div class="ws-placeholder" id="ws-placeholder">
+      <div class="ws-placeholder-graphic">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(0,255,200,0.35)" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v3l2 2"/></svg>
       </div>
-      <div id="evm-chain-row" style="display:none;margin-bottom:12px;padding:12px;background:rgba(120,88,192,0.04);border:1px solid var(--cl-border);border-radius:10px;">
-        <div style="font-size:11px;color:var(--cl-text-3);font-weight:600;margin-bottom:8px;">Select chain for this 0x address:</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button onclick="setEvmChain('eth',this)" class="evm-btn active">Ξ Ethereum</button>
-          <button onclick="setEvmChain('bnb',this)" class="evm-btn">BNB Chain</button>
-          <button onclick="setEvmChain('base',this)" class="evm-btn">Base</button>
-          <button onclick="setEvmChain('polygon',this)" class="evm-btn">Polygon</button>
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
-        <div style="display:flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(120,88,192,0.06);border:1px solid var(--cl-border);border-radius:20px;font-size:10px;color:var(--cl-text-3);"><span style="width:6px;height:6px;border-radius:50%;background:#7858c0;display:inline-block;"></span>Ethereum</div>
-        <div style="display:flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(240,180,41,0.06);border:1px solid rgba(240,180,41,0.2);border-radius:20px;font-size:10px;color:#f0b429;"><span style="width:6px;height:6px;border-radius:50%;background:#f0b429;display:inline-block;"></span>BNB Chain</div>
-        <div style="display:flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(120,88,192,0.06);border:1px solid var(--cl-border);border-radius:20px;font-size:10px;color:var(--cl-text-3);"><span style="width:6px;height:6px;border-radius:50%;background:#b090e8;display:inline-block;"></span>Base</div>
-        <div style="display:flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(240,180,41,0.06);border:1px solid rgba(240,180,41,0.1);border-radius:20px;font-size:10px;color:var(--cl-text-3);"><span style="width:6px;height:6px;border-radius:50%;background:#f0b429;display:inline-block;"></span>Bitcoin</div>
-        <div style="display:flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(0,255,200,0.06);border:1px solid rgba(0,255,200,0.15);border-radius:20px;font-size:10px;color:#00ffc8;"><span style="width:6px;height:6px;border-radius:50%;background:#00ffc8;display:inline-block;"></span>Solana</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-        <span style="font-size:11px;color:var(--cl-text-3);">Currency:</span>
-        <div id="ws-fx-btns" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
-      </div>
+      <div class="ws-placeholder-title">Paste a wallet address to begin</div>
+      <div class="ws-placeholder-sub">Supports Ethereum, BNB Chain, Base, Polygon, Solana, and Bitcoin</div>
     </div>
-    <!-- Results -->
-    <div id="ws-results" style="display:none;">
 
-      <!-- Hero portfolio strip -->
-      <div style="background:linear-gradient(135deg,rgba(120,88,192,0.12),rgba(0,255,200,0.06));border:1px solid rgba(120,88,192,0.25);border-radius:16px;padding:20px 24px;margin-bottom:14px;position:relative;overflow:hidden;">
-        <div style="position:absolute;top:0;right:0;width:200px;height:200px;background:radial-gradient(circle,rgba(0,255,200,0.08) 0%,transparent 70%);pointer-events:none;"></div>
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;">
-          <div>
-            <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cl-text-3);margin-bottom:6px;">TOTAL PORTFOLIO VALUE</div>
-            <div style="font-family:'Syne',sans-serif;font-size:42px;font-weight:900;color:var(--cl-cyan);line-height:1;" id="ws-total-value">$0</div>
-            <div style="font-size:11px;color:var(--cl-text-3);margin-top:8px;font-family:'JetBrains Mono',monospace;" id="ws-total-sub">Scanning...</div>
-          </div>
-          <canvas id="ws-pie" width="110" height="110" style="flex-shrink:0;"></canvas>
+    <!-- ══ RESULTS (shown after scan) ══════════════ -->
+    <div id="ws-results" style="display:none;" class="ws-fade-in">
+
+      <!-- Portfolio header -->
+      <div class="ws-portfolio-header">
+        <div class="ws-portfolio-left">
+          <div class="ws-portfolio-label">Total Portfolio Value</div>
+          <div class="ws-portfolio-value" id="ws-total-value">$0</div>
+          <div class="ws-portfolio-sub" id="ws-total-sub">Scanning...</div>
+          <!-- Stat chips (asset count, tx count, degen score, age) -->
+          <div class="ws-stat-chips" id="ws-stat-pills"></div>
         </div>
-        <!-- Stat pills -->
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;" id="ws-stat-pills"></div>
+        <!-- Degen Score ring -->
+        <div class="ws-degen-wrap">
+          <svg class="ws-degen-ring" viewBox="0 0 100 100">
+            <circle class="ws-ring-track" cx="50" cy="50" r="40"/>
+            <circle class="ws-ring-fill" id="ws-degen-arc" cx="50" cy="50" r="40" stroke-dasharray="251.3" stroke-dashoffset="251.3"/>
+          </svg>
+          <div class="ws-degen-center">
+            <div class="ws-degen-score" id="ws-degen-score-val">—</div>
+            <div class="ws-degen-label">DEGEN</div>
+          </div>
+        </div>
       </div>
 
-      <!-- Intelligence layer -->
-      <div style="background:rgba(10,8,18,0.8);border:1px solid rgba(120,88,192,0.2);border-radius:16px;padding:20px;margin-bottom:14px;" id="ws-intel-card">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
-          <div style="width:6px;height:6px;border-radius:50%;background:var(--cl-cyan);box-shadow:0 0 8px var(--cl-cyan);"></div>
-          <span style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cl-cyan);">INTELLIGENCE</span>
+      <!-- Hidden pie canvas (JS still draws to it for calculations) -->
+      <canvas id="ws-pie" width="0" height="0" style="display:none;"></canvas>
+
+      <!-- Intelligence -->
+      <div class="ws-section" id="ws-intel-card">
+        <div class="ws-section-header">
+          <div class="ws-dot ws-dot--mint"></div>
+          <span class="ws-section-title">Intelligence</span>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;" id="ws-intel-grid"></div>
+        <div id="ws-intel-grid"></div>
       </div>
 
-      <!-- AI Analysis -->
-      <div style="background:rgba(10,8,18,0.8);border:1px solid rgba(120,88,192,0.2);border-radius:16px;padding:20px;margin-bottom:14px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <div style="width:6px;height:6px;border-radius:50%;background:#b090e8;box-shadow:0 0 8px #b090e8;"></div>
-            <span style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#b090e8;">AI ANALYSIS</span>
-          </div>
-          <span style="font-size:9px;padding:2px 8px;border-radius:20px;background:rgba(176,144,232,0.1);color:#b090e8;border:1px solid rgba(176,144,232,0.2);">WalletScan™ AI</span>
+      <!-- AI Terminal -->
+      <div class="ws-section">
+        <div class="ws-section-header">
+          <div class="ws-dot ws-dot--dim"></div>
+          <span class="ws-section-title">AI Analysis</span>
+          <span class="ws-section-badge">WalletScan AI</span>
         </div>
-        <div style="font-size:13px;line-height:1.7;color:var(--cl-text-2);" id="ws-ai">Generating AI analysis...</div>
+        <div class="ws-terminal ws-terminal--active" id="ws-ai">Generating analysis...</div>
       </div>
 
-      <!-- Assets -->
-      <div style="background:rgba(10,8,18,0.8);border:1px solid rgba(120,88,192,0.2);border-radius:16px;padding:20px;margin-bottom:14px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <div style="width:6px;height:6px;border-radius:50%;background:var(--cl-violet);box-shadow:0 0 8px var(--cl-violet);"></div>
-            <span style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cl-violet);">HOLDINGS</span>
-          </div>
+      <!-- Holdings -->
+      <div class="ws-section">
+        <div class="ws-section-header">
+          <div class="ws-dot ws-dot--mint"></div>
+          <span class="ws-section-title">Holdings</span>
+        </div>
+        <div class="ws-assets-table-head">
+          <span>Token</span>
+          <span style="text-align:right;">Balance</span>
+          <span style="text-align:right;">Value</span>
         </div>
         <div id="ws-all-assets"></div>
       </div>
 
-      <!-- PnL -->
-      <div style="background:rgba(10,8,18,0.8);border:1px solid rgba(120,88,192,0.2);border-radius:16px;padding:20px;margin-bottom:14px;display:none;" id="ws-pnl-card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <div style="width:6px;height:6px;border-radius:50%;background:#00ffc8;box-shadow:0 0 8px #00ffc8;"></div>
-            <span style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#00ffc8;">TOKEN PnL</span>
-          </div>
-          <span style="font-size:9px;color:var(--cl-text-3);">Realised + Unrealised</span>
+      <!-- Token PnL (shown async) -->
+      <div class="ws-section" id="ws-pnl-card" style="display:none;">
+        <div class="ws-section-header">
+          <div class="ws-dot ws-dot--mint"></div>
+          <span class="ws-section-title">Token PnL</span>
+          <span class="ws-section-sub">Realised + Unrealised</span>
         </div>
-        <div id="ws-pnl"></div>
+        <div id="ws-pnl" style="padding-bottom:12px;"></div>
       </div>
 
       <!-- Transactions -->
-      <div style="background:rgba(10,8,18,0.8);border:1px solid rgba(120,88,192,0.2);border-radius:16px;padding:20px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <div style="width:6px;height:6px;border-radius:50%;background:#f0b429;box-shadow:0 0 8px #f0b429;"></div>
-            <span style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#f0b429;">TRANSACTIONS</span>
-          </div>
-          <span style="font-size:11px;color:var(--cl-text-3);" id="ws-tx-count"></span>
+      <div class="ws-section">
+        <div class="ws-section-header">
+          <div class="ws-dot ws-dot--dim"></div>
+          <span class="ws-section-title">Transactions</span>
+          <span class="ws-section-sub" id="ws-tx-count"></span>
         </div>
-        <div id="ws-txs" style="max-height:360px;overflow-y:auto;"></div>
+        <div class="ws-tx-list" id="ws-txs"></div>
       </div>
 
-    </div>
+    </div><!-- /ws-results -->
+
     <!-- Saved wallets -->
-    <div id="ws-saved-section" style="margin-top:16px;">
-      <div class="cl-label">Saved Wallets</div>
-      <div id="ws-saved-list"></div>
+    <div class="ws-saved-bar" id="saved-wallets-bar" style="display:none;">
+      <div class="ws-saved-label">Saved Wallets</div>
+      <div class="ws-saved-pills" id="saved-wallets-list"></div>
     </div>
+
   </div></div>
 </div>
 
@@ -3151,13 +3383,13 @@ let selectedEvmChain = 'eth';
 function setEvmChain(chain, btn) {
   selectedEvmChain = chain;
   document.querySelectorAll('.evm-chain-btn').forEach(b => {
-    b.style.background = 'rgba(120,88,192,0.04)';
-    b.style.borderColor = 'rgba(120,88,192,0.15)';
-    b.style.color = 'var(--cl-text-3)';
+    b.style.background = 'transparent';
+    b.style.borderColor = 'rgba(0,255,200,0.12)';
+    b.style.color = 'rgba(0,255,200,0.4)';
   });
-  btn.style.background = 'rgba(120,88,192,0.15)';
-  btn.style.borderColor = 'rgba(120,88,192,0.4)';
-  btn.style.color = 'var(--cl-violet)';
+  btn.style.background = 'rgba(0,255,200,0.1)';
+  btn.style.borderColor = 'rgba(0,255,200,0.35)';
+  btn.style.color = '#00ffc8';
 }
 
 document.getElementById('wsi')?.addEventListener('input', function() {
@@ -4318,6 +4550,13 @@ async function doWS() {
   document.getElementById('ws-all-assets').innerHTML = loading;
   document.getElementById('ws-txs').innerHTML = loading;
   document.getElementById('ws-ai').innerHTML = '<span class="cl-spinner"></span> AI analysing...';
+  // Reset degen ring
+  const _arcReset = document.getElementById('ws-degen-arc');
+  const _svReset  = document.getElementById('ws-degen-score-val');
+  if (_arcReset) { _arcReset.style.strokeDashoffset = '251.3'; _arcReset.style.stroke = '#00ffc8'; }
+  if (_svReset)  { _svReset.textContent = '—'; _svReset.style.color = '#00ffc8'; }
+  const _aiElReset = document.getElementById('ws-ai');
+  if (_aiElReset) _aiElReset.classList.add('ws-terminal--active');
 
   const btcPrice = px['bitcoin']?.usd || 90000;
   const ethPrice = px['ethereum']?.usd || 3000;
@@ -4503,11 +4742,25 @@ async function doWS() {
 
     // Stat pills
     document.getElementById('ws-stat-pills').innerHTML = [
-      `<div style="display:flex;align-items:center;gap:5px;padding:5px 10px;background:rgba(120,88,192,0.1);border:1px solid rgba(120,88,192,0.2);border-radius:20px;font-size:10px;font-weight:700;color:var(--cl-violet);">${assets.length} Assets</div>`,
-      `<div style="display:flex;align-items:center;gap:5px;padding:5px 10px;background:rgba(0,255,200,0.06);border:1px solid rgba(0,255,200,0.15);border-radius:20px;font-size:10px;font-weight:700;color:var(--cl-cyan);">${allTxs.length} Txs</div>`,
-      `<div style="display:flex;align-items:center;gap:5px;padding:5px 10px;background:rgba(${degenScore.color.startsWith('#ef')?'239,71,111':degenScore.color.startsWith('#f0')?'240,180,41':'120,88,192'},0.1);border:1px solid rgba(${degenScore.color.startsWith('#ef')?'239,71,111':degenScore.color.startsWith('#f0')?'240,180,41':'120,88,192'},0.2);border-radius:20px;font-size:10px;font-weight:700;color:${degenScore.color};">Degen ${degenScore.score}/100</div>`,
-      walletAge ? `<div style="padding:5px 10px;background:rgba(176,144,232,0.08);border:1px solid rgba(176,144,232,0.15);border-radius:20px;font-size:10px;font-weight:700;color:#b090e8;">Age: ${walletAge}</div>` : '',
+      `<div>${assets.length} Assets</div>`,
+      `<div>${allTxs.length} Txs</div>`,
+      `<div>Degen ${degenScore.score}/100</div>`,
+      walletAge ? `<div>Age: ${walletAge}</div>` : '',
     ].join('');
+    // Update degen score ring
+    const _arc = document.getElementById('ws-degen-arc');
+    const _sv  = document.getElementById('ws-degen-score-val');
+    if (_arc && _sv) {
+      const _s = degenScore.score;
+      const _ringColor = _s >= 80 ? '#ef476f' : _s >= 50 ? '#f0b429' : '#00ffc8';
+      _arc.style.strokeDashoffset = (251.3 * (1 - _s / 100)).toFixed(1);
+      _arc.style.stroke = _ringColor;
+      _sv.textContent = _s;
+      _sv.style.color = _ringColor;
+    }
+    // Remove terminal cursor class once analysis is ready (re-applied on scan start)
+    const _aiEl = document.getElementById('ws-ai');
+    if (_aiEl) _aiEl.classList.add('ws-terminal--active');
 
     // Intelligence grid
     const intelItems = [
@@ -4605,12 +4858,13 @@ async function doWS() {
     ai(aiPrompt, 500).then(aiTxt => {
       const aiEl = document.getElementById('ws-ai');
       if (aiEl) {
+        aiEl.classList.remove('ws-terminal--active');
         aiEl.textContent = aiTxt;
-        aiEl.insertAdjacentHTML('beforeend', '<div class="cl-ai-disclaimer">Read-only scan of public blockchain data. Not financial advice.</div>');
+        aiEl.insertAdjacentHTML('beforeend', '<div class="cl-ai-disclaimer" style="margin-top:12px;">Read-only scan of public blockchain data. Not financial advice.</div>');
       }
     }).catch(() => {
       const aiEl = document.getElementById('ws-ai');
-      if (aiEl) aiEl.textContent = 'AI analysis unavailable.';
+      if (aiEl) { aiEl.classList.remove('ws-terminal--active'); aiEl.textContent = 'AI analysis unavailable.'; }
     });
     document.getElementById('save-wallet-btn').style.display = 'flex';
     renderSavedWallets();
@@ -4621,7 +4875,7 @@ async function doWS() {
     document.getElementById('ws-ai').textContent = 'Scan failed: ' + e.message;
     toast(e.message, 'er');
   }
-  btn.disabled = false; btn.textContent = 'Scan →';
+  btn.disabled = false; btn.textContent = 'SCAN';
 }
 
 function renderSavedWallets() {
