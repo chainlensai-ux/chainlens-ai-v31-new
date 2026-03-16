@@ -3589,16 +3589,50 @@ function gtCalcQty() {
   el.textContent = amt > 0 ? 'Qty: ' + (qty < 0.0001 ? qty.toExponential(4) : qty.toFixed(6)) + ' ' + gtToken.symbol : 'Qty: —';
 }
 
+function _paintGT(holdings, ghd) {
+  const hv = holdings.reduce((s, [, pos]) => s + (pos.price || pos.avg || 0) * pos.qty, 0);
+  const total = gt.cash + hv;
+  const pnl = total - gt.start;
+  const pct = (pnl / gt.start * 100).toFixed(2);
+  document.getElementById('gv').textContent = '$' + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const gcEl = document.getElementById('gc');
+  gcEl.textContent = (pnl >= 0 ? '+' : '') + '$' + pnl.toFixed(2) + ' (' + pct + '%)';
+  gcEl.style.color = pnl >= 0 ? '#00ffc8' : '#ef476f';
+  document.getElementById('gca').textContent = '$' + gt.cash.toFixed(2);
+  const hcEl = document.getElementById('gt-holdings-count');
+  if (hcEl) hcEl.textContent = holdings.length ? holdings.length + ' position' + (holdings.length !== 1 ? 's' : '') : '';
+  if (!holdings.length) { ghd.innerHTML = '<div style="text-align:center;padding:16px;color:var(--cl-text-3);font-size:12px;">No positions yet</div>'; return; }
+  ghd.innerHTML = holdings.map(([addr, pos]) => {
+    const livePrice = pos.price || pos.avg;
+    const currentVal = pos.qty * livePrice;
+    const costBasis = pos.qty * pos.avg;
+    const dollarPnl = currentVal - costBasis;
+    const posChange = costBasis > 0 ? ((dollarPnl / costBasis) * 100).toFixed(1) : '0.0';
+    const up = dollarPnl >= 0;
+    const c24 = pos.change24h;
+    const c24Html = c24 != null ? '<span style="font-size:9px;color:' + (c24 >= 0 ? '#00ffc8' : '#ef476f') + ';margin-left:4px;">' + (c24 >= 0 ? '+' : '') + c24.toFixed(1) + '% 24h</span>' : '';
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--cl-border);">'
+      + '<div><div style="font-size:12px;font-weight:700;">' + pos.symbol + c24Html + '</div>'
+      + '<div style="font-size:10px;color:var(--cl-text-3);">' + pos.qty.toFixed(6) + ' @ avg $' + (pos.avg < 0.001 ? pos.avg.toExponential(2) : pos.avg.toFixed(4)) + '</div>'
+      + '<div style="font-size:10px;color:var(--cl-text-3);">Live: $' + (livePrice < 0.001 ? livePrice.toExponential(4) : livePrice.toFixed(6)) + '</div></div>'
+      + '<div style="text-align:right;"><div style="font-size:12px;font-weight:700;color:' + (up ? '#00ffc8' : '#ef476f') + ';">' + (up ? '+' : '') + '$' + dollarPnl.toFixed(2) + '</div>'
+      + '<div style="font-size:10px;font-weight:700;color:' + (up ? '#00ffc8' : '#ef476f') + ';">' + (up ? '+' : '') + posChange + '%</div>'
+      + '<div style="font-size:10px;color:var(--cl-text-3);">val $' + currentVal.toFixed(2) + '</div></div>'
+      + '<button data-addr="'+addr+'" onclick="gtSellAll(this.dataset.addr)" style="margin-left:8px;padding:4px 8px;background:rgba(239,71,111,0.08);border:1px solid rgba(239,71,111,0.2);border-radius:6px;font-size:9px;color:#ef476f;cursor:pointer;">SELL ALL</button></div>';
+  }).join('');
+}
+
 async function updateGT(silent = false) {
   const holdings = Object.entries(gt.h).filter(([, pos]) => pos.qty > 0.000001);
   const ghd = document.getElementById('ghd');
 
-  // Fetch live prices — use pairAddress for direct O(1) lookup, parallel per chain
+  // Render immediately with cached prices — no delay
+  _paintGT(holdings, ghd);
+
+  // Fetch live prices in background, then re-render silently
   if (holdings.length) {
-    if (!silent) ghd.innerHTML = '<div style="text-align:center;padding:8px;color:var(--cl-text-3);font-size:11px;"><span class="cl-spinner"></span> Refreshing prices...</div>';
     try {
       const priceMap = {};
-      // Group by chain using pairAddress (direct lookup) — fall back to token endpoint
       const byChain = {};
       const tokenFallback = [];
       for (const [addr, pos] of holdings) {
@@ -3650,40 +3684,11 @@ async function updateGT(silent = false) {
         const hit = priceMap[addr.toLowerCase()];
         if (hit) { pos.price = hit.price; pos.change24h = hit.change24h; }
       }
+      saveGTLocal();
     } catch(e) {}
+    // Re-render with live prices
+    _paintGT(holdings, ghd);
   }
-
-  const hv = holdings.reduce((s, [, pos]) => s + (pos.price || pos.avg || 0) * pos.qty, 0);
-  const total = gt.cash + hv;
-  const pnl = total - gt.start;
-  const pct = (pnl / gt.start * 100).toFixed(2);
-  document.getElementById('gv').textContent = '$' + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const gcEl = document.getElementById('gc');
-  gcEl.textContent = (pnl >= 0 ? '+' : '') + '$' + pnl.toFixed(2) + ' (' + pct + '%)';
-  gcEl.style.color = pnl >= 0 ? '#00ffc8' : '#ef476f';
-  document.getElementById('gca').textContent = '$' + gt.cash.toFixed(2);
-
-  const hcEl = document.getElementById('gt-holdings-count');
-  if (hcEl) hcEl.textContent = holdings.length ? holdings.length + ' position' + (holdings.length !== 1 ? 's' : '') : '';
-  if (!holdings.length) { ghd.innerHTML = '<div style="text-align:center;padding:16px;color:var(--cl-text-3);font-size:12px;">No positions yet</div>'; return; }
-  ghd.innerHTML = holdings.map(([addr, pos]) => {
-    const livePrice = pos.price || pos.avg;
-    const currentVal = pos.qty * livePrice;
-    const costBasis = pos.qty * pos.avg;
-    const dollarPnl = currentVal - costBasis;
-    const posChange = costBasis > 0 ? ((dollarPnl / costBasis) * 100).toFixed(1) : '0.0';
-    const up = dollarPnl >= 0;
-    const c24 = pos.change24h;
-    const c24Html = c24 != null ? '<span style="font-size:9px;color:' + (c24 >= 0 ? '#00ffc8' : '#ef476f') + ';margin-left:4px;">' + (c24 >= 0 ? '+' : '') + c24.toFixed(1) + '% 24h</span>' : '';
-    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--cl-border);">'
-      + '<div><div style="font-size:12px;font-weight:700;">' + pos.symbol + c24Html + '</div>'
-      + '<div style="font-size:10px;color:var(--cl-text-3);">' + pos.qty.toFixed(6) + ' @ avg $' + (pos.avg < 0.001 ? pos.avg.toExponential(2) : pos.avg.toFixed(4)) + '</div>'
-      + '<div style="font-size:10px;color:var(--cl-text-3);">Live: $' + (livePrice < 0.001 ? livePrice.toExponential(4) : livePrice.toFixed(6)) + '</div></div>'
-      + '<div style="text-align:right;"><div style="font-size:12px;font-weight:700;color:' + (up ? '#00ffc8' : '#ef476f') + ';">' + (up ? '+' : '') + '$' + dollarPnl.toFixed(2) + '</div>'
-      + '<div style="font-size:10px;font-weight:700;color:' + (up ? '#00ffc8' : '#ef476f') + ';">' + (up ? '+' : '') + posChange + '%</div>'
-      + '<div style="font-size:10px;color:var(--cl-text-3);">val $' + currentVal.toFixed(2) + '</div></div>'
-      + '<button data-addr="'+addr+'" onclick="gtSellAll(this.dataset.addr)" style="margin-left:8px;padding:4px 8px;background:rgba(239,71,111,0.08);border:1px solid rgba(239,71,111,0.2);border-radius:6px;font-size:9px;color:#ef476f;cursor:pointer;">SELL ALL</button></div>';
-  }).join('');
 }
 
 function gtSellAll(addr) {
@@ -4717,7 +4722,7 @@ document.getElementById('pwa-install-btn')?.addEventListener('click', async () =
 initAuth();
 loadPrices();
 setInterval(loadPrices, 60000);
-// Live PnL refresh every 3 seconds — direct pair lookup is fast; lock prevents stacking
+// Live PnL refresh every 2 seconds — direct pair lookup is fast; lock prevents stacking
 let _gtPollBusy = false;
 setInterval(async () => {
   if (_gtPollBusy) return;
@@ -4725,7 +4730,7 @@ setInterval(async () => {
     _gtPollBusy = true;
     try { await updateGT(true); } finally { _gtPollBusy = false; }
   }
-}, 3000);
+}, 2000);
 renderLB();
 renderVaults();
 renderJournal();
