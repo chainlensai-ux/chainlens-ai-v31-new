@@ -3647,7 +3647,7 @@ async function updateGT(silent = false) {
         const pairAddrs = items.map(i => i.pos.pairAddress).join(',');
         try {
           const ctrl = new AbortController();
-          const t = setTimeout(() => ctrl.abort(), 4000);
+          const t = setTimeout(() => ctrl.abort(), 2000);
           const r = await fetch('https://api.dexscreener.com/latest/dex/pairs/' + chain + '/' + pairAddrs, { signal: ctrl.signal });
           clearTimeout(t);
           if (r.ok) {
@@ -3664,7 +3664,7 @@ async function updateGT(silent = false) {
         fetches.push((async () => {
           try {
             const ctrl = new AbortController();
-            const t = setTimeout(() => ctrl.abort(), 4000);
+            const t = setTimeout(() => ctrl.abort(), 2000);
             const r = await fetch('https://api.dexscreener.com/latest/dex/tokens/' + tokenFallback.map(([a]) => a).join(','), { signal: ctrl.signal });
             clearTimeout(t);
             if (r.ok) {
@@ -4722,7 +4722,7 @@ document.getElementById('pwa-install-btn')?.addEventListener('click', async () =
 initAuth();
 loadPrices();
 setInterval(loadPrices, 60000);
-// Live PnL refresh every 2 seconds — direct pair lookup is fast; lock prevents stacking
+// Live PnL refresh every 1 second — direct pair lookup is fast; lock prevents stacking
 let _gtPollBusy = false;
 setInterval(async () => {
   if (_gtPollBusy) return;
@@ -4730,7 +4730,7 @@ setInterval(async () => {
     _gtPollBusy = true;
     try { await updateGT(true); } finally { _gtPollBusy = false; }
   }
-}, 2000);
+}, 1000);
 renderLB();
 renderVaults();
 renderJournal();
