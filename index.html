@@ -1786,7 +1786,11 @@ body::after {
 
         <!-- DexScreener Chart -->
         <div id="gt-chart-card" style="display:none;border:1px solid var(--cl-border);border-radius:12px;overflow:hidden;background:#0a0a0f;">
-          <iframe id="gt-dex-iframe" src="" style="width:100%;height:450px;border:none;display:block;" loading="lazy"></iframe>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(120,88,192,0.06);border-bottom:1px solid var(--cl-border);">
+            <span style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--cl-text-3);text-transform:uppercase;" id="gt-chart-label">Live Chart</span>
+            <button onclick="gtCloseChart()" style="padding:3px 10px;background:rgba(239,71,111,0.08);border:1px solid rgba(239,71,111,0.2);border-radius:6px;font-size:10px;font-weight:700;color:#ef476f;cursor:pointer;">✕ Remove</button>
+          </div>
+          <iframe id="gt-dex-iframe" src="" style="width:100%;height:430px;border:none;display:block;" loading="lazy"></iframe>
         </div>
 
         <!-- Empty chart placeholder -->
@@ -3534,6 +3538,12 @@ function loadGTChart(pairAddress, range) {
 
 function gtChartRange(r) {}
 
+function gtCloseChart() {
+  document.getElementById('gt-chart-card').style.display = 'none';
+  document.getElementById('gt-chart-placeholder').style.display = 'flex';
+  document.getElementById('gt-dex-iframe').src = '';
+}
+
 function gtTab(side) {
   gtSide = side;
   const buyTab = document.getElementById('gt-buy-tab');
@@ -3578,12 +3588,15 @@ async function updateGT(silent = false) {
   const holdings = Object.entries(gt.h).filter(([, pos]) => pos.qty > 0.000001);
   const ghd = document.getElementById('ghd');
 
-  // Fetch live prices — single batched proxy call to avoid browser rate-limiting
+  // Fetch live prices — direct fetch to DexScreener (open CORS, no proxy needed = fast)
   if (holdings.length) {
     if (!silent) ghd.innerHTML = '<div style="text-align:center;padding:8px;color:var(--cl-text-3);font-size:11px;"><span class="cl-spinner"></span> Refreshing prices...</div>';
     try {
       const addrs = holdings.map(([addr]) => addr).join(',');
-      const r = await pfetch('https://api.dexscreener.com/latest/dex/tokens/' + addrs);
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 5000);
+      const r = await fetch('https://api.dexscreener.com/latest/dex/tokens/' + addrs, { signal: ctrl.signal });
+      clearTimeout(timer);
       if (r.ok) {
         const d = await r.json();
         const pairs = d.pairs || [];
@@ -3652,7 +3665,10 @@ async function gtrade() {
   const amt = parseFloat(document.getElementById('gt-amount').value);
   if (!amt || amt <= 0) { toast('Enter amount', 'er'); return; }
   try {
-    const r = await pfetch('https://api.dexscreener.com/latest/dex/tokens/' + gtToken.address);
+    const ctrl2 = new AbortController();
+    const t2 = setTimeout(() => ctrl2.abort(), 5000);
+    const r = await fetch('https://api.dexscreener.com/latest/dex/tokens/' + gtToken.address, { signal: ctrl2.signal });
+    clearTimeout(t2);
     if (r.ok) { const d = await r.json(); const pairs = d.pairs || []; const p = pairs.find(x => x.priceUsd) || pairs[0]; if (p && p.priceUsd) gtToken.price = parseFloat(p.priceUsd); }
   } catch(e) {}
   const price = gtToken.price;
@@ -3705,8 +3721,12 @@ async function gtrade() {
 function gtReset() {
   if (!confirm('Reset your GhostTrade portfolio? This cannot be undone.')) return;
   gt = { cash: 50000, h: {}, trades: [], start: 50000 };
+  gtToken = null;
   saveGT(); updateGT();
   document.getElementById('gtrades').innerHTML = '<div style="padding:20px 0;text-align:center;color:var(--cl-text-3);font-size:12px;">Portfolio reset. Search a token to start trading.</div>';
+  document.getElementById('gt-trade-panel').style.display = 'none';
+  document.getElementById('gt-search').value = '';
+  gtCloseChart();
   toast('Portfolio reset to $50,000');
 }
 
