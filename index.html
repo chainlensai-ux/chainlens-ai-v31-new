@@ -3730,9 +3730,11 @@ async function gtrade() {
     pos.qty = Math.max(0, pos.qty - qty);
     pos.price = price;
   }
-  const trade = { dir: gtSide, symbol: gtToken.symbol, name: gtToken.name, amt, price, chain: gtToken.chain, time: Date.now() };
+  const tradeUnits = amt / price;
+  const trade = { dir: gtSide, symbol: gtToken.symbol, name: gtToken.name, amt, price, units: tradeUnits, chain: gtToken.chain, time: Date.now() };
   gt.trades.unshift(trade);
   saveGT(); updateGT();
+  if (user) sbData('append', 'ghost_trades', { payload: { type: gtSide.toUpperCase(), symbol: gtToken.symbol, amount: amt, price, units: tradeUnits } });
   document.getElementById('gt-amount').value = '';
   document.getElementById('gt-qty-preview').textContent = 'Qty: —';
   const priceLabel = price < 0.001 ? price.toExponential(2) : price.toFixed(4);
