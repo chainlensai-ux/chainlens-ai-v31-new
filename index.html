@@ -1633,6 +1633,114 @@ body::after {
 #clark-send:hover{opacity:0.85;}
 #clark-send svg{width:14px;height:14px;fill:#fff;}
 @media(max-width:420px){#clark-win{width:calc(100vw - 24px);right:12px;bottom:88px;height:500px;}}
+
+/* ════════════════════════════════════════════════
+   MOTION SYSTEM — spring physics + scroll reveal
+════════════════════════════════════════════════ */
+:root {
+  --cl-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --cl-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Spring-up keyframe (overshoot variant) */
+@keyframes cl-spring-up {
+  from { opacity: 0; transform: translateY(22px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Hero: upgrade all to spring/ease-out + proper stagger */
+.cl-hero__eyebrow { animation: cl-fade-up 0.6s var(--cl-ease-out) 0.05s both; }
+.cl-hero__title   { animation: none; }
+.cl-hero__title span:first-child { animation: cl-spring-up 0.7s var(--cl-spring) 0.12s both; }
+.cl-hero__title span:last-child  { animation: cl-spring-up 0.7s var(--cl-spring) 0.26s both; }
+.cl-hero__sub     { animation: cl-fade-up 0.65s var(--cl-ease-out) 0.38s both; }
+.cl-hero__ctas    { animation: cl-spring-up 0.7s var(--cl-spring) 0.52s both; }
+.cl-stats-strip   { animation: cl-fade-up 0.65s var(--cl-ease-out) 0.66s both; }
+
+/* Slow-drift orbs — gradient mesh movement */
+@keyframes cl-orb-drift {
+  0%,100% { transform: translateX(-50%) scale(1); }
+  33%     { transform: translateX(calc(-50% + 30px)) translateY(-20px) scale(1.06); }
+  66%     { transform: translateX(calc(-50% - 20px)) translateY(14px) scale(0.97); }
+}
+@keyframes cl-orb-drift-2 {
+  0%,100% { transform: translateY(0) scale(1); }
+  40%     { transform: translateX(24px) translateY(-16px) scale(1.08); }
+  70%     { transform: translateX(-10px) translateY(10px) scale(0.95); }
+}
+@keyframes cl-orb-drift-3 {
+  0%,100% { transform: translateY(0) scale(1); }
+  35%     { transform: translateX(-20px) translateY(-12px) scale(1.05); }
+  65%     { transform: translateX(14px) translateY(8px) scale(0.98); }
+}
+.cl-hero__orb--1 { animation: cl-orb-drift 14s ease-in-out infinite; }
+.cl-hero__orb--2 { animation: cl-orb-drift-2 9s ease-in-out infinite reverse; }
+.cl-hero__orb--3 { animation: cl-orb-drift-3 11s ease-in-out 1.5s infinite; }
+
+/* Particle canvas */
+#cl-particles {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 0;
+}
+
+/* Nav link underline slide */
+.cl-nav__link { position: relative; }
+.cl-nav__link::after {
+  content: '';
+  position: absolute; bottom: 1px; left: 50%;
+  width: 0; height: 1px;
+  background: var(--cl-cyan);
+  border-radius: 1px;
+  transition: width 0.25s var(--cl-ease-out), left 0.25s var(--cl-ease-out);
+}
+.cl-nav__link:hover::after { width: 70%; left: 15%; }
+
+/* ── SCROLL REVEAL ── */
+.cl-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.65s var(--cl-ease-out), transform 0.65s var(--cl-ease-out);
+  will-change: opacity, transform;
+}
+.cl-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+/* Keep free tool cards at 75% opacity once revealed */
+.cl-tool-card--free.is-visible { opacity: 0.75; }
+.cl-tool-card--free.is-visible:hover { opacity: 1; }
+
+/* Stagger delays for grouped reveals */
+.cl-stagger > .cl-reveal:nth-child(1)  { transition-delay: 0s; }
+.cl-stagger > .cl-reveal:nth-child(2)  { transition-delay: 0.07s; }
+.cl-stagger > .cl-reveal:nth-child(3)  { transition-delay: 0.14s; }
+.cl-stagger > .cl-reveal:nth-child(4)  { transition-delay: 0.21s; }
+.cl-stagger > .cl-reveal:nth-child(5)  { transition-delay: 0.28s; }
+.cl-stagger > .cl-reveal:nth-child(6)  { transition-delay: 0.35s; }
+.cl-stagger > .cl-reveal:nth-child(7)  { transition-delay: 0.42s; }
+.cl-stagger > .cl-reveal:nth-child(8)  { transition-delay: 0.49s; }
+.cl-stagger > .cl-reveal:nth-child(9)  { transition-delay: 0.56s; }
+.cl-stagger > .cl-reveal:nth-child(10) { transition-delay: 0.63s; }
+.cl-stagger > .cl-reveal:nth-child(11) { transition-delay: 0.70s; }
+.cl-stagger > .cl-reveal:nth-child(12) { transition-delay: 0.77s; }
+.cl-stagger > .cl-reveal:nth-child(13) { transition-delay: 0.84s; }
+.cl-stagger > .cl-reveal:nth-child(14) { transition-delay: 0.91s; }
+.cl-stagger > .cl-reveal:nth-child(15) { transition-delay: 0.98s; }
+
+/* Section header reveals */
+.cl-section__eyebrow.cl-reveal { transition-delay: 0s; }
+.cl-section__title.cl-reveal    { transition-delay: 0.1s; }
+.cl-section__sub.cl-reveal      { transition-delay: 0.18s; }
+
+/* Pricing card stagger */
+.cl-pricing-grid.cl-stagger > .cl-pricing-card { transition-duration: 0.6s; }
+.cl-pricing-grid.cl-stagger > .cl-pricing-card:nth-child(1) { transition-delay: 0s; }
+.cl-pricing-grid.cl-stagger > .cl-pricing-card:nth-child(2) { transition-delay: 0.12s; }
+.cl-pricing-grid.cl-stagger > .cl-pricing-card:nth-child(3) { transition-delay: 0.24s; }
+/* Featured card: preserve scale(1.03) alongside reveal transform */
+.cl-pricing-card--featured.cl-reveal         { transform: scale(1.03) translateY(28px); }
+.cl-pricing-card--featured.is-visible        { transform: scale(1.03) translateY(0); }
+.cl-pricing-card--featured.is-visible:hover  { transform: scale(1.03) translateY(-6px); }
 </style>
 
 </head>
@@ -1756,6 +1864,7 @@ body::after {
 <div class="cl-page active" id="pg-home">
   <!-- Hero -->
   <section class="cl-hero">
+    <canvas id="cl-particles"></canvas>
     <div class="cl-hero__orb cl-hero__orb--1"></div>
     <div class="cl-hero__orb cl-hero__orb--2"></div>
     <div class="cl-hero__orb cl-hero__orb--3"></div>
@@ -1797,105 +1906,105 @@ body::after {
 
     <!-- Tools Section -->
     <section class="cl-section">
-      <div class="cl-section__eyebrow">Tools</div>
-      <h2 class="cl-section__title">Every edge you need. <span>Ranked by tier.</span></h2>
-      <p class="cl-section__sub">Free tools to get started. Upgrade for the signals that actually move your portfolio.</p>
+      <div class="cl-section__eyebrow cl-reveal">Tools</div>
+      <h2 class="cl-section__title cl-reveal">Every edge you need. <span>Ranked by tier.</span></h2>
+      <p class="cl-section__sub cl-reveal">Free tools to get started. Upgrade for the signals that actually move your portfolio.</p>
 
-      <div class="cl-tools-grid">
+      <div class="cl-tools-grid cl-stagger">
         <!-- FREE -->
-        <div class="cl-tool-card cl-tool-card--free" onclick="go('bearproof')">
+        <div class="cl-tool-card cl-tool-card--free cl-reveal" onclick="go('bearproof')">
           <div class="cl-tool-card__dot cl-tool-card__dot--free"></div>
           <div class="cl-tool-card__name">BearProof Score™</div>
           <div class="cl-tool-card__desc">How resilient is your portfolio in a crash? Score out of 100.</div>
           <span class="cl-badge cl-badge--free">Free</span>
         </div>
-        <div class="cl-tool-card cl-tool-card--free" onclick="go('leaderboard')">
+        <div class="cl-tool-card cl-tool-card--free cl-reveal" onclick="go('leaderboard')">
           <div class="cl-tool-card__dot cl-tool-card__dot--free"></div>
           <div class="cl-tool-card__name">GlobalRank™</div>
           <div class="cl-tool-card__desc">Predict markets, earn rank. Global trader leaderboard.</div>
           <span class="cl-badge cl-badge--free">Free</span>
         </div>
         <!-- PRO -->
-        <div class="cl-tool-card cl-tool-card--pro" onclick="go('edgescan')">
+        <div class="cl-tool-card cl-tool-card--pro cl-reveal" onclick="go('edgescan')">
           <div class="cl-tool-card__dot cl-tool-card__dot--pro"></div>
           <div class="cl-tool-card__name">EdgeScan™ AI</div>
           <div class="cl-tool-card__desc">Ask anything about crypto. Live data-backed AI analysis.</div>
           <span class="cl-badge cl-badge--pro">Pro</span>
         </div>
-        <div class="cl-tool-card cl-tool-card--pro" onclick="go('digradar')">
+        <div class="cl-tool-card cl-tool-card--pro cl-reveal" onclick="go('digradar')">
           <div class="cl-tool-card__dot cl-tool-card__dot--pro"></div>
           <div class="cl-tool-card__name">DipRadar™</div>
           <div class="cl-tool-card__desc">AI scans for real-time dips. Opportunity or falling knife?</div>
           <span class="cl-badge cl-badge--pro">Pro</span>
         </div>
-        <div class="cl-tool-card cl-tool-card--pro" onclick="go('ghosttrade')">
+        <div class="cl-tool-card cl-tool-card--pro cl-reveal" onclick="go('ghosttrade')">
           <div class="cl-tool-card__dot cl-tool-card__dot--pro"></div>
           <div class="cl-tool-card__name">GhostTrade™</div>
           <div class="cl-tool-card__desc">$50,000 virtual money. Real prices. AI coaching every trade.</div>
           <span class="cl-badge cl-badge--pro">Pro</span>
         </div>
-        <div class="cl-tool-card cl-tool-card--pro" onclick="go('tradecoach')">
+        <div class="cl-tool-card cl-tool-card--pro cl-reveal" onclick="go('tradecoach')">
           <div class="cl-tool-card__dot cl-tool-card__dot--pro"></div>
           <div class="cl-tool-card__name">TradeCoach™</div>
           <div class="cl-tool-card__desc">Log real trades. AI finds your patterns over time.</div>
           <span class="cl-badge cl-badge--pro">Pro</span>
         </div>
-        <div class="cl-tool-card cl-tool-card--pro" onclick="go('sentiment')">
+        <div class="cl-tool-card cl-tool-card--pro cl-reveal" onclick="go('sentiment')">
           <div class="cl-tool-card__dot cl-tool-card__dot--pro"></div>
           <div class="cl-tool-card__name">SentimentPulse™</div>
           <div class="cl-tool-card__desc">Live Fear & Greed Index with AI interpretation + history.</div>
           <span class="cl-badge cl-badge--pro">Pro</span>
         </div>
-        <div class="cl-tool-card cl-tool-card--pro" onclick="go('taxmate')">
+        <div class="cl-tool-card cl-tool-card--pro cl-reveal" onclick="go('taxmate')">
           <div class="cl-tool-card__dot cl-tool-card__dot--pro"></div>
           <div class="cl-tool-card__name">TaxMate™</div>
           <div class="cl-tool-card__desc">Country-specific crypto tax guidance from AI.</div>
           <span class="cl-badge cl-badge--pro">Pro</span>
         </div>
-        <div class="cl-tool-card cl-tool-card--pro" onclick="go('alerts')">
+        <div class="cl-tool-card cl-tool-card--pro cl-reveal" onclick="go('alerts')">
           <div class="cl-tool-card__dot cl-tool-card__dot--pro"></div>
           <div class="cl-tool-card__name">Price Alerts</div>
           <div class="cl-tool-card__desc">Set targets. Get notified instantly in-browser.</div>
           <span class="cl-badge cl-badge--pro">Pro</span>
         </div>
-        <div class="cl-tool-card cl-tool-card--pro" onclick="go('tokenunlocks')">
+        <div class="cl-tool-card cl-tool-card--pro cl-reveal" onclick="go('tokenunlocks')">
           <div class="cl-tool-card__dot cl-tool-card__dot--pro"></div>
           <div class="cl-tool-card__name">Token Unlocks™</div>
           <div class="cl-tool-card__desc">Upcoming token unlock risk analysis + AI impact score.</div>
           <span class="cl-badge cl-badge--pro">Pro</span>
         </div>
         <!-- ELITE -->
-        <div class="cl-tool-card cl-tool-card--elite" onclick="go('walletscan')">
+        <div class="cl-tool-card cl-tool-card--elite cl-reveal" onclick="go('walletscan')">
           <div class="cl-tool-card__dot cl-tool-card__dot--elite"></div>
           <div class="cl-tool-card__name">WalletScan™</div>
           <div class="cl-tool-card__desc">Full multi-chain wallet intelligence. ETH, BTC, SOL, BNB.</div>
           <span class="cl-badge cl-badge--elite">Elite</span>
         </div>
-        <div class="cl-tool-card cl-tool-card--elite" onclick="go('signals')">
+        <div class="cl-tool-card cl-tool-card--elite cl-reveal" onclick="go('signals')">
           <div class="cl-tool-card__dot cl-tool-card__dot--elite"></div>
           <div class="cl-tool-card__name">SignalBreaker™</div>
           <div class="cl-tool-card__desc">AI buy/sell confidence signal scores for 150+ coins.</div>
           <span class="cl-badge cl-badge--elite">Elite</span>
         </div>
-        <div class="cl-tool-card cl-tool-card--elite" onclick="go('pumpalert')">
+        <div class="cl-tool-card cl-tool-card--elite cl-reveal" onclick="go('pumpalert')">
           <div class="cl-tool-card__dot cl-tool-card__dot--elite"></div>
           <div class="cl-tool-card__name">PumpAlert™</div>
           <div class="cl-tool-card__desc">Early pump detection before the crowd notices.</div>
           <span class="cl-badge cl-badge--elite">Elite</span>
         </div>
-        <div class="cl-tool-card cl-tool-card--elite" onclick="go('narrative')">
+        <div class="cl-tool-card cl-tool-card--elite cl-reveal" onclick="go('narrative')">
           <div class="cl-tool-card__dot cl-tool-card__dot--elite"></div>
           <div class="cl-tool-card__name">NarrativeRank™</div>
           <div class="cl-tool-card__desc">Which crypto sectors are gaining momentum right now?</div>
           <span class="cl-badge cl-badge--elite">Elite</span>
         </div>
-        <div class="cl-tool-card cl-tool-card--elite" onclick="go('smartwallets')">
+        <div class="cl-tool-card cl-tool-card--elite cl-reveal" onclick="go('smartwallets')">
           <div class="cl-tool-card__dot cl-tool-card__dot--elite"></div>
           <div class="cl-tool-card__name">Smart Wallets™</div>
           <div class="cl-tool-card__desc">Track and follow elite on-chain wallets.</div>
           <span class="cl-badge cl-badge--elite">Elite</span>
         </div>
-        <div class="cl-tool-card cl-tool-card--elite" onclick="go('proofvault')">
+        <div class="cl-tool-card cl-tool-card--elite cl-reveal" onclick="go('proofvault')">
           <div class="cl-tool-card__dot cl-tool-card__dot--elite"></div>
           <div class="cl-tool-card__name">ProofVault™</div>
           <div class="cl-tool-card__desc">Sign & timestamp your predictions forever on-chain.</div>
@@ -1906,11 +2015,11 @@ body::after {
 
     <!-- Pricing Section -->
     <section class="cl-section" style="padding-bottom:60px;">
-      <div class="cl-section__eyebrow">Pricing</div>
-      <h2 class="cl-section__title">Built for <span>serious traders.</span></h2>
-      <p class="cl-section__sub" style="max-width:100%;margin-bottom:40px;">Start free. Upgrade when you're ready. Cancel any time. No hidden fees.</p>
-      <div class="cl-pricing-grid">
-        <div class="cl-pricing-card">
+      <div class="cl-section__eyebrow cl-reveal">Pricing</div>
+      <h2 class="cl-section__title cl-reveal">Built for <span>serious traders.</span></h2>
+      <p class="cl-section__sub cl-reveal" style="max-width:100%;margin-bottom:40px;">Start free. Upgrade when you're ready. Cancel any time. No hidden fees.</p>
+      <div class="cl-pricing-grid cl-stagger">
+        <div class="cl-pricing-card cl-reveal">
           <div class="cl-pricing-tier">Free</div>
           <div class="cl-pricing-amount">$0</div>
           <div class="cl-pricing-period">forever free</div>
@@ -1921,7 +2030,7 @@ body::after {
           </ul>
           <button class="cl-btn cl-btn--secondary cl-btn--full" onclick="openAuth('signup')">Get Started</button>
         </div>
-        <div class="cl-pricing-card cl-pricing-card--featured">
+        <div class="cl-pricing-card cl-pricing-card--featured cl-reveal">
           <div class="cl-pricing-badge">Most Popular</div>
           <div class="cl-pricing-tier cl-pricing-tier--pro">Pro</div>
           <div class="cl-pricing-amount">$30</div>
@@ -1937,7 +2046,7 @@ body::after {
           </ul>
           <button class="cl-btn cl-btn--primary cl-btn--full" onclick="openAuth('signup')">Start Free Trial</button>
         </div>
-        <div class="cl-pricing-card cl-pricing-card--elite">
+        <div class="cl-pricing-card cl-pricing-card--elite cl-reveal">
           <div class="cl-pricing-tier cl-pricing-tier--elite">Elite</div>
           <div class="cl-pricing-amount">$60</div>
           <div class="cl-pricing-period">per month · 7-day free trial</div>
@@ -5966,6 +6075,187 @@ setTimeout(() => { if (!clarkHistory[clarkAgent].length) clarkGreet(); }, 500);
     <button id="clark-send" onclick="clarkSend()"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
   </div>
 </div>
+
+<!-- ═════════════════════════════════════
+  MOTION SYSTEM — particles, scroll reveal, count-up
+═════════════════════════════════════ -->
+<script>
+(function() {
+  'use strict';
+
+  /* ── Particle canvas ── */
+  function initParticles() {
+    var canvas = document.getElementById('cl-particles');
+    if (!canvas) return;
+    var hero = canvas.closest('.cl-hero');
+    if (!hero) return;
+    var ctx = canvas.getContext('2d');
+    var W, H, nodes, raf;
+
+    function resize() {
+      W = canvas.width  = hero.offsetWidth;
+      H = canvas.height = hero.offsetHeight;
+    }
+
+    function makeNodes(n) {
+      var arr = [];
+      for (var i = 0; i < n; i++) {
+        arr.push({
+          x:  Math.random() * W,
+          y:  Math.random() * H,
+          vx: (Math.random() - 0.5) * 0.35,
+          vy: (Math.random() - 0.5) * 0.35,
+          r:  Math.random() * 1.5 + 0.5
+        });
+      }
+      return arr;
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      var n = nodes.length;
+
+      /* update positions */
+      for (var i = 0; i < n; i++) {
+        var nd = nodes[i];
+        nd.x += nd.vx;
+        nd.y += nd.vy;
+        if (nd.x < 0 || nd.x > W) nd.vx *= -1;
+        if (nd.y < 0 || nd.y > H) nd.vy *= -1;
+      }
+
+      /* draw connections */
+      var maxDist = 120;
+      for (var a = 0; a < n; a++) {
+        for (var b = a + 1; b < n; b++) {
+          var dx = nodes[a].x - nodes[b].x;
+          var dy = nodes[a].y - nodes[b].y;
+          var dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < maxDist) {
+            var alpha = (1 - dist / maxDist) * 0.15;
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(120,88,192,' + alpha + ')';
+            ctx.lineWidth = 0.5;
+            ctx.moveTo(nodes[a].x, nodes[a].y);
+            ctx.lineTo(nodes[b].x, nodes[b].y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      /* draw nodes */
+      for (var i = 0; i < n; i++) {
+        var nd = nodes[i];
+        ctx.beginPath();
+        ctx.arc(nd.x, nd.y, nd.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(120,88,192,0.35)';
+        ctx.fill();
+      }
+
+      raf = requestAnimationFrame(draw);
+    }
+
+    resize();
+    nodes = makeNodes(window.innerWidth < 600 ? 20 : 36);
+    draw();
+
+    window.addEventListener('resize', function() {
+      resize();
+      nodes = makeNodes(window.innerWidth < 600 ? 20 : 36);
+    });
+  }
+
+  /* ── Stats count-up ── */
+  function initCountUp() {
+    var targets = [
+      { el: null, selector: '.cl-stat__num', targets: [] }
+    ];
+    var nums = document.querySelectorAll('.cl-stat__num');
+    nums.forEach(function(el) {
+      var raw = el.textContent.trim();
+      var match = raw.match(/^(\d+)(\+?)$/);
+      if (!match) return;
+      var end = parseInt(match[1], 10);
+      var suffix = match[2] || '';
+      el.textContent = '0' + suffix;
+      el._countTarget = end;
+      el._countSuffix = suffix;
+      el._countDone = false;
+    });
+
+    function runCount(el) {
+      if (el._countDone) return;
+      el._countDone = true;
+      var end = el._countTarget;
+      var suffix = el._countSuffix;
+      var start = 0;
+      var duration = 1200;
+      var startTime = null;
+      function step(ts) {
+        if (!startTime) startTime = ts;
+        var progress = Math.min((ts - startTime) / duration, 1);
+        /* ease-out */
+        var eased = 1 - Math.pow(1 - progress, 3);
+        var val = Math.round(eased * end);
+        el.textContent = val + suffix;
+        if (progress < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    /* trigger count-up when stats strip becomes visible */
+    var strip = document.querySelector('.cl-stats-strip');
+    if (!strip) return;
+    var io = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (e.isIntersecting) {
+          document.querySelectorAll('.cl-stat__num').forEach(function(el) {
+            if (el._countTarget !== undefined) runCount(el);
+          });
+          io.disconnect();
+        }
+      });
+    }, { threshold: 0.5 });
+    io.observe(strip);
+  }
+
+  /* ── Scroll reveal (Intersection Observer) ── */
+  function initScrollReveal() {
+    var revealEls = document.querySelectorAll('.cl-reveal');
+    if (!revealEls.length) return;
+
+    var io = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          io.unobserve(entry.target);
+        }
+      });
+    }, {
+      threshold: 0.08,
+      rootMargin: '0px 0px -40px 0px'
+    });
+
+    revealEls.forEach(function(el) {
+      io.observe(el);
+    });
+  }
+
+  /* ── Init ── */
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      initParticles();
+      initCountUp();
+      initScrollReveal();
+    });
+  } else {
+    initParticles();
+    initCountUp();
+    initScrollReveal();
+  }
+
+})();
+</script>
 
 </body>
 </html>
