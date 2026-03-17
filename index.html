@@ -1083,6 +1083,86 @@ body::after {
   .cl-trust-stat { padding: 8px 14px; }
 }
 
+/* ── TESTIMONIALS ── */
+.cl-testi-section {
+  padding: 90px 0 80px;
+  position: relative; overflow: hidden;
+  text-align: center;
+}
+.cl-testi-section::before {
+  content: '';
+  position: absolute; left: 50%; top: 0; transform: translateX(-50%);
+  width: 600px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(120,88,192,0.35), rgba(0,255,200,0.2), transparent);
+}
+.cl-testi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px; margin-top: 48px; text-align: left;
+}
+.cl-testi {
+  background: rgba(255,255,255,0.025);
+  border: 1px solid var(--cl-border);
+  border-radius: 16px; padding: 28px 24px;
+  display: flex; flex-direction: column; gap: 14px;
+  transition: border-color 0.3s, background 0.3s, transform 0.3s;
+  position: relative; overflow: hidden;
+}
+.cl-testi::before {
+  content: '"';
+  position: absolute; top: 12px; right: 18px;
+  font-size: 64px; line-height: 1;
+  color: rgba(120,88,192,0.1);
+  font-family: Georgia, serif; pointer-events: none;
+}
+.cl-testi:hover {
+  border-color: rgba(120,88,192,0.3);
+  background: rgba(120,88,192,0.04);
+  transform: translateY(-3px);
+}
+.cl-testi__stars {
+  color: #ffd60a; font-size: 12px; letter-spacing: 2px;
+}
+.cl-testi__quote {
+  font-size: 13px; color: var(--cl-text-1); line-height: 1.7;
+  flex: 1; font-style: italic;
+}
+.cl-testi__footer {
+  display: flex; align-items: center; gap: 10px;
+  padding-top: 12px; border-top: 1px solid var(--cl-border);
+  flex-wrap: wrap;
+}
+.cl-testi__avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; color: #fff;
+  flex-shrink: 0; font-family: 'Syne', sans-serif;
+}
+.cl-testi__name {
+  font-size: 12px; font-weight: 700; color: var(--cl-text-1);
+  font-family: 'JetBrains Mono', monospace;
+}
+.cl-testi__meta { font-size: 10px; color: var(--cl-text-4); margin-top: 1px; }
+.cl-testi__badge {
+  margin-left: auto; padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 800; font-family: 'Syne', sans-serif;
+  white-space: nowrap;
+}
+.cl-testi__badge--green { background: rgba(0,255,200,0.1); color: #00ffc8; border: 1px solid rgba(0,255,200,0.25); }
+.cl-testi__badge--violet { background: rgba(120,88,192,0.12); color: #a78bfa; border: 1px solid rgba(120,88,192,0.3); }
+.cl-testi__badge--yellow { background: rgba(255,214,10,0.1); color: #ffd60a; border: 1px solid rgba(255,214,10,0.25); }
+.cl-testi__cta {
+  margin-top: 48px; display: flex;
+  flex-direction: column; align-items: center; gap: 16px;
+}
+.cl-testi__cta-note {
+  font-size: 13px; color: var(--cl-text-3);
+}
+
+/* ── TESTIMONIALS MOBILE ── */
+@media (max-width: 900px) { .cl-testi-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .cl-testi-grid { grid-template-columns: 1fr; } }
+
 /* ── TERMINAL CTA ── */
 .cl-terminal-cta {
   position: relative; overflow: hidden;
@@ -2829,6 +2909,100 @@ body::after {
           <div class="cl-tool-card__desc">Sign & timestamp your predictions forever on-chain.</div>
           <span class="cl-badge cl-badge--elite">Elite</span>
         </div>
+      </div>
+    </section>
+
+    <!-- ═══ TESTIMONIALS ═══ -->
+    <section class="cl-testi-section">
+      <div class="cl-section__eyebrow cl-reveal">Real Results</div>
+      <h2 class="cl-section__title cl-reveal">Traders who stopped<br><span>guessing</span></h2>
+      <p class="cl-section__sub cl-reveal">From aping into rugs to finding smart money wallets before the move.</p>
+
+      <div class="cl-testi-grid cl-stagger">
+
+        <div class="cl-testi cl-reveal">
+          <div class="cl-testi__stars">★★★★★</div>
+          <p class="cl-testi__quote">"WalletScan found a wallet that had already bought into 4 tokens that later 5x'd. I started copying those entries and my PnL completely changed."</p>
+          <div class="cl-testi__footer">
+            <div class="cl-testi__avatar" style="background:linear-gradient(135deg,#7858c0,#00ffc8);">DK</div>
+            <div>
+              <div class="cl-testi__name">@degenk1ng</div>
+              <div class="cl-testi__meta">Elite · ETH trader</div>
+            </div>
+            <div class="cl-testi__badge cl-testi__badge--green">+$14,200</div>
+          </div>
+        </div>
+
+        <div class="cl-testi cl-reveal">
+          <div class="cl-testi__stars">★★★★★</div>
+          <p class="cl-testi__quote">"GhostTrade let me paper trade the exact strategy I was scared to run live. After two weeks my win rate hit 71%. Then I ran it for real."</p>
+          <div class="cl-testi__footer">
+            <div class="cl-testi__avatar" style="background:linear-gradient(135deg,#f72585,#7858c0);">AL</div>
+            <div>
+              <div class="cl-testi__name">@alpha_lex</div>
+              <div class="cl-testi__meta">Pro · SOL trader</div>
+            </div>
+            <div class="cl-testi__badge cl-testi__badge--violet">71% WR</div>
+          </div>
+        </div>
+
+        <div class="cl-testi cl-reveal">
+          <div class="cl-testi__stars">★★★★★</div>
+          <p class="cl-testi__quote">"PumpAlert pinged me on a Base token at $180K market cap. I was in at $200K. It hit $3.4M in 6 hours. That one alert paid for a year of Elite."</p>
+          <div class="cl-testi__footer">
+            <div class="cl-testi__avatar" style="background:linear-gradient(135deg,#00ffc8,#0080ff);">NW</div>
+            <div>
+              <div class="cl-testi__name">@nw_onchain</div>
+              <div class="cl-testi__meta">Elite · Base chain</div>
+            </div>
+            <div class="cl-testi__badge cl-testi__badge--green">+1,600%</div>
+          </div>
+        </div>
+
+        <div class="cl-testi cl-reveal">
+          <div class="cl-testi__stars">★★★★★</div>
+          <p class="cl-testi__quote">"BearProof showed my portfolio was 94% small-cap altcoins. I didn't realise how exposed I was. Rebalanced before the correction. Best decision I made."</p>
+          <div class="cl-testi__footer">
+            <div class="cl-testi__avatar" style="background:linear-gradient(135deg,#ffd60a,#ff6b35);">MR</div>
+            <div>
+              <div class="cl-testi__name">@macro_rex</div>
+              <div class="cl-testi__meta">Pro · Multi-chain</div>
+            </div>
+            <div class="cl-testi__badge cl-testi__badge--yellow">Risk saved</div>
+          </div>
+        </div>
+
+        <div class="cl-testi cl-reveal">
+          <div class="cl-testi__stars">★★★★★</div>
+          <p class="cl-testi__quote">"EdgeScan saved me from a rug. I asked if the token was safe and it flagged bundled wallets, low liquidity lock and a dev wallet holding 18%. I sold immediately."</p>
+          <div class="cl-testi__footer">
+            <div class="cl-testi__avatar" style="background:linear-gradient(135deg,#7858c0,#f72585);">ZX</div>
+            <div>
+              <div class="cl-testi__name">@0xzephyr</div>
+              <div class="cl-testi__meta">Pro · Meme trader</div>
+            </div>
+            <div class="cl-testi__badge cl-testi__badge--violet">Rug avoided</div>
+          </div>
+        </div>
+
+        <div class="cl-testi cl-reveal">
+          <div class="cl-testi__stars">★★★★★</div>
+          <p class="cl-testi__quote">"SignalBreaker had a 9/10 buy score on ETH at $3,100. I loaded more than I normally would have. Sold at $3,800. The signal was genuinely ahead of the move."</p>
+          <div class="cl-testi__footer">
+            <div class="cl-testi__avatar" style="background:linear-gradient(135deg,#00ffc8,#7858c0);">TB</div>
+            <div>
+              <div class="cl-testi__name">@the_blokchain</div>
+              <div class="cl-testi__meta">Elite · ETH/BTC</div>
+            </div>
+            <div class="cl-testi__badge cl-testi__badge--green">+22.5%</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="cl-testi__cta cl-reveal">
+        <p class="cl-testi__cta-note">Join thousands of traders using ChainLens AI every day</p>
+        <button class="cl-btn cl-btn--primary" onclick="openAuth('signup')">Start Free — No Credit Card</button>
       </div>
     </section>
 
