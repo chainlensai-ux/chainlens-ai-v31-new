@@ -6869,7 +6869,7 @@ Be specific, data-driven, and actionable. Under 180 words.`, 600);
 
     const loadBubble = document.getElementById(loadId);
     if (loadBubble) loadBubble.querySelector('.es-bubble__body').innerHTML =
-      `<div class="es-bubble__text">${txt.replace(/</g,'&lt;')}</div>
+      `<div class="es-bubble__text">${clarkMd(txt)}</div>
        <div class="cl-ai-disclaimer" style="margin-top:8px;font-size:9px;">Not financial advice.</div>`;
   } catch(e) {
     const loadBubble = document.getElementById(loadId);
@@ -7825,7 +7825,10 @@ async function doTC() {
     const coaching = await ai(`You are ChainLens AI TradeCoach™. Analyse this trade and provide coaching.
 Trade: ${type.toUpperCase()} ${coin} for $${amt} at ${price||'market'} | Reason: ${reason||'none'} | Emotion: ${emotion||'not stated'}
 Past trades: ${journal.slice(-3).map(j => `${j.type} ${j.coin}`).join(', ') || 'none'}
-Provide: 1) What they did well 2) What to watch out for 3) Pattern (if any from history). Under 150 words.`, 400);
+Reply ONLY in this format:
+WELL: [what they did well — one sentence]
+WATCH: [what to watch out for — one sentence]
+PATTERN: [pattern from trade history, or "First trade logged" if no history]`, 350);
     const entry = { coin, type, amt, price, reason, emotion, coaching, time: Date.now() };
     journal.unshift(entry);
     localStorage.setItem('cl_tc_j', JSON.stringify(journal.slice(0, 50)));
@@ -7890,7 +7893,15 @@ function renderJournal() {
         <span class="tc-entry__date">${new Date(j.time).toLocaleDateString()}</span>
       </div>
       ${j.reason ? `<div class="tc-entry__reason">${j.reason}</div>` : ''}
-      <div class="tc-entry__coaching">🤖 ${j.coaching}</div>
+      ${(function(c){
+        const w = c.match(/WELL:\s*(.+)/i), wt = c.match(/WATCH:\s*(.+)/i), p = c.match(/PATTERN:\s*(.+)/i);
+        if (w && wt && p) return `<div style="display:grid;gap:5px;margin-top:6px;">
+          <div style="background:rgba(0,255,200,0.06);border-left:2px solid #00ffc8;border-radius:0 6px 6px 0;padding:6px 10px;font-size:11px;color:var(--cl-text-2);line-height:1.5;"><span style="font-weight:800;color:#00ffc8;margin-right:5px;">✓ Well</span>${w[1].trim()}</div>
+          <div style="background:rgba(240,180,41,0.06);border-left:2px solid #f0b429;border-radius:0 6px 6px 0;padding:6px 10px;font-size:11px;color:var(--cl-text-2);line-height:1.5;"><span style="font-weight:800;color:#f0b429;margin-right:5px;">⚠ Watch</span>${wt[1].trim()}</div>
+          <div style="background:rgba(120,88,192,0.06);border-left:2px solid rgba(120,88,192,0.5);border-radius:0 6px 6px 0;padding:6px 10px;font-size:11px;color:var(--cl-text-2);line-height:1.5;"><span style="font-weight:800;color:var(--cl-violet-light);margin-right:5px;">📊 Pattern</span>${p[1].trim()}</div>
+        </div>`;
+        return `<div class="tc-entry__coaching">🤖 ${clarkMd(c)}</div>`;
+      })(j.coaching)}
     </div>`).join('');
 }
 
@@ -8227,17 +8238,51 @@ async function analysePAModal(id, name, sym, pct, type) {
   name = decodeURIComponent(name);
   const modal = document.getElementById('pa-modal'), body = document.getElementById('pa-modal-body');
   document.getElementById('pa-modal-title').textContent = `${name} (${sym}) AI Analysis`;
-  modal.style.display = 'block'; body.textContent = '';
-  body.innerHTML = '<span class="cl-spinner"></span> Analysing...';
+  modal.style.display = 'block';
+  body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--cl-text-3);font-size:12px;"><span class="cl-spinner"></span> Analysing ' + sym + '...</div>';
   modal.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   try {
     const txt = await ai(`You are ChainLens AI PumpAlert™. Analyse this ${type} event.
 Coin: ${name} (${sym}) | 24h change: ${pct}% | Type: ${type.toUpperCase()}
 Live prices: ${ctx()}
-Is this: 1) Organic movement or manipulation? 2) What's driving it? 3) What should traders do? Under 150 words.`, 400);
-    body.textContent = txt;
-    body.insertAdjacentHTML('beforeend', '<div class="cl-ai-disclaimer">Not financial advice.</div>');
-  } catch(e) { body.textContent = 'Error. Try again.'; }
+Reply in this EXACT format:
+ASSESSMENT: [ORGANIC/MANIPULATION/MIXED — one sentence why]
+DRIVER: [what is driving this move in one sentence]
+ACTION: [what traders should do right now]`, 350);
+    const asMatch = txt.match(/ASSESSMENT:\s*(.+)/i);
+    const drMatch = txt.match(/DRIVER:\s*(.+)/i);
+    const acMatch = txt.match(/ACTION:\s*(.+)/i);
+    if (asMatch && drMatch && acMatch) {
+      const assessment = (asMatch[1] || '').trim();
+      const isOrganic = assessment.toUpperCase().startsWith('ORGANIC');
+      const isManip = assessment.toUpperCase().startsWith('MANIP');
+      const badgeColor = isOrganic ? '#00ffc8' : isManip ? '#ef476f' : '#f0b429';
+      const badgeLabel = isOrganic ? '✓ ORGANIC' : isManip ? '⚠ MANIPULATION' : '~ MIXED SIGNALS';
+      const typeColor = type === 'pump' ? '#00ffc8' : '#ef476f';
+      body.innerHTML = `
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+          <span style="background:rgba(${type==='pump'?'0,255,200':'239,71,111'},0.1);border:1px solid rgba(${type==='pump'?'0,255,200':'239,71,111'},0.3);color:${typeColor};border-radius:16px;padding:3px 10px;font-size:10px;font-weight:800;">${type.toUpperCase()} ${pct > 0 ? '+' : ''}${pct}%</span>
+          <span style="background:rgba(${isOrganic?'0,255,200':isManip?'239,71,111':'240,180,41'},0.1);border:1px solid rgba(${isOrganic?'0,255,200':isManip?'239,71,111':'240,180,41'},0.3);color:${badgeColor};border-radius:16px;padding:3px 10px;font-size:10px;font-weight:800;">${badgeLabel}</span>
+        </div>
+        <div style="display:grid;gap:8px;">
+          <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:10px 12px;">
+            <div style="font-size:9px;color:var(--cl-text-4);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Assessment</div>
+            <div style="font-size:12px;color:var(--cl-text-2);line-height:1.5;">${asMatch[1].trim()}</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:10px 12px;">
+            <div style="font-size:9px;color:var(--cl-text-4);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Driver</div>
+            <div style="font-size:12px;color:var(--cl-text-2);line-height:1.5;">${drMatch[1].trim()}</div>
+          </div>
+          <div style="background:rgba(120,88,192,0.08);border:1px solid rgba(120,88,192,0.2);border-radius:8px;padding:10px 12px;">
+            <div style="font-size:9px;color:var(--cl-violet-light);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;font-weight:800;">Trader Action</div>
+            <div style="font-size:12px;color:var(--cl-text);line-height:1.5;font-weight:600;">${acMatch[1].trim()}</div>
+          </div>
+        </div>
+        <div class="cl-ai-disclaimer" style="margin-top:10px;">Not financial advice.</div>`;
+    } else {
+      body.innerHTML = `<div style="font-size:12px;color:var(--cl-text-2);line-height:1.6;">${txt.replace(/</g,'&lt;')}</div><div class="cl-ai-disclaimer" style="margin-top:10px;">Not financial advice.</div>`;
+    }
+  } catch(e) { body.innerHTML = '<div style="color:var(--cl-red);font-size:12px;">Error. Try again.</div>'; }
 }
 
 // ══════════════════════════════════════════════
