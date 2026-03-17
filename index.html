@@ -8370,16 +8370,22 @@ function renderLB() {
   const rankColors = ['#f0b429','#aab4c4','#cd7f32'];
   document.getElementById('lb-list').innerHTML = data.map((e, i) => {
     const sc = e.score >= 90 ? '#00ffc8' : e.score >= 80 ? '#7858c0' : e.score >= 70 ? '#f0b429' : '#ef476f';
+    const dirColor = e.dir === 'LONG' ? '#00ffc8' : '#ef476f';
+    const dirLabel = e.dir === 'LONG' ? '↑ LONG' : '↓ SHORT';
+    const rankIcon = i < 3 ? ['🥇','🥈','🥉'][i] : i + 1;
     return `<div class="cl-lb-row">
-      <div class="cl-lb-rank" style="color:${rankColors[i]||'var(--cl-text-3)'};">${i < 3 ? ['🥇','🥈','🥉'][i] : i+1}</div>
+      <div class="cl-lb-rank" style="color:${rankColors[i]||'var(--cl-text-3)'};">${rankIcon}</div>
       <div class="cl-lb-avatar" style="background:${colors[i%colors.length]};">${e.name[0]}</div>
       <div class="cl-lb-info">
-        <div class="cl-lb-name">${e.name}</div>
-        <div class="cl-lb-detail">${e.country} · ${e.dir} · <span style="color:var(--cl-text-2);">${e.pred}</span></div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <span class="cl-lb-name">${e.name}</span>
+          <span style="background:rgba(${e.dir==='LONG'?'0,255,200':'239,71,111'},0.1);border:1px solid rgba(${e.dir==='LONG'?'0,255,200':'239,71,111'},0.25);color:${dirColor};border-radius:10px;padding:1px 7px;font-size:9px;font-weight:800;white-space:nowrap;">${dirLabel}</span>
+        </div>
+        <div class="cl-lb-detail">${e.country} · <span style="color:var(--cl-text-2);">${e.pred}</span></div>
       </div>
-      <div style="text-align:right;">
+      <div style="text-align:right;flex-shrink:0;">
         <div class="cl-lb-score" style="color:${sc};">${e.score.toFixed(1)}%</div>
-        <div class="cl-lb-count">${e.count} predictions</div>
+        <div class="cl-lb-count">${e.count} pred${e.count !== 1 ? 's' : ''}</div>
       </div>
     </div>`;
   }).join('') || '<div style="text-align:center;padding:28px;color:var(--cl-text-3);">No traders yet.</div>';
@@ -8728,14 +8734,26 @@ async function doWS() {
       'DEGEN SCORE: ' + degenScore.score + '/100 (' + degenScore.label + ') - ' + degenScore.smallCapPct + '% small caps, ' + degenScore.activeChainCount + ' chains',
       'ACTIVITY: ' + degenScore.txCount + ' txs, first ' + firstTxDate + ', last ' + lastTxDate,
       'RECENT: ' + (recentTxs || 'none'),
-      'Give sharp analysis: 1) Trading pattern (aper/accumulator/flipper/diamond hands) 2) Risk profile 3) One specific actionable insight. Direct, specific, under 180 words.'
+      'Reply in this EXACT format:',
+      'PATTERN: [wallet type: aper/accumulator/flipper/diamond hands + one sentence describing their strategy]',
+      'RISK: [risk level and main risk factor in one sentence]',
+      'INSIGHT: [one specific actionable insight based on their holdings and activity]'
     ].join('\n');
-    ai(aiPrompt, 500).then(aiTxt => {
+    ai(aiPrompt, 400).then(aiTxt => {
       const aiEl = document.getElementById('ws-ai');
-      if (aiEl) {
-        aiEl.classList.remove('ws-terminal--active');
-        aiEl.textContent = aiTxt;
-        aiEl.insertAdjacentHTML('beforeend', '<div class="cl-ai-disclaimer" style="margin-top:12px;">Read-only scan of public blockchain data. Not financial advice.</div>');
+      if (!aiEl) return;
+      aiEl.classList.remove('ws-terminal--active');
+      const ptMatch = aiTxt.match(/PATTERN:\s*(.+)/i);
+      const riMatch = aiTxt.match(/RISK:\s*(.+)/i);
+      const inMatch = aiTxt.match(/INSIGHT:\s*(.+)/i);
+      if (ptMatch && riMatch && inMatch) {
+        aiEl.innerHTML = `<div style="display:grid;gap:8px;">
+          <div style="border-left:2px solid rgba(120,88,192,0.6);padding:6px 10px;"><span style="font-size:9px;letter-spacing:1.5px;color:rgba(120,88,192,0.9);font-weight:800;text-transform:uppercase;display:block;margin-bottom:3px;">Pattern</span><span style="color:rgba(255,255,255,0.8);">${ptMatch[1].trim()}</span></div>
+          <div style="border-left:2px solid rgba(240,180,41,0.6);padding:6px 10px;"><span style="font-size:9px;letter-spacing:1.5px;color:rgba(240,180,41,0.9);font-weight:800;text-transform:uppercase;display:block;margin-bottom:3px;">Risk</span><span style="color:rgba(255,255,255,0.8);">${riMatch[1].trim()}</span></div>
+          <div style="border-left:2px solid rgba(0,255,200,0.6);padding:6px 10px;"><span style="font-size:9px;letter-spacing:1.5px;color:rgba(0,255,200,0.9);font-weight:800;text-transform:uppercase;display:block;margin-bottom:3px;">Insight</span><span style="color:rgba(255,255,255,0.9);font-weight:600;">${inMatch[1].trim()}</span></div>
+        </div><div class="cl-ai-disclaimer" style="margin-top:12px;">Read-only scan of public blockchain data. Not financial advice.</div>`;
+      } else {
+        aiEl.innerHTML = `<div style="white-space:pre-wrap;color:rgba(255,255,255,0.72);">${aiTxt.replace(/</g,'&lt;')}</div><div class="cl-ai-disclaimer" style="margin-top:12px;">Read-only scan of public blockchain data. Not financial advice.</div>`;
       }
     }).catch(() => {
       const aiEl = document.getElementById('ws-ai');
@@ -9735,7 +9753,11 @@ function hcAddMsg(role, text) {
   msgs.classList.add('has-msgs');
   const el = document.createElement('div');
   el.className = role === 'bot' ? 'hc-msg-bot' : 'hc-msg-user';
-  el.textContent = text;
+  if (role === 'bot') {
+    el.innerHTML = clarkMd(text);
+  } else {
+    el.textContent = text;
+  }
   msgs.appendChild(el);
   msgs.scrollTop = msgs.scrollHeight;
 }
