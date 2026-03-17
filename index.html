@@ -1361,6 +1361,52 @@ body::after {
   background: rgba(0,255,200,0.03);
 }
 
+/* ── SENTIMENTPULSE ── */
+.sp-strip {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+  padding: 8px 14px; border-radius: 8px;
+  border: 1px solid rgba(0,255,200,0.15); background: rgba(0,255,200,0.03);
+  font-size: 12px;
+}
+.sp-strip__dot {
+  width: 7px; height: 7px; border-radius: 50%; background: #00ffc8; flex-shrink: 0;
+  animation: pulse 1.8s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.85)} }
+.sp-strip__label { font-weight: 700; letter-spacing: 1px; color: var(--cl-text-4); font-size: 10px; }
+.sp-strip__val { font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+.sp-strip__mood { color: var(--cl-text-3); font-size: 11px; margin-left: 2px; }
+.sp-fgi-card { display: flex; flex-direction: column; }
+.sp-fgi-center { text-align: center; margin: 8px 0 4px; }
+.sp-zones {
+  display: flex; justify-content: space-between; margin-top: 14px;
+  padding-top: 14px; border-top: 1px solid var(--cl-border);
+}
+.sp-zone {
+  text-align: center; font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
+}
+.sp-zone span { display: block; font-size: 8px; font-weight: 400; color: var(--cl-text-4); margin-top: 2px; }
+.sp-ai-avatar {
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, #7858c0, #00ffc8);
+  display: flex; align-items: center; justify-content: center; font-size: 15px;
+}
+.sp-ai-body { font-size: 13px; color: var(--cl-text-2); line-height: 1.7; }
+.sp-ai-loading { display: flex; align-items: center; padding: 8px 0; }
+.sp-verdict {
+  font-size: 13px; font-weight: 700; color: var(--cl-text-1);
+  margin-bottom: 10px; line-height: 1.5;
+}
+.sp-signal {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 800; letter-spacing: 1px;
+  padding: 6px 14px; border-radius: 6px; border: 1px solid;
+  margin-bottom: 12px;
+}
+.sp-context {
+  font-size: 12px; color: var(--cl-text-3); line-height: 1.7;
+}
+
 /* ── PROOFVAULT ── */
 .pv-card {
   padding: 12px 14px; border-radius: 10px; margin-bottom: 10px;
@@ -5254,23 +5300,69 @@ body::after {
         </div>
       </div>
     </div>
-    <div class="cl-two-col" style="margin-bottom:14px;">
-      <div class="cl-card cl-fgi">
-        <div class="cl-label">Fear & Greed Index</div>
-        <div class="cl-fgi__num" id="fgn">--</div>
-        <div class="cl-fgi__label" id="fgl" style="color:var(--cl-text-3);">Loading...</div>
-        <div class="cl-fgi__bar"><div class="cl-fgi__pointer" id="fgp" style="left:50%;"></div></div>
-        <div class="cl-fgi__labels"><span>Extreme Fear</span><span>Fear</span><span>Neutral</span><span>Greed</span><span>Extreme Greed</span></div>
-      </div>
-      <div class="cl-card">
-        <div class="cl-label">AI Interpretation</div>
-        <div class="cl-result" id="fga">Loading AI analysis of market sentiment...</div>
-      </div>
+    <!-- Live FGI strip -->
+    <div class="sp-strip" id="sp-strip" style="display:none;">
+      <div class="sp-strip__dot"></div>
+      <span class="sp-strip__label">LIVE —</span>
+      <span class="sp-strip__val" id="sp-strip-val"></span>
+      <span class="sp-strip__mood" id="sp-strip-mood"></span>
     </div>
+
+    <div class="cl-two-col" style="margin-bottom:14px;">
+
+      <!-- FGI Gauge card -->
+      <div class="cl-card cl-fgi sp-fgi-card" id="sp-fgi-card">
+        <div class="cl-label">Fear & Greed Index</div>
+        <div class="sp-fgi-center">
+          <div class="cl-fgi__num" id="fgn">--</div>
+          <div class="cl-fgi__label" id="fgl" style="color:var(--cl-text-3);">Loading...</div>
+        </div>
+        <div class="cl-fgi__bar"><div class="cl-fgi__pointer" id="fgp" style="left:50%;"></div></div>
+        <div class="cl-fgi__labels">
+          <span>Extreme<br>Fear</span>
+          <span>Fear</span>
+          <span>Neutral</span>
+          <span>Greed</span>
+          <span>Extreme<br>Greed</span>
+        </div>
+        <div class="sp-zones">
+          <div class="sp-zone" style="color:#ef476f;">0–24<br><span>Fear</span></div>
+          <div class="sp-zone" style="color:#f0b429;">25–49<br><span>Caution</span></div>
+          <div class="sp-zone" style="color:#00ffc8;">50–74<br><span>Greed</span></div>
+          <div class="sp-zone" style="color:#7858c0;">75–100<br><span>Extreme</span></div>
+        </div>
+      </div>
+
+      <!-- AI Interpretation card -->
+      <div class="cl-card sp-ai-card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+          <div class="sp-ai-avatar">⬡</div>
+          <div>
+            <div class="cl-label" style="margin:0;">Clark's Market Read</div>
+            <div style="font-size:10px;color:var(--cl-text-4);">AI interpretation · Updated live</div>
+          </div>
+        </div>
+        <div id="fga" class="sp-ai-body">
+          <div class="sp-ai-loading">
+            <span class="es-typing"><span></span><span></span><span></span></span>
+            <span style="font-size:11px;color:var(--cl-text-4);margin-left:8px;">Analysing sentiment…</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 30-day chart -->
     <div class="cl-card">
-      <div class="cl-label">30-Day Sentiment History</div>
-      <canvas id="fgchart" style="width:100%;height:120px;margin-top:8px;"></canvas>
-      <div style="display:flex;justify-content:space-between;margin-top:6px;"><span style="font-size:10px;color:var(--cl-text-3);">30 days ago</span><span style="font-size:10px;color:var(--cl-text-3);">Today</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="cl-label" style="margin:0;">30-Day Sentiment History</div>
+        <div style="font-size:10px;color:var(--cl-text-4);">Fear ↔ Greed</div>
+      </div>
+      <canvas id="fgchart" style="width:100%;height:130px;"></canvas>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;">
+        <span style="font-size:10px;color:var(--cl-text-3);">30 days ago</span>
+        <span style="font-size:10px;color:var(--cl-text-3);">Today</span>
+      </div>
     </div>
   </div></div>
 </div>
@@ -5888,9 +5980,15 @@ body::after {
 ═════════════════════════════════════ -->
 <div class="cl-page" id="pg-terms">
   <div class="cl-container" style="max-width:740px;"><div class="cl-page-inner">
-    <div class="cl-page-header">
-      <button class="cl-page-back" onclick="go('home')">← Back</button>
-      <div class="cl-page-title">Terms of Service</div>
+    <div class="pg-header">
+      <button class="cl-page-back" onclick="go('home')" style="margin-bottom:10px;">← Back</button>
+      <div class="pg-header__row">
+        <div class="pg-header__icon">📄</div>
+        <div class="pg-header__text">
+          <div class="pg-header__title">Terms of Service</div>
+          <div class="pg-header__sub">Last updated March 2026 · ChainLens AI</div>
+        </div>
+      </div>
     </div>
     <div class="cl-card" style="line-height:1.9;font-size:13px;color:var(--cl-text-2);">
       <p style="margin-bottom:16px;">Last updated: March 2026. By using ChainLens AI you agree to these Terms.</p>
@@ -5911,9 +6009,15 @@ body::after {
 ═════════════════════════════════════ -->
 <div class="cl-page" id="pg-privacy">
   <div class="cl-container" style="max-width:740px;"><div class="cl-page-inner">
-    <div class="cl-page-header">
-      <button class="cl-page-back" onclick="go('home')">← Back</button>
-      <div class="cl-page-title">Privacy Policy</div>
+    <div class="pg-header">
+      <button class="cl-page-back" onclick="go('home')" style="margin-bottom:10px;">← Back</button>
+      <div class="pg-header__row">
+        <div class="pg-header__icon">🔒</div>
+        <div class="pg-header__text">
+          <div class="pg-header__title">Privacy Policy</div>
+          <div class="pg-header__sub">Governed by NSW, Australia · Last updated March 2026</div>
+        </div>
+      </div>
     </div>
     <div class="cl-card" style="line-height:1.9;font-size:13px;color:var(--cl-text-2);">
       <p style="margin-bottom:16px;">Governed by the laws of New South Wales, Australia. Last updated March 2026.</p>
@@ -5932,9 +6036,15 @@ body::after {
 ═════════════════════════════════════ -->
 <div class="cl-page" id="pg-disclaimer">
   <div class="cl-container" style="max-width:740px;"><div class="cl-page-inner">
-    <div class="cl-page-header">
-      <button class="cl-page-back" onclick="go('home')">← Back</button>
-      <div class="cl-page-title">Risk Disclaimer</div>
+    <div class="pg-header">
+      <button class="cl-page-back" onclick="go('home')" style="margin-bottom:10px;">← Back</button>
+      <div class="pg-header__row">
+        <div class="pg-header__icon">⚠️</div>
+        <div class="pg-header__text">
+          <div class="pg-header__title">Risk Disclaimer</div>
+          <div class="pg-header__sub">Please read before using ChainLens AI</div>
+        </div>
+      </div>
     </div>
     <div style="padding:20px;background:rgba(239,71,111,0.06);border:1px solid rgba(239,71,111,0.2);border-radius:14px;margin-bottom:24px;">
       <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#ef476f;margin-bottom:10px;">High Risk Warning</div>
@@ -6223,9 +6333,10 @@ function showLockWall(toolId, requiredPlan) {
   `;
 
   // Insert at top of page content
-  const header = pg.querySelector('.cl-page-header');
+  const inner = pg.querySelector('.cl-page-inner') || pg;
+  const header = inner.querySelector('.cl-page-header') || inner.querySelector('.pg-header') || inner.querySelector('.bp-header') || inner.querySelector('.ws-page-header');
   if (header) header.parentNode.insertBefore(wall, header.nextSibling);
-  else pg.insertBefore(wall, pg.firstChild);
+  else inner.insertBefore(wall, inner.firstChild);
 }
 
 // ══════════════════════════════════════════════
@@ -7706,16 +7817,48 @@ async function doSentiment() {
     const d = await r.json();
     const current = d.data[0];
     const val = parseInt(current.value);
+    const col = val < 25 ? '#ef476f' : val < 50 ? '#f0b429' : val < 75 ? '#00ffc8' : '#7858c0';
+    const moodEmoji = val < 25 ? '😨' : val < 50 ? '😟' : val < 75 ? '😏' : '🤑';
+
+    // FGI gauge
     document.getElementById('fgn').textContent = val;
+    document.getElementById('fgn').style.background = `linear-gradient(135deg,${col},${col}88)`;
+    document.getElementById('fgn').style.webkitBackgroundClip = 'text';
+    document.getElementById('fgn').style.webkitTextFillColor = 'transparent';
     document.getElementById('fgl').textContent = current.value_classification;
-    document.getElementById('fgl').style.color = val < 30 ? '#ef476f' : val > 70 ? '#00ffc8' : '#f0b429';
-    document.getElementById('fgp').style.left = (val) + '%';
+    document.getElementById('fgl').style.color = col;
+    document.getElementById('fgp').style.left = val + '%';
+
+    // Live strip
+    const strip = document.getElementById('sp-strip');
+    if (strip) {
+      strip.style.display = 'flex';
+      strip.style.borderColor = col + '30';
+      document.getElementById('sp-strip-val').textContent = val + '/100';
+      document.getElementById('sp-strip-val').style.color = col;
+      document.getElementById('sp-strip-mood').textContent = moodEmoji + ' ' + current.value_classification;
+    }
+
     drawSentimentChart(d.data.reverse());
-    const txt = await ai(`You are ChainLens AI SentimentPulse™. The current Fear & Greed Index is ${val} (${current.value_classification}).
+
+    const txt = await ai(`You are ChainLens AI SentimentPulse™. Fear & Greed Index is ${val} (${current.value_classification}).
 Live prices: ${ctx()}
-Interpret what this means for traders right now. What should they watch for? Under 150 words.`, 300);
-    document.getElementById('fga').textContent = txt;
-    document.getElementById('fga').insertAdjacentHTML('beforeend', '<div class="cl-ai-disclaimer">Not financial advice.</div>');
+Respond ONLY in this format:
+VERDICT: [1 bold sentence about what this score means right now]
+SIGNAL: [BUY DIP / HOLD / CAUTION / TAKE PROFIT]
+CONTEXT: [2-3 sentences on what's driving sentiment and what to watch]`, 350);
+
+    const verdict = txt.match(/VERDICT:\s*(.+)/)?.[1]?.trim() || '';
+    const signal  = txt.match(/SIGNAL:\s*(.+)/)?.[1]?.trim() || '';
+    const context = txt.match(/CONTEXT:\s*([\s\S]+)/)?.[1]?.trim() || txt;
+    const sigCol  = signal.includes('BUY') ? '#00ffc8' : signal.includes('TAKE') ? '#ef476f' : signal.includes('CAUTION') ? '#f0b429' : '#7858c0';
+
+    const fga = document.getElementById('fga');
+    fga.innerHTML = `
+      ${verdict ? `<div class="sp-verdict">${verdict}</div>` : ''}
+      ${signal ? `<div class="sp-signal" style="color:${sigCol};border-color:${sigCol}30;background:${sigCol}0d;">⚡ ${signal}</div>` : ''}
+      ${context ? `<div class="sp-context">${context}</div>` : ''}
+      <div class="cl-ai-disclaimer" style="margin-top:10px;">Not financial advice.</div>`;
   } catch(e) { console.error(e); }
 }
 
