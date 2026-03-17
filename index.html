@@ -1235,6 +1235,139 @@ body::after {
   .cl-footer__grid { grid-template-columns: 1fr; }
 }
 
+/* ── BEARPROOF PAGE ── */
+.bp-header { margin-bottom: 16px; }
+.bp-header__row { display: flex; align-items: flex-start; gap: 14px; }
+.bp-header__icon { font-size: 32px; line-height: 1; flex-shrink: 0; margin-top: 2px; }
+.bp-title { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 900; color: #fff; margin-bottom: 4px; }
+.bp-sub { font-size: 13px; color: var(--cl-text-3); line-height: 1.5; }
+.bp-criteria {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;
+}
+.bp-criterion {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--cl-text-3);
+  padding: 5px 12px; border-radius: 20px;
+  background: rgba(255,255,255,0.02); border: 1px solid var(--cl-border);
+}
+.bp-criterion__icon { font-size: 12px; }
+.bp-presets {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.bp-preset-lbl { font-size: 10px; color: var(--cl-text-4); letter-spacing: 0.5px; }
+.bp-preset {
+  padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700;
+  cursor: pointer; border: 1px solid rgba(120,88,192,0.25);
+  background: rgba(120,88,192,0.06); color: #a78bfa;
+  transition: all 0.2s;
+}
+.bp-preset:hover { background: rgba(120,88,192,0.15); border-color: rgba(120,88,192,0.5); }
+.bp-holdings { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
+.bp-holding-row { display: flex; align-items: center; gap: 8px; }
+.bp-holding-num {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  color: rgba(120,88,192,0.4); font-weight: 700; width: 18px; flex-shrink: 0;
+}
+.bp-empty-state { text-align: center; padding: 20px 0; }
+.bp-empty-ring { font-size: 48px; margin-bottom: 12px; opacity: 0.2; }
+.bp-empty-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--cl-text-2); margin-bottom: 6px; }
+.bp-empty-sub { font-size: 12px; color: var(--cl-text-4); margin-bottom: 20px; line-height: 1.5; }
+.bp-score-scale { display: flex; gap: 0; justify-content: center; flex-wrap: wrap; }
+.bp-scale-item {
+  font-size: 10px; font-weight: 700; padding: 6px 14px;
+  border: 1px solid rgba(255,255,255,0.06); border-right: none;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.bp-scale-item:first-child { border-radius: 8px 0 0 8px; }
+.bp-scale-item:last-child  { border-radius: 0 8px 8px 0; border-right: 1px solid rgba(255,255,255,0.06); }
+.bp-scale-item span { font-size: 9px; font-weight: 400; color: var(--cl-text-4); }
+
+/* ── EDGESCAN CHAT ── */
+.es-header { margin-bottom: 16px; }
+.es-title-row {
+  display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap;
+}
+.es-icon { font-size: 28px; line-height: 1; flex-shrink: 0; margin-top: 2px; }
+.es-title { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 900; color: #fff; margin-bottom: 3px; }
+.es-sub { font-size: 12px; color: var(--cl-text-3); }
+.es-clear-btn {
+  margin-left: auto; padding: 5px 12px; border-radius: 6px;
+  background: none; border: 1px solid var(--cl-border);
+  font-size: 11px; color: var(--cl-text-4); cursor: pointer;
+  transition: all 0.2s; white-space: nowrap; align-self: center;
+}
+.es-clear-btn:hover { border-color: rgba(239,71,111,0.4); color: #ef476f; }
+.es-chips {
+  display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 16px;
+}
+.es-chip {
+  padding: 6px 13px; border-radius: 20px; font-size: 11px; cursor: pointer;
+  border: 1px solid var(--cl-border); background: rgba(255,255,255,0.02);
+  color: var(--cl-text-3); transition: all 0.2s;
+}
+.es-chip:hover {
+  border-color: rgba(120,88,192,0.4); color: #a78bfa;
+  background: rgba(120,88,192,0.06);
+}
+.es-history {
+  display: flex; flex-direction: column; gap: 16px;
+  max-height: 500px; overflow-y: auto; margin-bottom: 16px;
+  scroll-behavior: smooth;
+}
+.es-bubble { display: flex; gap: 10px; }
+.es-bubble--user { flex-direction: row-reverse; }
+.es-bubble--user .es-bubble__q {
+  background: rgba(120,88,192,0.12); border: 1px solid rgba(120,88,192,0.25);
+  border-radius: 16px 16px 4px 16px; padding: 12px 16px;
+  font-size: 13px; color: var(--cl-text-1); max-width: 80%; line-height: 1.5;
+}
+.es-bubble__avatar {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, #7858c0, #00ffc8);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; align-self: flex-start;
+}
+.es-bubble__body {
+  flex: 1; background: rgba(255,255,255,0.02);
+  border: 1px solid var(--cl-border); border-radius: 4px 16px 16px 16px;
+  padding: 14px 16px; max-width: 90%;
+}
+.es-bubble__text { font-size: 13px; color: var(--cl-text-1); line-height: 1.7; white-space: pre-wrap; }
+.es-typing { display: flex; gap: 4px; align-items: center; padding: 4px 0; }
+.es-typing span {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: rgba(120,88,192,0.5);
+  animation: esTyping 1.2s ease-in-out infinite;
+}
+.es-typing span:nth-child(2) { animation-delay: 0.2s; }
+.es-typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes esTyping { 0%,60%,100% { opacity: 0.3; transform: scale(0.8); } 30% { opacity: 1; transform: scale(1); } }
+.es-input-wrap { position: sticky; bottom: 0; background: var(--cl-bg); padding-top: 8px; }
+.es-input-bar {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(120,88,192,0.3);
+  border-radius: 12px; padding: 8px 8px 8px 16px;
+  transition: border-color 0.2s;
+}
+.es-input-bar:focus-within { border-color: rgba(120,88,192,0.6); }
+.es-input-icon { font-size: 16px; color: rgba(120,88,192,0.5); flex-shrink: 0; }
+.es-input {
+  flex: 1; background: none; border: none; outline: none;
+  font-size: 14px; color: var(--cl-text-1); font-family: inherit;
+}
+.es-input::placeholder { color: var(--cl-text-4); }
+.es-send-btn {
+  width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0;
+  background: linear-gradient(135deg, #7858c0, #5b3fa8);
+  border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: #fff; transition: opacity 0.2s;
+}
+.es-send-btn:hover { opacity: 0.85; }
+.es-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.es-input-note { font-size: 10px; color: var(--cl-text-4); text-align: center; margin-top: 6px; letter-spacing: 0.5px; }
+
 /* ── SIGNALBREAKER PAGE ── */
 .sig-header {
   display: flex; align-items: flex-start; justify-content: space-between;
@@ -4428,36 +4561,92 @@ body::after {
 ═════════════════════════════════════ -->
 <div class="cl-page" id="pg-bearproof">
   <div class="cl-container"><div class="cl-page-inner">
-    <div class="cl-page-header">
-      <button class="cl-page-back" onclick="go('home')">← Back</button>
-      <div class="cl-page-title">BearProof Score™</div>
-      <div class="cl-page-subtitle">Enter your holdings — get your personalised bear market survival score out of 100.</div>
-    </div>
-    <div class="cl-two-col">
-      <div class="cl-card">
-        <div class="cl-label">Your Holdings</div>
-        <div style="display:flex;flex-direction:column;gap:9px;">
-          <div style="display:flex;gap:8px;"><input class="cl-input" id="b1c" placeholder="Coin (e.g. Bitcoin)" style="flex:1;"/><input class="cl-input" id="b1a" placeholder="Amount" style="max-width:120px;"/></div>
-          <div style="display:flex;gap:8px;"><input class="cl-input" id="b2c" placeholder="Coin 2 (optional)" style="flex:1;"/><input class="cl-input" id="b2a" placeholder="Amount" style="max-width:120px;"/></div>
-          <div style="display:flex;gap:8px;"><input class="cl-input" id="b3c" placeholder="Coin 3 (optional)" style="flex:1;"/><input class="cl-input" id="b3a" placeholder="Amount" style="max-width:120px;"/></div>
-          <div style="display:flex;gap:8px;"><input class="cl-input" id="b4c" placeholder="Coin 4 (optional)" style="flex:1;"/><input class="cl-input" id="b4a" placeholder="Amount" style="max-width:120px;"/></div>
-          <select class="cl-select" id="bcu"><option>USD</option><option>AUD</option><option>GBP</option><option>EUR</option><option>CAD</option><option>SGD</option></select>
-          <button class="cl-btn cl-btn--primary cl-btn--full" id="bpb" onclick="doBP()">Calculate My BearProof Score™ →</button>
+
+    <!-- Header -->
+    <div class="bp-header">
+      <button class="cl-page-back" onclick="go('home')" style="margin-bottom:10px;">← Back</button>
+      <div class="bp-header__row">
+        <div class="bp-header__icon">🛡</div>
+        <div>
+          <div class="bp-title">BearProof Score™</div>
+          <div class="bp-sub">How resilient is your portfolio in a crash? Enter up to 4 holdings and get your score out of 100.</div>
         </div>
       </div>
+    </div>
+
+    <!-- Scoring criteria chips -->
+    <div class="bp-criteria">
+      <div class="bp-criterion"><span class="bp-criterion__icon" style="color:#00ffc8;">📊</span>Asset diversification</div>
+      <div class="bp-criterion"><span class="bp-criterion__icon" style="color:#7858c0;">💧</span>Liquidity depth</div>
+      <div class="bp-criterion"><span class="bp-criterion__icon" style="color:#f0b429;">📈</span>Market cap stability</div>
+      <div class="bp-criterion"><span class="bp-criterion__icon" style="color:#ef476f;">⚡</span>Volatility exposure</div>
+      <div class="bp-criterion"><span class="bp-criterion__icon" style="color:#00ffc8;">🔗</span>Correlation risk</div>
+    </div>
+
+    <div class="cl-two-col">
+
+      <!-- Input form -->
+      <div class="cl-card">
+        <div class="cl-label">Enter Your Holdings</div>
+
+        <!-- Quick-fill portfolios -->
+        <div class="bp-presets">
+          <span class="bp-preset-lbl">Quick fill:</span>
+          <button class="bp-preset" onclick="bpFill('Bitcoin','1','Ethereum','0.5','','','','')">BTC + ETH</button>
+          <button class="bp-preset" onclick="bpFill('Bitcoin','0.5','Solana','10','Cardano','500','Dogecoin','5000')">Degen mix</button>
+          <button class="bp-preset" onclick="bpFill('Bitcoin','2','Ethereum','5','BNB','10','USDC','10000')">Diversified</button>
+        </div>
+
+        <div class="bp-holdings">
+          <div class="bp-holding-row">
+            <span class="bp-holding-num">01</span>
+            <input class="cl-input" id="b1c" placeholder="Coin (e.g. Bitcoin)" style="flex:1;"/>
+            <input class="cl-input" id="b1a" placeholder="Value" style="width:110px;"/>
+          </div>
+          <div class="bp-holding-row">
+            <span class="bp-holding-num">02</span>
+            <input class="cl-input" id="b2c" placeholder="Coin 2 (optional)" style="flex:1;"/>
+            <input class="cl-input" id="b2a" placeholder="Value" style="width:110px;"/>
+          </div>
+          <div class="bp-holding-row">
+            <span class="bp-holding-num">03</span>
+            <input class="cl-input" id="b3c" placeholder="Coin 3 (optional)" style="flex:1;"/>
+            <input class="cl-input" id="b3a" placeholder="Value" style="width:110px;"/>
+          </div>
+          <div class="bp-holding-row">
+            <span class="bp-holding-num">04</span>
+            <input class="cl-input" id="b4c" placeholder="Coin 4 (optional)" style="flex:1;"/>
+            <input class="cl-input" id="b4a" placeholder="Value" style="width:110px;"/>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <select class="cl-select" id="bcu" style="width:100px;flex-shrink:0;">
+            <option>USD</option><option>AUD</option><option>GBP</option><option>EUR</option><option>CAD</option><option>SGD</option>
+          </select>
+          <button class="cl-btn cl-btn--primary cl-btn--full" id="bpb" onclick="doBP()">Calculate BearProof Score™ →</button>
+        </div>
+      </div>
+
+      <!-- Result card -->
       <div class="cl-card" id="bpr">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
           <div class="cl-label" style="margin:0;">BearProof Score™</div>
           <button id="bpshare" onclick="shareBP()" style="display:none;" class="cl-btn cl-btn--ghost cl-btn--sm">Share Score</button>
         </div>
-        <div style="opacity:0.55;">
-          <div class="cl-label" style="margin-bottom:14px;">Preview — enter holdings to calculate</div>
-          <div style="text-align:center;margin-bottom:16px;">
-            <div style="font-family:'JetBrains Mono',monospace;font-size:64px;font-weight:700;background:linear-gradient(135deg,#f0b429,#ef476f);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;">61</div>
-            <div style="font-size:12px;color:var(--cl-text-3);margin-top:4px;">/ 100 — Moderate Risk</div>
+        <div class="bp-empty-state">
+          <div class="bp-empty-ring">🛡</div>
+          <div class="bp-empty-title">Enter your holdings</div>
+          <div class="bp-empty-sub">Your personalised bear market survival score will appear here.</div>
+          <div class="bp-score-scale">
+            <div class="bp-scale-item" style="color:#00ffc8;">80–100 <span>Excellent</span></div>
+            <div class="bp-scale-item" style="color:#7858c0;">60–79 <span>Good</span></div>
+            <div class="bp-scale-item" style="color:#f0b429;">40–59 <span>Moderate</span></div>
+            <div class="bp-scale-item" style="color:#ef476f;">0–39 <span>High Risk</span></div>
           </div>
         </div>
       </div>
+
     </div>
   </div></div>
 </div>
@@ -4466,33 +4655,50 @@ body::after {
   PAGE: EDGESCAN
 ═════════════════════════════════════ -->
 <div class="cl-page" id="pg-edgescan">
-  <div class="cl-container"><div class="cl-page-inner">
-    <div class="cl-page-header">
-      <button class="cl-page-back" onclick="go('home')">← Back</button>
-      <div class="cl-page-title">EdgeScan™ AI</div>
-      <div class="cl-page-subtitle">Ask anything about the crypto market — get live data-backed AI analysis instantly.</div>
-    </div>
-    <div class="cl-card">
-      <div class="cl-label">Your Question</div>
-      <div style="display:flex;gap:9px;margin-bottom:12px;">
-        <input class="cl-input" id="esi" placeholder="e.g. Should I buy Bitcoin now?" onkeydown="if(event.key==='Enter')doES()" style="height:46px;"/>
-        <button class="cl-btn cl-btn--primary" id="esb" onclick="doES()" style="height:46px;">Analyse →</button>
-      </div>
-      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;">
-        <button class="cl-quick-pill" onclick="document.getElementById('esi').value=this.textContent.trim()">Buy BTC now?</button>
-        <button class="cl-quick-pill" onclick="document.getElementById('esi').value=this.textContent.trim()">Market sentiment</button>
-        <button class="cl-quick-pill" onclick="document.getElementById('esi').value=this.textContent.trim()">Best this week?</button>
-        <button class="cl-quick-pill" onclick="document.getElementById('esi').value=this.textContent.trim()">Bull or bear?</button>
-        <button class="cl-quick-pill" onclick="document.getElementById('esi').value=this.textContent.trim()">ETH outlook?</button>
-        <button class="cl-quick-pill" onclick="document.getElementById('esi').value=this.textContent.trim()">SOL or ETH?</button>
-      </div>
-      <div class="cl-result" id="esr">
-        <div style="opacity:0.55;">
-          <div class="cl-label">Example Output</div>
-          <div style="font-size:12px;color:var(--cl-text-2);line-height:1.7;"><strong style="color:var(--cl-violet);">BTC Analysis —</strong> Bitcoin is consolidating above $60k support with declining sell volume. Long-term holders accumulating. <strong style="color:var(--cl-cyan);">Verdict: HOLD / add on dips.</strong></div>
+  <div class="cl-container" style="max-width:780px;"><div class="cl-page-inner">
+
+    <!-- Header -->
+    <div class="es-header">
+      <button class="cl-page-back" onclick="go('home')" style="margin-bottom:10px;">← Back</button>
+      <div class="es-title-row">
+        <div class="es-icon">🔍</div>
+        <div>
+          <div class="es-title">EdgeScan™ AI</div>
+          <div class="es-sub">Ask anything about the crypto market. Live data · Specific · Actionable.</div>
         </div>
+        <button class="es-clear-btn" onclick="esClearHistory()" id="es-clear-btn" style="display:none;">Clear history</button>
       </div>
     </div>
+
+    <!-- Suggestion chips -->
+    <div class="es-chips" id="es-chips">
+      <button class="es-chip" onclick="esUseChip(this)">Should I buy BTC now?</button>
+      <button class="es-chip" onclick="esUseChip(this)">Market sentiment right now?</button>
+      <button class="es-chip" onclick="esUseChip(this)">Best performer this week?</button>
+      <button class="es-chip" onclick="esUseChip(this)">Bull or bear market?</button>
+      <button class="es-chip" onclick="esUseChip(this)">ETH outlook next month?</button>
+      <button class="es-chip" onclick="esUseChip(this)">SOL vs ETH which is better?</button>
+      <button class="es-chip" onclick="esUseChip(this)">Is this a good entry for BNB?</button>
+      <button class="es-chip" onclick="esUseChip(this)">What's driving the market today?</button>
+    </div>
+
+    <!-- Chat history -->
+    <div class="es-history" id="es-history"></div>
+
+    <!-- Input bar -->
+    <div class="es-input-wrap">
+      <div class="es-input-bar">
+        <div class="es-input-icon">⬡</div>
+        <input class="es-input" id="esi"
+          placeholder="Ask Clark AI anything about the market..."
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();doES();}"/>
+        <button class="es-send-btn" id="esb" onclick="doES()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+      <div class="es-input-note">Live prices included · Not financial advice</div>
+    </div>
+
   </div></div>
 </div>
 
@@ -5948,6 +6154,12 @@ async function ai(prompt, max = 700) {
 // ══════════════════════════════════════════════
 // BEARPROOF
 // ══════════════════════════════════════════════
+function bpFill(c1,a1,c2,a2,c3,a3,c4,a4) {
+  document.getElementById('b1c').value=c1; document.getElementById('b1a').value=a1;
+  document.getElementById('b2c').value=c2; document.getElementById('b2a').value=a2;
+  document.getElementById('b3c').value=c3; document.getElementById('b3a').value=a3;
+  document.getElementById('b4c').value=c4; document.getElementById('b4a').value=a4;
+}
 async function doBP() {
   const btn = document.getElementById('bpb');
   const holdings = [[document.getElementById('b1c').value, document.getElementById('b1a').value],[document.getElementById('b2c').value, document.getElementById('b2a').value],[document.getElementById('b3c').value, document.getElementById('b3a').value],[document.getElementById('b4c').value, document.getElementById('b4a').value]].filter(([c,a]) => c && a).map(([c,a]) => `${a} ${c}`).join(', ');
@@ -6006,22 +6218,66 @@ function shareBP() {
 // ══════════════════════════════════════════════
 // EDGESCAN
 // ══════════════════════════════════════════════
+function esUseChip(btn) {
+  document.getElementById('esi').value = btn.textContent.trim();
+  document.getElementById('esi').focus();
+}
+function esClearHistory() {
+  document.getElementById('es-history').innerHTML = '';
+  document.getElementById('es-clear-btn').style.display = 'none';
+  document.getElementById('es-chips').style.display = 'flex';
+}
 async function doES() {
   const q = document.getElementById('esi').value.trim();
   if (!q) { toast('Enter a question', 'er'); return; }
   const btn = document.getElementById('esb');
-  btn.disabled = true; btn.innerHTML = '<span class="cl-spinner"></span>';
-  const res = document.getElementById('esr');
-  res.textContent = '';
+  btn.disabled = true;
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2"/><path d="M12 2a10 10 0 0 1 10 10" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="0.8s" repeatCount="indefinite"/></path></svg>';
+
+  const history = document.getElementById('es-history');
+  const chips   = document.getElementById('es-chips');
+  const clearBtn = document.getElementById('es-clear-btn');
+
+  // Hide chips after first question
+  chips.style.display = 'none';
+  clearBtn.style.display = 'block';
+
+  // Add user bubble
+  history.insertAdjacentHTML('beforeend', `
+    <div class="es-bubble es-bubble--user">
+      <div class="es-bubble__q">${q.replace(/</g,'&lt;')}</div>
+    </div>`);
+
+  // Add loading AI bubble
+  const loadId = 'es-load-' + Date.now();
+  history.insertAdjacentHTML('beforeend', `
+    <div class="es-bubble es-bubble--ai" id="${loadId}">
+      <div class="es-bubble__avatar">⬡</div>
+      <div class="es-bubble__body">
+        <span class="es-typing"><span></span><span></span><span></span></span>
+      </div>
+    </div>`);
+  history.scrollTop = history.scrollHeight;
+  document.getElementById('esi').value = '';
+
   try {
     const txt = await ai(`You are ChainLens AI EdgeScan™. Answer this crypto question using live data.
 Question: ${q}
 Live prices: ${ctx()}
-Be specific, data-driven, and actionable. Under 200 words.`, 600);
-    res.textContent = txt;
-    res.insertAdjacentHTML('beforeend', '<div class="cl-ai-disclaimer">For informational purposes only. Not financial advice.</div>');
-  } catch(e) { res.textContent = 'Error. Try again.'; }
-  btn.disabled = false; btn.textContent = 'Analyse →';
+Be specific, data-driven, and actionable. Under 180 words.`, 600);
+
+    const loadBubble = document.getElementById(loadId);
+    if (loadBubble) loadBubble.querySelector('.es-bubble__body').innerHTML =
+      `<div class="es-bubble__text">${txt.replace(/</g,'&lt;')}</div>
+       <div class="cl-ai-disclaimer" style="margin-top:8px;font-size:9px;">Not financial advice.</div>`;
+  } catch(e) {
+    const loadBubble = document.getElementById(loadId);
+    if (loadBubble) loadBubble.querySelector('.es-bubble__body').innerHTML =
+      '<div style="color:#ef476f;font-size:12px;">Error. Please try again.</div>';
+  }
+  history.scrollTop = history.scrollHeight;
+  btn.disabled = false;
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
 }
 
 // ══════════════════════════════════════════════
