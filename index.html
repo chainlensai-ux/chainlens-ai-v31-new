@@ -1235,6 +1235,30 @@ body::after {
   .cl-footer__grid { grid-template-columns: 1fr; }
 }
 
+/* ── SHARED PAGE HEADER ── */
+.pg-header { margin-bottom: 20px; }
+.pg-header__row {
+  display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap;
+}
+.pg-header__icon {
+  font-size: 30px; line-height: 1; flex-shrink: 0; margin-top: 3px;
+}
+.pg-header__text { flex: 1; min-width: 0; }
+.pg-header__title {
+  font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 900;
+  color: #fff; margin-bottom: 4px;
+}
+.pg-header__sub { font-size: 12px; color: var(--cl-text-3); line-height: 1.5; }
+.pg-header__tags {
+  display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+  align-self: center;
+}
+.pg-tag {
+  font-size: 10px; font-weight: 700; padding: 4px 10px;
+  border-radius: 20px; border: 1px solid var(--cl-border);
+  color: var(--cl-text-4); letter-spacing: 0.3px;
+}
+
 /* ── BEARPROOF PAGE ── */
 .bp-header { margin-bottom: 16px; }
 .bp-header__row { display: flex; align-items: flex-start; gap: 14px; }
@@ -1282,6 +1306,18 @@ body::after {
 .bp-scale-item:first-child { border-radius: 8px 0 0 8px; }
 .bp-scale-item:last-child  { border-radius: 0 8px 8px 0; border-right: 1px solid rgba(255,255,255,0.06); }
 .bp-scale-item span { font-size: 9px; font-weight: 400; color: var(--cl-text-4); }
+
+/* ── TAXMATE ── */
+.tm-example-q {
+  font-size: 11px; color: var(--cl-text-3); padding: 7px 12px;
+  border-radius: 8px; border: 1px solid var(--cl-border);
+  background: rgba(255,255,255,0.01); cursor: pointer; transition: all 0.2s;
+  line-height: 1.4;
+}
+.tm-example-q:hover {
+  border-color: rgba(120,88,192,0.3); color: #a78bfa;
+  background: rgba(120,88,192,0.06);
+}
 
 /* ── EDGESCAN CHAT ── */
 .es-header { margin-bottom: 16px; }
@@ -4707,10 +4743,20 @@ body::after {
 ═════════════════════════════════════ -->
 <div class="cl-page" id="pg-digradar">
   <div class="cl-container"><div class="cl-page-inner">
-    <div class="cl-page-header">
-      <button class="cl-page-back" onclick="go('home')">← Back</button>
-      <div class="cl-page-title">DipRadar™</div>
-      <div class="cl-page-subtitle">Auto-scanning real market data for dips right now. Opportunity or falling knife? AI decides.</div>
+    <div class="pg-header">
+      <button class="cl-page-back" onclick="go('home')" style="margin-bottom:10px;">← Back</button>
+      <div class="pg-header__row">
+        <div class="pg-header__icon">📡</div>
+        <div class="pg-header__text">
+          <div class="pg-header__title">DipRadar™</div>
+          <div class="pg-header__sub">Auto-scanning real market data for dips right now. Opportunity or falling knife? AI decides.</div>
+        </div>
+        <div class="pg-header__tags">
+          <span class="pg-tag" style="color:#00ffc8;border-color:rgba(0,255,200,0.2);">Live scan</span>
+          <span class="pg-tag" style="color:#f0b429;border-color:rgba(240,180,41,0.2);">150+ coins</span>
+          <span class="pg-tag" style="color:#7858c0;border-color:rgba(120,88,192,0.2);">AI verdict</span>
+        </div>
+      </div>
     </div>
     <div class="cl-card" style="margin-bottom:14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
@@ -4770,10 +4816,20 @@ body::after {
   <div class="cl-container"><div class="cl-page-inner">
 
     <!-- Header -->
-    <div class="cl-page-header" style="margin-bottom:0;">
-      <button class="cl-page-back" onclick="go('home')">← Back</button>
-      <div class="cl-page-title">GhostTrade™</div>
-      <div class="cl-page-subtitle">$50,000 virtual portfolio. Real prices. Zero risk.</div>
+    <div class="pg-header" style="margin-bottom:0;">
+      <button class="cl-page-back" onclick="go('home')" style="margin-bottom:10px;">← Back</button>
+      <div class="pg-header__row" style="margin-bottom:14px;">
+        <div class="pg-header__icon">👻</div>
+        <div class="pg-header__text">
+          <div class="pg-header__title">GhostTrade™</div>
+          <div class="pg-header__sub">$50,000 virtual portfolio. Real prices. Zero risk. No money, all glory.</div>
+        </div>
+        <div class="pg-header__tags">
+          <span class="pg-tag" style="color:#00ffc8;border-color:rgba(0,255,200,0.2);">$50k virtual</span>
+          <span class="pg-tag" style="color:#7858c0;border-color:rgba(120,88,192,0.2);">Real prices</span>
+          <span class="pg-tag" style="color:#f0b429;border-color:rgba(240,180,41,0.2);">Zero risk</span>
+        </div>
+      </div>
     </div>
 
     <!-- Portfolio Metric Bar -->
@@ -4914,10 +4970,20 @@ body::after {
 ═════════════════════════════════════ -->
 <div class="cl-page" id="pg-tradecoach">
   <div class="cl-container"><div class="cl-page-inner">
-    <div class="cl-page-header">
-      <button class="cl-page-back" onclick="go('home')">← Back</button>
-      <div class="cl-page-title">TradeCoach™</div>
-      <div class="cl-page-subtitle">Log your real trades. AI remembers everything and finds your patterns over time.</div>
+    <div class="pg-header">
+      <button class="cl-page-back" onclick="go('home')" style="margin-bottom:10px;">← Back</button>
+      <div class="pg-header__row">
+        <div class="pg-header__icon">🧠</div>
+        <div class="pg-header__text">
+          <div class="pg-header__title">TradeCoach™</div>
+          <div class="pg-header__sub">Log your real trades. Clark AI finds your patterns, biases, and emotional triggers over time.</div>
+        </div>
+        <div class="pg-header__tags">
+          <span class="pg-tag" style="color:#00ffc8;border-color:rgba(0,255,200,0.2);">Pattern detection</span>
+          <span class="pg-tag" style="color:#ef476f;border-color:rgba(239,71,111,0.2);">FOMO tracking</span>
+          <span class="pg-tag" style="color:#7858c0;border-color:rgba(120,88,192,0.2);">Win rate</span>
+        </div>
+      </div>
     </div>
     <div class="cl-two-col">
       <div class="cl-card">
@@ -4970,10 +5036,20 @@ body::after {
 ═════════════════════════════════════ -->
 <div class="cl-page" id="pg-sentiment">
   <div class="cl-container"><div class="cl-page-inner">
-    <div class="cl-page-header">
-      <button class="cl-page-back" onclick="go('home')">← Back</button>
-      <div class="cl-page-title">SentimentPulse™</div>
-      <div class="cl-page-subtitle">Live Fear & Greed Index with AI interpretation and 30-day history.</div>
+    <div class="pg-header">
+      <button class="cl-page-back" onclick="go('home')" style="margin-bottom:10px;">← Back</button>
+      <div class="pg-header__row">
+        <div class="pg-header__icon">💓</div>
+        <div class="pg-header__text">
+          <div class="pg-header__title">SentimentPulse™</div>
+          <div class="pg-header__sub">Live Fear & Greed Index with AI interpretation and 30-day history.</div>
+        </div>
+        <div class="pg-header__tags">
+          <span class="pg-tag" style="color:#ef476f;border-color:rgba(239,71,111,0.2);">Fear &amp; Greed</span>
+          <span class="pg-tag" style="color:#00ffc8;border-color:rgba(0,255,200,0.2);">30-day chart</span>
+          <span class="pg-tag" style="color:#7858c0;border-color:rgba(120,88,192,0.2);">AI read</span>
+        </div>
+      </div>
     </div>
     <div class="cl-two-col" style="margin-bottom:14px;">
       <div class="cl-card cl-fgi">
@@ -5158,30 +5234,65 @@ body::after {
 ═════════════════════════════════════ -->
 <div class="cl-page" id="pg-taxmate">
   <div class="cl-container"><div class="cl-page-inner">
-    <div class="cl-page-header">
-      <button class="cl-page-back" onclick="go('home')">← Back</button>
-      <div class="cl-page-title">TaxMate™</div>
-      <div class="cl-page-subtitle">Country-specific crypto tax guidance. Always consult a professional for your situation.</div>
+    <div class="pg-header">
+      <button class="cl-page-back" onclick="go('home')" style="margin-bottom:10px;">← Back</button>
+      <div class="pg-header__row">
+        <div class="pg-header__icon">📋</div>
+        <div class="pg-header__text">
+          <div class="pg-header__title">TaxMate™</div>
+          <div class="pg-header__sub">Country-specific crypto tax guidance across 10 jurisdictions. Always consult a professional.</div>
+        </div>
+        <div class="pg-header__tags">
+          <span class="pg-tag" style="color:#00ffc8;border-color:rgba(0,255,200,0.2);">10 countries</span>
+          <span class="pg-tag" style="color:#7858c0;border-color:rgba(120,88,192,0.2);">CGT rules</span>
+          <span class="pg-tag" style="color:#f0b429;border-color:rgba(240,180,41,0.2);">Staking / DeFi</span>
+        </div>
+      </div>
     </div>
-    <div class="cl-card">
-      <div class="cl-label">Tax Guidance</div>
-      <div style="display:flex;flex-direction:column;gap:10px;">
-        <select class="cl-select" id="tmc">
-          <option value="Australia">Australia</option>
-          <option value="United States">United States</option>
-          <option value="United Kingdom">United Kingdom</option>
-          <option value="Canada">Canada</option>
-          <option value="Germany">Germany</option>
-          <option value="Singapore">Singapore</option>
-          <option value="New Zealand">New Zealand</option>
-          <option value="Japan">Japan</option>
-          <option value="France">France</option>
-          <option value="Netherlands">Netherlands</option>
-        </select>
-        <textarea class="cl-input cl-textarea" id="tms" placeholder="Your situation (optional, e.g. day trader, held <12 months)" rows="2"></textarea>
-        <textarea class="cl-input cl-textarea" id="tmq" placeholder="Your tax question..." rows="3"></textarea>
-        <button class="cl-btn cl-btn--primary cl-btn--full" id="tmb" onclick="doTM()">Get Tax Guidance →</button>
-        <div class="cl-result" id="tmr">Enter your question above for AI tax guidance.</div>
+    <div class="cl-two-col">
+      <div class="cl-card">
+        <div class="cl-label">Tax Guidance</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div>
+            <div style="font-size:10px;color:var(--cl-text-4);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Jurisdiction</div>
+            <select class="cl-select" id="tmc">
+              <option value="Australia">🇦🇺 Australia</option>
+              <option value="United States">🇺🇸 United States</option>
+              <option value="United Kingdom">🇬🇧 United Kingdom</option>
+              <option value="Canada">🇨🇦 Canada</option>
+              <option value="Germany">🇩🇪 Germany</option>
+              <option value="Singapore">🇸🇬 Singapore</option>
+              <option value="New Zealand">🇳🇿 New Zealand</option>
+              <option value="Japan">🇯🇵 Japan</option>
+              <option value="France">🇫🇷 France</option>
+              <option value="Netherlands">🇳🇱 Netherlands</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--cl-text-4);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Your Situation (optional)</div>
+            <textarea class="cl-input cl-textarea" id="tms" placeholder="e.g. Day trader, held under 12 months, staking rewards" rows="2"></textarea>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--cl-text-4);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Your Question</div>
+            <textarea class="cl-input cl-textarea" id="tmq" placeholder="e.g. Do I pay CGT on crypto swaps? How is staking income taxed?" rows="3"></textarea>
+          </div>
+          <button class="cl-btn cl-btn--primary cl-btn--full" id="tmb" onclick="doTM()">Get Tax Guidance →</button>
+        </div>
+      </div>
+      <div class="cl-card">
+        <div class="cl-label">AI Tax Guidance</div>
+        <div class="cl-result" id="tmr" style="min-height:160px;">
+          <div style="opacity:0.5;">
+            <div style="font-size:12px;color:var(--cl-text-3);line-height:1.7;margin-bottom:12px;">Select your jurisdiction and ask a tax question to get started.</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div class="tm-example-q" onclick="document.getElementById('tmq').value=this.querySelector('span').textContent">💬 <span>How is crypto CGT calculated in my country?</span></div>
+              <div class="tm-example-q" onclick="document.getElementById('tmq').value=this.querySelector('span').textContent">💬 <span>Are staking rewards considered income?</span></div>
+              <div class="tm-example-q" onclick="document.getElementById('tmq').value=this.querySelector('span').textContent">💬 <span>Do I need to report small crypto trades?</span></div>
+              <div class="tm-example-q" onclick="document.getElementById('tmq').value=this.querySelector('span').textContent">💬 <span>Is swapping BTC for ETH a taxable event?</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="cl-ai-disclaimer" style="margin-top:10px;">Always consult a qualified tax professional for your specific situation.</div>
       </div>
     </div>
   </div></div>
@@ -5235,10 +5346,20 @@ body::after {
 ═════════════════════════════════════ -->
 <div class="cl-page" id="pg-leaderboard">
   <div class="cl-container"><div class="cl-page-inner">
-    <div class="cl-page-header">
-      <button class="cl-page-back" onclick="go('home')">← Back</button>
-      <div class="cl-page-title">GlobalRank™</div>
-      <div class="cl-page-subtitle">Make predictions, earn rank. The global crypto trader leaderboard.</div>
+    <div class="pg-header">
+      <button class="cl-page-back" onclick="go('home')" style="margin-bottom:10px;">← Back</button>
+      <div class="pg-header__row">
+        <div class="pg-header__icon">🏆</div>
+        <div class="pg-header__text">
+          <div class="pg-header__title">GlobalRank™</div>
+          <div class="pg-header__sub">Make predictions, earn rank. The global crypto trader leaderboard — who called it right?</div>
+        </div>
+        <div class="pg-header__tags">
+          <span class="pg-tag" style="color:#f0b429;border-color:rgba(240,180,41,0.2);">Predictions</span>
+          <span class="pg-tag" style="color:#00ffc8;border-color:rgba(0,255,200,0.2);">Global rank</span>
+          <span class="pg-tag" style="color:#7858c0;border-color:rgba(120,88,192,0.2);">10 countries</span>
+        </div>
+      </div>
     </div>
     <div class="cl-two-col">
       <div class="cl-card">
@@ -5281,10 +5402,20 @@ body::after {
 ═════════════════════════════════════ -->
 <div class="cl-page" id="pg-proofvault">
   <div class="cl-container"><div class="cl-page-inner">
-    <div class="cl-page-header">
-      <button class="cl-page-back" onclick="go('home')">← Back</button>
-      <div class="cl-page-title">ProofVault™</div>
-      <div class="cl-page-subtitle">Timestamp and sign your predictions forever. Prove you called it.</div>
+    <div class="pg-header">
+      <button class="cl-page-back" onclick="go('home')" style="margin-bottom:10px;">← Back</button>
+      <div class="pg-header__row">
+        <div class="pg-header__icon">🔐</div>
+        <div class="pg-header__text">
+          <div class="pg-header__title">ProofVault™</div>
+          <div class="pg-header__sub">Timestamp and cryptographically sign your predictions forever. Prove you called it — before it happened.</div>
+        </div>
+        <div class="pg-header__tags">
+          <span class="pg-tag" style="color:#00ffc8;border-color:rgba(0,255,200,0.2);">SHA-256 hash</span>
+          <span class="pg-tag" style="color:#7858c0;border-color:rgba(120,88,192,0.2);">Immutable proof</span>
+          <span class="pg-tag" style="color:#f0b429;border-color:rgba(240,180,41,0.2);">Shareable</span>
+        </div>
+      </div>
     </div>
     <div class="cl-card" style="max-width:640px;">
       <div class="cl-label">Create Proof</div>
@@ -5309,10 +5440,20 @@ body::after {
 ═════════════════════════════════════ -->
 <div class="cl-page" id="pg-smartwallets">
   <div class="cl-container"><div class="cl-page-inner">
-    <div class="cl-page-header">
-      <button class="cl-page-back" onclick="go('home')">← Back</button>
-      <div class="cl-page-title">Smart Wallets™</div>
-      <div class="cl-page-subtitle">Track and follow elite on-chain wallets. See what the whales are holding.</div>
+    <div class="pg-header">
+      <button class="cl-page-back" onclick="go('home')" style="margin-bottom:10px;">← Back</button>
+      <div class="pg-header__row">
+        <div class="pg-header__icon">🐋</div>
+        <div class="pg-header__text">
+          <div class="pg-header__title">Smart Wallets™</div>
+          <div class="pg-header__sub">Track and follow elite on-chain wallets. Copy what the whales are holding right now.</div>
+        </div>
+        <div class="pg-header__tags">
+          <span class="pg-tag" style="color:#00ffc8;border-color:rgba(0,255,200,0.2);">Whale tracking</span>
+          <span class="pg-tag" style="color:#7858c0;border-color:rgba(120,88,192,0.2);">On-chain data</span>
+          <span class="pg-tag" style="color:#f0b429;border-color:rgba(240,180,41,0.2);">Copy signals</span>
+        </div>
+      </div>
     </div>
     <div id="sw-list"></div>
   </div></div>
@@ -5393,10 +5534,20 @@ body::after {
 <div class="cl-page" id="pg-alerts">
   <div class="cl-container" style="max-width:680px;">
     <div class="cl-page-inner">
-      <div class="cl-page-header">
-        <button class="cl-page-back" onclick="go('home')">← Back</button>
-        <div class="cl-page-title">Price Alerts</div>
-        <div class="cl-page-subtitle">Get notified when any coin hits your target price. Fires in-browser while ChainLens is open.</div>
+      <div class="pg-header">
+        <button class="cl-page-back" onclick="go('home')" style="margin-bottom:10px;">← Back</button>
+        <div class="pg-header__row">
+          <div class="pg-header__icon">🔔</div>
+          <div class="pg-header__text">
+            <div class="pg-header__title">Price Alerts</div>
+            <div class="pg-header__sub">Get notified the instant any coin hits your target. Fires in-browser while ChainLens is open.</div>
+          </div>
+          <div class="pg-header__tags">
+            <span class="pg-tag" style="color:#00ffc8;border-color:rgba(0,255,200,0.2);">Instant alert</span>
+            <span class="pg-tag" style="color:#7858c0;border-color:rgba(120,88,192,0.2);">Above / Below</span>
+            <span class="pg-tag" style="color:#f0b429;border-color:rgba(240,180,41,0.2);">8 coins</span>
+          </div>
+        </div>
       </div>
       <div class="cl-card" style="margin-bottom:20px;">
         <div class="cl-label">New Alert</div>
@@ -5441,10 +5592,20 @@ body::after {
 ═════════════════════════════════════ -->
 <div class="cl-page" id="pg-tokenunlocks">
   <div class="cl-container"><div class="cl-page-inner">
-    <div class="cl-page-header">
-      <button class="cl-page-back" onclick="go('home')">← Back</button>
-      <div class="cl-page-title">Token Unlocks™</div>
-      <div class="cl-page-subtitle">Upcoming token unlock risk analysis. Know what's coming before it hits.</div>
+    <div class="pg-header">
+      <button class="cl-page-back" onclick="go('home')" style="margin-bottom:10px;">← Back</button>
+      <div class="pg-header__row">
+        <div class="pg-header__icon">🔓</div>
+        <div class="pg-header__text">
+          <div class="pg-header__title">Token Unlocks™</div>
+          <div class="pg-header__sub">Upcoming vesting unlock risk analysis. Know what's about to hit the market before it does.</div>
+        </div>
+        <div class="pg-header__tags">
+          <span class="pg-tag" style="color:#ef476f;border-color:rgba(239,71,111,0.2);">Sell pressure</span>
+          <span class="pg-tag" style="color:#f0b429;border-color:rgba(240,180,41,0.2);">Vesting data</span>
+          <span class="pg-tag" style="color:#7858c0;border-color:rgba(120,88,192,0.2);">AI risk score</span>
+        </div>
+      </div>
     </div>
     <div class="cl-card" style="margin-bottom:14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
