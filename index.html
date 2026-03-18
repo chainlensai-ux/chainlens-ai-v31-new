@@ -9888,9 +9888,6 @@ async function heroClarkSend() {
   const text = inp.value.trim();
   if (!text) return;
 
-  inp.value = '';
-  inp.style.height = 'auto';
-
   const plan = user ? (user.plan || 'free') : 'free';
   const lc = text.toLowerCase();
 
@@ -9899,24 +9896,42 @@ async function heroClarkSend() {
     (lc.includes('scan') && lc.includes('wallet')) || lc.includes('wallet analysis');
   const isEliteOnly = lc.includes('smart money') || lc.includes('ghost trade') ||
     lc.includes('trade coach') || lc.includes('whale alert') || lc.includes('proof vault');
-  const isProOnly = isWalletScan || lc.includes('pumping') || lc.includes('pump alert') ||
-    lc.includes('on base') || lc.includes('live data') || lc.includes('price alert') ||
-    lc.includes('signal') || lc.includes('dip radar') || lc.includes('sentiment');
+  const isProOnly = isWalletScan || lc.includes('pump alert') ||
+    lc.includes('on base network') || lc.includes('live data') || lc.includes('price alert') ||
+    lc.includes('trading signal') || lc.includes('buy signal') || lc.includes('sell signal') ||
+    lc.includes('dip radar');
 
   if (isEliteOnly && plan !== 'elite') {
+    // Clear input and show user message + upgrade prompt
+    inp.value = '';
+    inp.style.height = 'auto';
+    const pills = document.getElementById('hc-pills');
+    if (pills) pills.style.display = 'none';
+    hcAddMsg('user', text);
     hcAddUpgradePrompt('elite');
     return;
   }
   if (isProOnly && plan === 'free') {
+    // Clear input and show user message + upgrade prompt
+    inp.value = '';
+    inp.style.height = 'auto';
+    const pills = document.getElementById('hc-pills');
+    if (pills) pills.style.display = 'none';
+    hcAddMsg('user', text);
     hcAddUpgradePrompt('pro');
     return;
   }
 
-  // Hide pills once chat starts
+  // Clear input and hide pills once chat starts
+  inp.value = '';
+  inp.style.height = 'auto';
   const pills = document.getElementById('hc-pills');
   if (pills) pills.style.display = 'none';
 
   hcBusy = true;
+  const sendBtn = document.getElementById('hc-send');
+  if (sendBtn) sendBtn.style.opacity = '0.5';
+
   hcAddMsg('user', text);
   hcShowTyping();
 
@@ -9931,8 +9946,10 @@ async function heroClarkSend() {
   } catch(e) {
     hcRemoveTyping();
     hcAddMsg('bot', 'Having trouble connecting right now. Try the full Clark panel →');
+  } finally {
+    hcBusy = false;
+    if (sendBtn) sendBtn.style.opacity = '';
   }
-  hcBusy = false;
 }
 
 function hcAddMsg(role, text) {
