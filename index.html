@@ -9716,6 +9716,67 @@ function clarkQuick(text) {
   document.getElementById('clark-input').focus();
 }
 
+// ── CoinGecko live data for Clark ──────────────────────────────────────────
+
+// Reverse map: symbol → coingecko id
+const SYM_TO_ID = Object.fromEntries(Object.entries(SYM).map(([id, sym]) => [sym.toLowerCase(), id]));
+
+// Keywords that suggest the user is asking about price / market data
+const MARKET_KEYWORDS = /\b(price|prices|priced|market cap|marketcap|volume|vol|24h|7d|change|pump|dump|ath|atl|high|low|rally|dip|performance|how is|how's|what is|what's|worth|trading at|sitting at|bullish|bearish)\b/i;
+
+async function clarkFetchTokenData(text) {
+  // Extract potential token symbols or names (1-10 char words, skip stopwords)
+  const stopwords = new Set(['the','and','for','are','was','how','what','that','this','with','from','they','have','been','will','not','but','all','can','her','his','its','our','out','who','did','get','may','now','any','two','way','use','man','too','him','see','say','got','new','via','per','set','one','top','key','big','low','ran','hit','put','far','ask','had']);
+  const words = text.replace(/[^a-zA-Z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length >= 2 && w.length <= 12 && !stopwords.has(w.toLowerCase()));
+
+  // Check known symbols first (exact match)
+  let coinIds = [];
+  const seen = new Set();
+  for (const w of words) {
+    const id = SYM_TO_ID[w.toLowerCase()];
+    if (id && !seen.has(id)) { coinIds.push(id); seen.add(id); }
+  }
+
+  // If no known symbols found, try searching CoinGecko for unrecognised tokens
+  if (!coinIds.length) {
+    // Take the longest capitalised word or first meaningful word as search term
+    const candidates = words.filter(w => /^[A-Z]{2,}$/.test(w) || w.length >= 4);
+    const searchTerm = candidates[0] || words[0];
+    if (!searchTerm) return null;
+    try {
+      const sr = await fetch('/api/coingecko', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'search', query: searchTerm })
+      });
+      const sd = await sr.json();
+      const coin = sd.coins && sd.coins[0];
+      if (coin) coinIds = [coin.id];
+    } catch(e) { return null; }
+  }
+
+  if (!coinIds.length) return null;
+
+  // Fetch market data for up to 5 matched coins
+  try {
+    const r = await fetch('/api/coingecko', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: coinIds.slice(0, 5) })
+    });
+    const coins = await r.json();
+    if (!Array.isArray(coins) || !coins.length) return null;
+
+    return coins.map(c => {
+      const p24 = c.price_change_percentage_24h;
+      const p7d = c.price_change_percentage_7d_in_currency;
+      const mc = c.market_cap ? `$${(c.market_cap/1e9).toFixed(2)}B` : 'N/A';
+      const vol = c.total_volume ? `$${(c.total_volume/1e6).toFixed(1)}M` : 'N/A';
+      return `${c.symbol?.toUpperCase()} (${c.name}): price=$${c.current_price?.toLocaleString('en-US',{maximumFractionDigits:6})} | 24h=${p24!=null?(p24>=0?'+':'')+p24.toFixed(2)+'%':'N/A'} | 7d=${p7d!=null?(p7d>=0?'+':'')+p7d.toFixed(2)+'%':'N/A'} | mcap=${mc} | vol24h=${vol} | rank=#${c.market_cap_rank||'?'}`;
+    }).join('\n');
+  } catch(e) { return null; }
+}
+
 async function clarkSend() {
   if (clarkBusy) return;
   const inp = document.getElementById('clark-input');
@@ -9844,7 +9905,18 @@ async function clarkSend() {
     if (!reply) {
       const history = clarkHistory[clarkAgent].slice(-8);
       const conv = history.slice(0, -1).map(m => (m.role === 'user' ? 'User: ' : 'Clark: ') + m.text).join('\n');
-      const prompt = CLARK_AGENTS[clarkAgent].system + '\n\n' + (conv ? conv + '\n' : '') + 'User: ' + text + '\nClark:';
+
+      // Fetch live CoinGecko data for market / alpha / onboarding agents when the query mentions prices or tokens
+      let liveMarketData = '';
+      const isMarketQuery = ['market', 'alpha', 'onboarding'].includes(clarkAgent) && MARKET_KEYWORDS.test(text);
+      if (isMarketQuery) {
+        const tb2 = document.querySelector('#clark-typing .clark-bubble');
+        if (tb2) tb2.innerHTML = '<span style="font-size:0.72rem;opacity:0.75;white-space:nowrap">Fetching live data...</span>';
+        const fetched = await clarkFetchTokenData(text);
+        if (fetched) liveMarketData = '\n\nLIVE MARKET DATA (real-time from CoinGecko):\n' + fetched + '\n\nUse this live data in your response — do not guess prices.';
+      }
+
+      const prompt = CLARK_AGENTS[clarkAgent].system + liveMarketData + '\n\n' + (conv ? conv + '\n' : '') + 'User: ' + text + '\nClark:';
       reply = await ai(prompt, 400);
     }
 
@@ -9906,7 +9978,15 @@ async function heroClarkSend() {
   try {
     hcAddMsg('user', text);
     hcShowTyping();
-    const reply = await ai(sysPrompt + '\n\nUser: ' + text + '\nClark:', 400);
+
+    // Inject live CoinGecko data when user asks about token prices or market data
+    let heroLiveData = '';
+    if (MARKET_KEYWORDS.test(text)) {
+      const fetched = await clarkFetchTokenData(text);
+      if (fetched) heroLiveData = '\n\nLIVE MARKET DATA (real-time from CoinGecko):\n' + fetched + '\n\nUse this live data in your response — do not guess prices.';
+    }
+
+    const reply = await ai(sysPrompt + heroLiveData + '\n\nUser: ' + text + '\nClark:', 400);
     hcRemoveTyping();
     hcAddMsg('bot', (reply || '').trim() || 'Got it — connect your wallet inside the app for full live analysis.');
   } catch(e) {
