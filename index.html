@@ -3827,7 +3827,7 @@ body::after {
         </div>
         <div class="cl-hero-chat__footer">
           <span class="cl-hero-chat__powered">⬡ CORTEX</span>
-          <span class="cl-hero-chat__tier" id="hc-tier-label">Free — general questions only</span>
+          <span class="cl-hero-chat__tier" id="hc-tier-label">Ask anything — powered by CORTEX</span>
         </div>
       </div>
 
@@ -9868,8 +9868,8 @@ function updateHeroTierLabel() {
   if (!el) return;
   const plan = user ? (user.plan || 'free') : 'free';
   if (plan === 'elite') el.textContent = 'Elite — full CORTEX intelligence';
-  else if (plan === 'pro') el.textContent = 'Pro — wallet scans, live data, pump alerts';
-  else el.textContent = 'Free — general crypto questions';
+  else if (plan === 'pro') el.textContent = 'Pro — wallet scans & live data';
+  else el.textContent = 'Ask anything — powered by CORTEX';
 }
 
 function heroClarkPill(btn) {
@@ -9888,40 +9888,6 @@ async function heroClarkSend() {
   const text = inp.value.trim();
   if (!text) return;
 
-  const plan = user ? (user.plan || 'free') : 'free';
-  const lc = text.toLowerCase();
-
-  // Tier check — detect gated feature requests
-  const isWalletScan = /0x[a-fA-F0-9]{40}|bc1|[13][a-zA-Z0-9]{24,}/i.test(text) ||
-    (lc.includes('scan') && lc.includes('wallet')) || lc.includes('wallet analysis');
-  const isEliteOnly = lc.includes('smart money') || lc.includes('ghost trade') ||
-    lc.includes('trade coach') || lc.includes('whale alert') || lc.includes('proof vault');
-  const isProOnly = isWalletScan || lc.includes('pump alert') ||
-    lc.includes('on base network') || lc.includes('live data') || lc.includes('price alert') ||
-    lc.includes('trading signal') || lc.includes('buy signal') || lc.includes('sell signal') ||
-    lc.includes('dip radar');
-
-  if (isEliteOnly && plan !== 'elite') {
-    // Clear input and show user message + upgrade prompt
-    inp.value = '';
-    inp.style.height = 'auto';
-    const pills = document.getElementById('hc-pills');
-    if (pills) pills.style.display = 'none';
-    hcAddMsg('user', text);
-    hcAddUpgradePrompt('elite');
-    return;
-  }
-  if (isProOnly && plan === 'free') {
-    // Clear input and show user message + upgrade prompt
-    inp.value = '';
-    inp.style.height = 'auto';
-    const pills = document.getElementById('hc-pills');
-    if (pills) pills.style.display = 'none';
-    hcAddMsg('user', text);
-    hcAddUpgradePrompt('pro');
-    return;
-  }
-
   // Clear input and hide pills once chat starts
   inp.value = '';
   inp.style.height = 'auto';
@@ -9935,17 +9901,16 @@ async function heroClarkSend() {
   hcAddMsg('user', text);
   hcShowTyping();
 
-  const sysPrompt = plan === 'free'
-    ? 'You are Clark, ChainLens AI\'s onchain intelligence agent powered by CORTEX. You think like a crypto analyst. For free users, answer general crypto questions only — do not perform wallet scans or provide live data. Keep responses to 2-3 sentences, sharp and direct. If they ask for live data or features, tell them to upgrade.'
-    : 'You are Clark, ChainLens AI\'s onchain intelligence agent powered by CORTEX. You think like a crypto analyst and explain things like a trader. Crypto native, direct, data-driven. Sharp actionable insights, not generic advice. Specialise in Base ecosystem. Max 3 sentences unless deep detail is needed.';
+  const sysPrompt = CLARK_BASE + '\n\nYou are answering a question on the ChainLens AI landing page. Keep responses to 2-3 sharp sentences. If the user asks to scan a specific wallet address, explain that live wallet scanning is available in the app — describe what ChainLens would show them (portfolio breakdown, smart money signals, transaction history) and encourage them to sign up free. Be direct, crypto-native, and compelling.';
 
   try {
-    const reply = await ai(sysPrompt + '\n\nUser: ' + text + '\nClark:', 380);
+    const reply = await ai(sysPrompt + '\n\nUser: ' + text + '\nClark:', 400);
     hcRemoveTyping();
-    hcAddMsg('bot', reply.trim());
+    hcAddMsg('bot', (reply || '').trim() || 'Got it — connect your wallet inside the app for full live analysis.');
   } catch(e) {
+    console.error('Hero Clark error:', e);
     hcRemoveTyping();
-    hcAddMsg('bot', 'Having trouble connecting right now. Try the full Clark panel →');
+    hcAddMsg('bot', 'Couldn\'t reach CORTEX right now — try again in a moment or open the full Clark panel below.');
   } finally {
     hcBusy = false;
     if (sendBtn) sendBtn.style.opacity = '';
