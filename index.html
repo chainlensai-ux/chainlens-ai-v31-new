@@ -9695,6 +9695,7 @@ function clarkClear() {
 
 function clarkRender() {
   const msgs = document.getElementById('clark-msgs');
+  if (!msgs) return;
   const agent = CLARK_AGENTS[clarkAgent];
   msgs.innerHTML = clarkHistory[clarkAgent].map(m => `
     <div class="clark-msg ${m.role}">
@@ -9704,6 +9705,7 @@ function clarkRender() {
   msgs.scrollTop = msgs.scrollHeight;
   // Starters only when conversation is fresh
   const starters = document.getElementById('clark-starters');
+  if (!starters) return;
   starters.innerHTML = clarkHistory[clarkAgent].length <= 1
     ? agent.starters.map(s => `<button class="clark-starter" onclick="clarkQuick(this.textContent)">${s}</button>`).join('')
     : '';
