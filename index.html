@@ -6528,6 +6528,67 @@ body::after {
 </div>
 
 <!-- ═════════════════════════════════════
+  PAGE: PORTFOLIO TRACKER
+═════════════════════════════════════ -->
+<div class="cl-page" id="pg-portfoliotracker">
+  <div class="cl-container"><div class="cl-page-inner">
+    <div class="pg-header">
+      <button class="cl-page-back" onclick="go('home')" style="margin-bottom:10px;">← Back</button>
+      <div class="pg-header__row">
+        <div class="pg-header__icon">📊</div>
+        <div class="pg-header__text">
+          <div class="pg-header__title">Portfolio Tracker</div>
+          <div class="pg-header__sub">Full multi-chain token holdings for any wallet. Live USD values across ETH, BNB, Base &amp; Polygon via Covalent.</div>
+        </div>
+        <div class="pg-header__tags">
+          <span class="pg-tag" style="color:#00ffc8;border-color:rgba(0,255,200,0.2);">4 Chains</span>
+          <span class="pg-tag" style="color:#7858c0;border-color:rgba(120,88,192,0.2);">Live USD Values</span>
+          <button class="cl-btn cl-btn--primary cl-btn--sm" id="ptb" onclick="doPortfolioTracker()" style="flex-shrink:0;">Track Portfolio →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wallet input -->
+    <div class="cl-card" style="margin-bottom:14px;">
+      <div class="cl-label">Wallet Address</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input class="cl-input" id="pt-address" placeholder="0x... EVM wallet address" style="flex:1;min-width:200px;" onkeydown="if(event.key==='Enter')doPortfolioTracker()"/>
+        <button class="cl-btn cl-btn--primary" id="ptb2" onclick="doPortfolioTracker()">Track Portfolio →</button>
+      </div>
+      <div class="cl-ai-disclaimer" style="margin-top:8px;">Token balances powered by Covalent API across ETH, BNB Chain, Base, and Polygon.</div>
+    </div>
+
+    <!-- Summary stat bar -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;" id="pt-stats" style="display:none;">
+      <div class="cl-stat-pill">Total Value: <strong id="pt-stat-total">—</strong></div>
+      <div class="cl-stat-pill">Tokens: <strong id="pt-stat-count">—</strong></div>
+      <div class="cl-stat-pill">Chains: <strong id="pt-stat-chains">—</strong></div>
+      <div class="cl-stat-pill">Top Asset: <strong id="pt-stat-top">—</strong></div>
+    </div>
+
+    <!-- Chain tabs -->
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;" id="pt-chain-tabs"></div>
+
+    <!-- Holdings table -->
+    <div class="cl-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+        <div class="cl-label" style="margin:0;">Token Holdings</div>
+        <div id="pt-chain-label" style="font-size:11px;color:var(--cl-text-3);"></div>
+      </div>
+      <div id="pt-holdings" style="overflow-x:auto;">
+        <div style="text-align:center;padding:40px;color:var(--cl-text-3);font-size:12px;">Enter a wallet address to see token holdings across all chains.</div>
+      </div>
+    </div>
+
+    <!-- AI portfolio analysis -->
+    <div class="cl-card" style="margin-top:14px;">
+      <div class="cl-label">CORTEX Portfolio Analysis</div>
+      <div id="pt-ai" style="min-height:60px;color:var(--cl-text-3);font-size:12px;">Run a portfolio scan to get CORTEX analysis.</div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ═════════════════════════════════════
   PAGE: TOKEN SCANNER
 ═════════════════════════════════════ -->
 <div class="cl-page" id="pg-tokenscanner">
@@ -6789,9 +6850,10 @@ body::after {
           <span class="td-nav-item__icon">🚨</span>
           <span class="td-nav-item__name">PumpAlert</span>
         </div>
-        <div class="td-nav-item" onclick="tdNavGo('leaderboard',this)">
+        <div class="td-nav-item" onclick="tdNavGo('portfoliotracker',this)">
           <span class="td-nav-item__icon">📊</span>
           <span class="td-nav-item__name">Portfolio Tracker</span>
+          <span class="td-nav-item__badge">Pro</span>
         </div>
         <div class="td-nav-item" onclick="tdNavGo('smartwallets',this)">
           <span class="td-nav-item__icon">🐋</span>
@@ -7192,7 +7254,7 @@ function go(id) {
   }
 
   // Auto-init pages
-  const inits = { sentiment: doSentiment, narrative: doNarrative, signals: doSignals, pumpalert: doPumpAlert, digradar: scanDips, tokenunlocks: loadTokenUnlocks, smartwallets: loadSmartWallets, walletscan: () => renderSavedWallets(), ghosttrade: () => { updateGT(true); renderTrades(); _paintStreak(); gtUpdateLeaderboard(); }, exchangeflow: doExchangeFlow, tokenscanner: doTokenScanner };
+  const inits = { sentiment: doSentiment, narrative: doNarrative, signals: doSignals, pumpalert: doPumpAlert, digradar: scanDips, tokenunlocks: loadTokenUnlocks, smartwallets: loadSmartWallets, walletscan: () => renderSavedWallets(), ghosttrade: () => { updateGT(true); renderTrades(); _paintStreak(); gtUpdateLeaderboard(); }, exchangeflow: doExchangeFlow, tokenscanner: doTokenScanner, portfoliotracker: doPortfolioTracker };
   if (inits[id]) inits[id]();
   if (id === 'alerts') { renderAlerts(); startAlertChecker(); }
   if (id === 'leaderboard') renderLB();
@@ -10888,6 +10950,204 @@ ANALYSIS: [2-3 sentences on token health, dev wallet risk, and liquidity depth]`
   }
   if (btn) { btn.disabled = false; btn.textContent = 'Scan Token →'; }
   if (btn2) { btn2.disabled = false; btn2.textContent = 'Scan Token →'; }
+}
+
+// ══════════════════════════════════════════════
+// PORTFOLIO TRACKER
+// ══════════════════════════════════════════════
+let _ptAllData = {}; // chain => tokens[]
+let _ptActiveChain = 'all';
+
+async function doPortfolioTracker() {
+  const address = (document.getElementById('pt-address')?.value || '').trim();
+  const btn = document.getElementById('ptb');
+  const btn2 = document.getElementById('ptb2');
+  const holdingsEl = document.getElementById('pt-holdings');
+  const aiEl = document.getElementById('pt-ai');
+
+  if (!address || !address.startsWith('0x')) {
+    holdingsEl.innerHTML = '<div style="color:var(--cl-red);font-size:12px;padding:16px;">Enter a valid 0x EVM wallet address.</div>';
+    return;
+  }
+
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="cl-spinner"></span>'; }
+  if (btn2) { btn2.disabled = true; btn2.innerHTML = '<span class="cl-spinner"></span>Tracking...'; }
+  holdingsEl.innerHTML = '<div style="text-align:center;padding:40px;color:var(--cl-text-3);font-size:12px;"><span class="cl-spinner"></span> Fetching token balances from Covalent...</div>';
+  aiEl.innerHTML = '<span class="cl-spinner"></span> Preparing analysis...';
+
+  try {
+    const r = await fetch('/api/covalent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ address, chains: ['eth', 'bnb', 'base', 'polygon'] })
+    });
+
+    if (!r.ok) {
+      const errData = await r.json().catch(() => ({}));
+      if (errData.code === 'MISSING_KEY') {
+        holdingsEl.innerHTML = '<div style="color:var(--cl-red);font-size:12px;padding:16px;">Covalent API key not configured. Add COVALENT_API_KEY to Vercel environment variables.</div>';
+        aiEl.innerHTML = '<div style="color:var(--cl-red);font-size:12px;">API key missing.</div>';
+        return;
+      }
+      throw new Error('Covalent API error: ' + r.status);
+    }
+
+    const data = await r.json();
+    _ptAllData = data;
+    _ptActiveChain = 'all';
+
+    // Build chain summary
+    const chainLabels = { eth: 'ETH', bnb: 'BNB', base: 'BASE', polygon: 'MATIC' };
+    const chainColors = { eth: '#627EEA', bnb: '#F3BA2F', base: '#0052FF', polygon: '#8247E5' };
+
+    let allTokens = [];
+    const chainCounts = {};
+    let totalUsd = 0;
+
+    Object.entries(data).forEach(([chainKey, chainData]) => {
+      const tokens = (chainData?.tokens || []).filter(t => t.usdValue > 0.01);
+      chainCounts[chainKey] = tokens.length;
+      tokens.forEach(t => { allTokens.push({ ...t, chain: chainKey }); totalUsd += t.usdValue || 0; });
+    });
+
+    allTokens.sort((a, b) => (b.usdValue || 0) - (a.usdValue || 0));
+
+    // Update stat bar
+    const totalEl = document.getElementById('pt-stat-total');
+    const countEl = document.getElementById('pt-stat-count');
+    const chainsEl = document.getElementById('pt-stat-chains');
+    const topEl = document.getElementById('pt-stat-top');
+    const statsBar = document.getElementById('pt-stats');
+    if (statsBar) statsBar.style.display = 'flex';
+    const fmtUsd = v => v >= 1e9 ? '$'+(v/1e9).toFixed(2)+'B' : v >= 1e6 ? '$'+(v/1e6).toFixed(1)+'M' : v >= 1e3 ? '$'+(v/1e3).toFixed(2)+'K' : '$'+v.toFixed(2);
+    if (totalEl) totalEl.textContent = fmtUsd(totalUsd);
+    if (countEl) countEl.textContent = allTokens.length;
+    if (chainsEl) chainsEl.textContent = Object.keys(chainCounts).filter(c => chainCounts[c] > 0).map(c => chainLabels[c]).join(', ') || '—';
+    if (topEl) topEl.textContent = allTokens[0]?.symbol || '—';
+
+    // Render chain filter tabs
+    const tabsEl = document.getElementById('pt-chain-tabs');
+    if (tabsEl) {
+      const tabs = [{ key: 'all', label: 'All Chains', count: allTokens.length }];
+      Object.entries(chainCounts).forEach(([k, n]) => { if (n > 0) tabs.push({ key: k, label: chainLabels[k] || k.toUpperCase(), count: n, color: chainColors[k] }); });
+      tabsEl.innerHTML = tabs.map(t => `
+        <button onclick="ptSetChain('${t.key}',this)" class="ws-chain-pill evm-chain-btn" style="${t.key === 'all' ? 'background:rgba(0,255,200,0.1);border-color:rgba(0,255,200,0.35);color:#00ffc8;' : ''}" ${t.color ? `data-chain-color="${t.color}"` : ''}>
+          ${t.label} <span style="opacity:0.6;font-size:9px;">(${t.count})</span>
+        </button>`).join('');
+    }
+
+    ptRenderHoldings(allTokens);
+
+    // CORTEX AI analysis
+    const top5 = allTokens.slice(0, 5).map(t => `${t.symbol} (${chainLabels[t.chain]||t.chain}): ${fmtUsd(t.usdValue||0)}`).join(', ');
+    const activeChainNames = Object.keys(chainCounts).filter(c => chainCounts[c] > 0).map(c => chainLabels[c]).join(', ');
+
+    const aiTxt = await ai(`You are ChainLens AI Portfolio Tracker™ CORTEX analyst.
+Wallet: ${address.slice(0,8)}...${address.slice(-4)} | Total portfolio: ${fmtUsd(totalUsd)} | Tokens: ${allTokens.length} across ${activeChainNames}
+Top holdings: ${top5 || 'None'}
+Live market: ${ctx()}
+Reply ONLY in this format:
+RISK: [LOW / MEDIUM / HIGH — diversification and chain exposure assessment]
+ALLOCATION: [1 sentence on portfolio distribution across chains and tokens]
+INSIGHT: [2 sentences on portfolio health, concentration risk, and any red flags]`, 350);
+
+    const riskMatch = aiTxt.match(/RISK:\s*(\w+)/i);
+    const allocMatch = aiTxt.match(/ALLOCATION:\s*(.+)/i);
+    const insightMatch = aiTxt.match(/INSIGHT:\s*([\s\S]+)/i);
+    const risk = (riskMatch?.[1] || 'MEDIUM').toUpperCase();
+    const riskColor = risk === 'LOW' ? '#00ffc8' : risk === 'HIGH' ? '#ef476f' : '#f0b429';
+
+    aiEl.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+        <span style="background:${riskColor}15;border:1px solid ${riskColor}40;color:${riskColor};border-radius:12px;padding:3px 10px;font-size:10px;font-weight:800;">⬡ RISK: ${risk}</span>
+        <span style="font-size:10px;color:var(--cl-text-3);">${fmtUsd(totalUsd)} total · ${allTokens.length} tokens</span>
+      </div>
+      ${allocMatch ? `<div style="font-size:12px;color:var(--cl-text);line-height:1.6;margin-bottom:8px;">${allocMatch[1].trim()}</div>` : ''}
+      ${insightMatch ? `<div style="font-size:11.5px;color:var(--cl-text-2);line-height:1.6;">${insightMatch[1].trim()}</div>` : ''}
+      <div class="cl-ai-disclaimer" style="margin-top:10px;">Not financial advice. Balances from Covalent API.</div>`;
+
+  } catch(e) {
+    holdingsEl.innerHTML = `<div style="color:var(--cl-red);font-size:12px;padding:16px;">Error: ${e.message}</div>`;
+    aiEl.innerHTML = '<div style="color:var(--cl-red);font-size:12px;">Analysis failed.</div>';
+  }
+  if (btn) { btn.disabled = false; btn.textContent = 'Track Portfolio →'; }
+  if (btn2) { btn2.disabled = false; btn2.textContent = 'Track Portfolio →'; }
+}
+
+function ptSetChain(chainKey, el) {
+  _ptActiveChain = chainKey;
+  document.querySelectorAll('#pt-chain-tabs .evm-chain-btn').forEach(b => {
+    b.style.background = 'transparent';
+    b.style.borderColor = 'rgba(0,255,200,0.12)';
+    b.style.color = 'rgba(0,255,200,0.4)';
+  });
+  el.style.background = 'rgba(0,255,200,0.1)';
+  el.style.borderColor = 'rgba(0,255,200,0.35)';
+  el.style.color = '#00ffc8';
+
+  const chainLabels = { eth: 'ETH', bnb: 'BNB', base: 'BASE', polygon: 'MATIC' };
+  const labelEl = document.getElementById('pt-chain-label');
+  if (labelEl) labelEl.textContent = chainKey === 'all' ? 'All chains' : (chainLabels[chainKey] || chainKey.toUpperCase()) + ' only';
+
+  let tokens = [];
+  if (chainKey === 'all') {
+    Object.values(_ptAllData).forEach(cd => { (cd?.tokens || []).forEach(t => { if ((t.usdValue || 0) > 0.01) tokens.push(t); }); });
+  } else {
+    tokens = (_ptAllData[chainKey]?.tokens || []).filter(t => (t.usdValue || 0) > 0.01);
+  }
+  tokens.sort((a, b) => (b.usdValue || 0) - (a.usdValue || 0));
+  ptRenderHoldings(tokens);
+}
+
+function ptRenderHoldings(tokens) {
+  const holdingsEl = document.getElementById('pt-holdings');
+  if (!tokens.length) {
+    holdingsEl.innerHTML = '<div style="text-align:center;padding:32px;color:var(--cl-text-3);font-size:12px;">No token holdings found on this chain.</div>';
+    return;
+  }
+  const chainColors = { eth: '#627EEA', bnb: '#F3BA2F', base: '#0052FF', polygon: '#8247E5' };
+  const chainLabels = { eth: 'ETH', bnb: 'BNB', base: 'BASE', polygon: 'MATIC' };
+  const totalVal = tokens.reduce((s, t) => s + (t.usdValue || 0), 0);
+  const fmtUsd = v => v >= 1e9 ? '$'+(v/1e9).toFixed(2)+'B' : v >= 1e6 ? '$'+(v/1e6).toFixed(1)+'M' : v >= 1e3 ? '$'+(v/1e3).toFixed(2)+'K' : '$'+v.toFixed(2);
+  const fmtBal = v => v >= 1e9 ? (v/1e9).toFixed(2)+'B' : v >= 1e6 ? (v/1e6).toFixed(2)+'M' : v >= 1e3 ? (v/1e3).toFixed(2)+'K' : v >= 1 ? v.toFixed(4) : v.toFixed(6);
+  holdingsEl.innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:11px;">
+      <thead>
+        <tr style="color:var(--cl-text-4);text-transform:uppercase;font-size:9px;letter-spacing:0.5px;border-bottom:1px solid rgba(255,255,255,0.06);">
+          <th style="text-align:left;padding:6px 8px;">Token</th>
+          <th style="text-align:left;padding:6px 8px;">Chain</th>
+          <th style="text-align:right;padding:6px 8px;">Balance</th>
+          <th style="text-align:right;padding:6px 8px;">Price</th>
+          <th style="text-align:right;padding:6px 8px;">Value</th>
+          <th style="text-align:right;padding:6px 8px;">% of Portfolio</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${tokens.map(t => {
+          const pct = totalVal > 0 ? ((t.usdValue || 0) / totalVal * 100).toFixed(1) : '0.0';
+          const chainColor = chainColors[t.chain] || '#00ffc8';
+          const chainLabel = chainLabels[t.chain] || (t.chain || '?').toUpperCase();
+          const priceFmt = t.price >= 1000 ? '$'+t.price.toLocaleString('en-US',{maximumFractionDigits:0}) : t.price >= 1 ? '$'+t.price.toFixed(4) : t.price > 0 ? '$'+t.price.toFixed(8) : '—';
+          const barWidth = Math.max(1, Math.min(100, parseFloat(pct)));
+          return `<tr style="border-bottom:1px solid rgba(255,255,255,0.03);">
+            <td style="padding:7px 8px;">
+              <div style="font-weight:600;color:var(--cl-text);">${t.symbol}</div>
+              <div style="font-size:9px;color:var(--cl-text-4);margin-top:1px;">${(t.name||'').slice(0,20)}</div>
+            </td>
+            <td style="padding:7px 8px;"><span style="background:${chainColor}20;border:1px solid ${chainColor}40;color:${chainColor};border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700;">${chainLabel}</span></td>
+            <td style="padding:7px 8px;text-align:right;color:var(--cl-text-2);">${fmtBal(t.balance)}</td>
+            <td style="padding:7px 8px;text-align:right;color:var(--cl-text-3);">${priceFmt}</td>
+            <td style="padding:7px 8px;text-align:right;color:#00ffc8;font-weight:700;">${fmtUsd(t.usdValue||0)}</td>
+            <td style="padding:7px 8px;text-align:right;">
+              <div style="display:flex;align-items:center;gap:6px;justify-content:flex-end;">
+                <div style="width:40px;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;"><div style="width:${barWidth}%;height:3px;background:#00ffc8;border-radius:2px;"></div></div>
+                <span style="color:var(--cl-text-3);font-size:10px;">${pct}%</span>
+              </div>
+            </td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
 }
 
 // ══════════════════════════════════════════════
