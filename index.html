@@ -8014,19 +8014,32 @@ function bpFill(c1,a1,c2,a2,c3,a3,c4,a4) {
 }
 async function doBP() {
   const btn = document.getElementById('bpb');
-  const holdings = [[document.getElementById('b1c').value, document.getElementById('b1a').value],[document.getElementById('b2c').value, document.getElementById('b2a').value],[document.getElementById('b3c').value, document.getElementById('b3a').value],[document.getElementById('b4c').value, document.getElementById('b4a').value]].filter(([c,a]) => c && a).map(([c,a]) => `${a} ${c}`).join(', ');
+  const rawHoldings = [[document.getElementById('b1c').value, document.getElementById('b1a').value],[document.getElementById('b2c').value, document.getElementById('b2a').value],[document.getElementById('b3c').value, document.getElementById('b3a').value],[document.getElementById('b4c').value, document.getElementById('b4a').value]].filter(([c,a]) => c && a);
+  const holdings = rawHoldings.map(([c,a]) => `${a} ${c}`).join(', ');
   const cur = document.getElementById('bcu').value;
   if (!holdings) { toast('Enter at least one coin and amount', 'er'); return; }
   btn.disabled = true; btn.innerHTML = '<span class="cl-spinner"></span>Calculating...';
   try {
-    const txt = await ai(`You are ChainLens AI BearProof Score™. Analyze this crypto portfolio.
-Portfolio: ${holdings} | Currency: ${cur} | Live prices: ${ctx()}
+    // Fetch CoinGecko volatility data for entered coins
+    let volatilityData = '';
+    try {
+      const coinNames = rawHoldings.map(([c]) => c.trim());
+      const allText = coinNames.join(' ');
+      const fetched = await clarkFetchTokenData(allText);
+      if (fetched) {
+        volatilityData = '\n\nLIVE COINGECKO VOLATILITY DATA:\n' + fetched;
+      }
+    } catch(e) {}
+
+    const txt = await ai(`You are ChainLens AI BearProof Score™. Analyze this crypto portfolio for bear market resilience.
+Portfolio: ${holdings} | Currency: ${cur} | Live prices: ${ctx()}${volatilityData}
+Use the 24h/7d price changes and market cap data above to assess real volatility and crash risk.
 Respond ONLY in this format:
 SCORE: [0-100]
 STATUS: [EXCELLENT/GOOD/MODERATE/POOR/CRITICAL]
-SUMMARY: [2 sentences]
+SUMMARY: [2 sentences including volatility insight]
 STRENGTH: [one line]
-RISK: [one line]
+RISK: [one line based on actual volatility data]
 ACTION: [specific action]`, 400);
     const score = parseInt(txt.match(/SCORE:\s*(\d+)/)?.[1] || 50);
     const status = txt.match(/STATUS:\s*(.+)/)?.[1]?.trim() || 'MODERATE';
