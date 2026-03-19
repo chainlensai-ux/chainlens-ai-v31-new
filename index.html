@@ -9538,7 +9538,7 @@ function renderPAResults() {
         <span class="pa-card__vol-lbl">Vol/MCap ${vr.toFixed(0)}%</span>
       </div>
       <div class="pa-card__footer">
-        <span class="pa-card__vol">${volFmt} 24h vol</span>
+        <span class="pa-card__vol">${volFmt} 24h vol${c._chain ? ` · <span style="color:#a78bfa;font-size:9px;font-weight:700;">BASE</span>` : ''}</span>
         <span class="pa-card__ai">Clark AI →</span>
       </div>
     </div>`;
@@ -9548,11 +9548,48 @@ function renderPAResults() {
 async function doPumpAlert() {
   const el = document.getElementById('pa-results');
   const btn = document.getElementById('pa-refresh-btn');
-  el.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--cl-text-3);"><span class="cl-spinner"></span><br><br>Scanning 150+ coins...</div>';
+  el.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--cl-text-3);"><span class="cl-spinner"></span><br><br>Scanning coins + Base micro-caps...</div>';
   if (btn) { btn.disabled = true; btn.textContent = 'Scanning...'; }
   try {
+    // Primary: CoinGecko top 100 by volume
     const r = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=volume_desc&per_page=100&price_change_percentage=24h,7d&x_cg_demo_api_key=${CGK}`);
     paAllData = await r.json();
+
+    // DexScreener: scan Base chain for volume spikes on tokens under 500K mcap
+    try {
+      const dsCtrl = new AbortController();
+      const dsT = setTimeout(() => dsCtrl.abort(), 5000);
+      const dsR = await fetch('https://api.dexscreener.com/latest/dex/search?q=base&chainId=base', { signal: dsCtrl.signal });
+      clearTimeout(dsT);
+      if (dsR.ok) {
+        const dsData = await dsR.json();
+        const basePairs = (dsData.pairs || []).filter(p =>
+          p.chainId === 'base' &&
+          p.fdv && p.fdv < 500000 &&
+          p.volume && p.volume.h24 > 5000 &&
+          p.priceChange && Math.abs(parseFloat(p.priceChange.h24 || 0)) > 8
+        ).slice(0, 20);
+        // Convert DexScreener format to paAllData format for renderPAResults
+        for (const pair of basePairs) {
+          const pct24 = parseFloat(pair.priceChange?.h24 || 0);
+          paAllData.push({
+            id: pair.pairAddress || pair.baseToken?.address,
+            name: pair.baseToken?.name || pair.baseToken?.symbol || 'Unknown',
+            symbol: pair.baseToken?.symbol || '?',
+            current_price: parseFloat(pair.priceUsd || 0),
+            market_cap: pair.fdv || 0,
+            total_volume: pair.volume?.h24 || 0,
+            price_change_percentage_24h: pct24,
+            price_change_percentage_7d_in_currency: 0,
+            _source: 'dexscreener',
+            _chain: 'base',
+            _pairAddress: pair.pairAddress,
+            _liquidity: pair.liquidity?.usd || 0
+          });
+        }
+      }
+    } catch(e) {}
+
     const timeEl = document.getElementById('pa-stat-time');
     if (timeEl) timeEl.textContent = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
     renderPAResults();
