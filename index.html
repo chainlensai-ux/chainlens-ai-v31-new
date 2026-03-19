@@ -7499,18 +7499,28 @@ async function tdClarkSend() {
   msgs.scrollTop = msgs.scrollHeight;
 
   try {
-    const btcPrice = px['bitcoin']?.usd || 0;
-    const ethPrice = px['ethereum']?.usd || 0;
-    const solPrice = px['solana']?.usd || 0;
-    const systemCtx = `You are Clark, an elite onchain crypto analyst AI inside ChainLens AI terminal. Current prices: BTC $${btcPrice.toLocaleString()}, ETH $${ethPrice.toLocaleString()}, SOL $${solPrice.toLocaleString()}. Be concise and data-focused. Use specific numbers when possible.`;
+    // CORTEX system prompt with live market context
+    const liveCtx = ctx();
+    const systemCtx = CLARK_BASE + `\n\nTERMINAL MODE: You are inside the ChainLens AI terminal dashboard. Be sharp and concise.\nLIVE PRICES: ${liveCtx}\nUse specific numbers. Max 3-4 sentences unless deep analysis is requested.`;
 
+    // Fetch detailed token data from CoinGecko when user asks about specific tokens
+    let liveTokenData = '';
+    if (MARKET_KEYWORDS.test(text)) {
+      try {
+        const fetched = await clarkFetchTokenData(text);
+        if (fetched) liveTokenData = '\n\nLIVE TOKEN DATA (CoinGecko real-time):\n' + fetched;
+      } catch(e) {}
+    }
+
+    const userContent = liveTokenData ? text + liveTokenData : text;
     const res = await fetch('/api/claude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [{ role: 'user', content: text }], system: systemCtx, max_tokens: 400 })
+      body: JSON.stringify({ messages: [{ role: 'user', content: userContent }], system: systemCtx, max_tokens: 400 })
     });
     const data = await res.json();
-    const reply = data.content?.[0]?.text || data.reply || data.message || 'Unable to get response right now.';
+    if (data.error) throw new Error(data.error);
+    const reply = data.text || 'Unable to get response right now.';
     typing.innerHTML = '<div class="td-chat-msg__name">Clark</div>' + tdEscape(reply).replace(/\n/g, '<br>');
   } catch (e) {
     typing.innerHTML = '<div class="td-chat-msg__name">Clark</div>Connection error. Please try again.';
