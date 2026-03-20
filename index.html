@@ -7343,7 +7343,7 @@ function initTerminal() {
   if (_tdWhaleTimer) clearInterval(_tdWhaleTimer);
   if (_tdPumpTimer) clearInterval(_tdPumpTimer);
   if (_tdMarketTimer) clearInterval(_tdMarketTimer);
-  _tdWhaleTimer = setInterval(tdAddWhaleItem, 8000);
+  _tdWhaleTimer = setInterval(tdAddWhaleItem, 60000);
   _tdPumpTimer = setInterval(tdAddPumpItem, 30000);
   _tdMarketTimer = setInterval(tdRenderMarket, 60000);
 }
@@ -7470,10 +7470,44 @@ async function tdLoadWhales() {
   if (!feed) return;
   try {
     const ethPrice = px['ethereum']?.usd || 3000;
-    const minEth = 50000 / ethPrice; // $50K threshold in ETH
-    // Fetch latest ETH transactions from a known high-activity address (beacon deposit contract) as proxy
-    // Better: use Etherscan internal transactions API for recent large transfers
-    const url = `https://api.etherscan.io/api?module=account&action=txlist&address=0x00000000219ab540356cBB839Cbe05303d7705Fa&startblock=0&endblock=99999999&page=1&offset=20&sort=desc&apikey=ENV`;
+    const minUsd = 50000;
+    const minEth = minUsd / ethPrice;
+
+    const nowSec = Math.floor(Date.now() / 1000);
+    const sinceSec = nowSec - 3600; // last hour
+
+    // Resolve block window for the last hour.
+    const latestBlockUrl = 'https://api.etherscan.io/api?module=proxy&action=eth_blockNumber&apikey=ENV';
+    const sinceBlockUrl =
+      `https://api.etherscan.io/api?module=block&action=getblocknobytime&timestamp=${sinceSec}&closest=before&apikey=ENV`;
+
+    const [latestR, sinceR] = await Promise.all([
+      fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: latestBlockUrl })
+      }),
+      fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: sinceBlockUrl })
+      })
+    ]);
+
+    if (!latestR.ok || !sinceR.ok) throw new Error('block fetch failed');
+
+    const latestData = await latestR.json();
+    const sinceData = await sinceR.json();
+    const latestResult = String(latestData.result || '0x0');
+    const latestBlock = latestResult.startsWith('0x') ? parseInt(latestResult, 16) : parseInt(latestResult, 10);
+    const sinceBlock = parseInt(String(sinceData.result || '0'), 10);
+
+    // Fetch txs from a known high-activity address as a proxy for large whale moves.
+    const depositContract = '0x00000000219ab540356cBB839Cbe05303d7705Fa';
+    const url =
+      `https://api.etherscan.io/api?module=account&action=txlist&address=${depositContract}` +
+      `&startblock=${sinceBlock}&endblock=${latestBlock}&page=1&offset=100&sort=desc&apikey=ENV`;
+
     const r = await fetch('/api/scan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -7481,29 +7515,47 @@ async function tdLoadWhales() {
     });
     if (!r.ok) throw new Error('fetch failed');
     const data = await r.json();
-    const txs = (data.result || []).filter(tx => {
-      const ethVal = parseFloat(tx.value) / 1e18;
-      return ethVal >= minEth;
-    }).slice(0, 4);
 
-    if (txs.length) {
-      feed.innerHTML = '';
-      txs.forEach(tx => {
-        const ethVal = (parseFloat(tx.value) / 1e18).toFixed(2);
-        const usdVal = (parseFloat(ethVal) * ethPrice).toLocaleString('en-US', {maximumFractionDigits:0});
-        const from = tx.from ? tx.from.slice(0,6) + '...' + tx.from.slice(-4) : '?';
-        const to = tx.to ? tx.to.slice(0,6) + '...' + tx.to.slice(-4) : 'Contract';
-        const secsAgo = Math.floor(Date.now()/1000) - parseInt(tx.timeStamp);
-        const timeLabel = secsAgo < 60 ? secsAgo + 's ago' : secsAgo < 3600 ? Math.floor(secsAgo/60) + 'm ago' : Math.floor(secsAgo/3600) + 'h ago';
-        const icon = parseFloat(ethVal) >= 100 ? '🐋' : parseFloat(ethVal) >= 50 ? '🦈' : '⚡';
-        const d = { icon, type: 'Transfer', token: 'ETH', chain: 'ETH', amount: ethVal, usd: usdVal, wallet: from + ' → ' + to, mins: timeLabel };
-        feed.appendChild(tdWhaleEl(d));
-      });
+    const txs = (data.result || [])
+      .filter(tx => {
+        const txTs = parseInt(tx.timeStamp, 10) || 0;
+        if (txTs < sinceSec) return false;
+        const ethVal = parseFloat(tx.value) / 1e18;
+        return ethVal >= minEth;
+      })
+      .slice(0, 4);
+
+    feed.innerHTML = '';
+    if (!txs.length) {
+      feed.innerHTML = '<div style="padding:14px 0;text-align:center;color:#2a2a2a;font-size:11px;font-family:\'Inter\',sans-serif;">No whales &gt; $50K in the last hour</div>';
       return;
     }
-  } catch(e) {}
-  // Fallback to mock data if Etherscan fails or no large txs found
-  tdRenderWhalesMock();
+
+    txs.forEach(tx => {
+      const ethValNum = parseFloat(tx.value) / 1e18;
+      const usdVal = (ethValNum * ethPrice).toLocaleString('en-US', { maximumFractionDigits: 0 });
+      const from = tx.from ? tx.from.slice(0,6) + '...' + tx.from.slice(-4) : '?';
+      const secsAgo = Math.max(0, nowSec - (parseInt(tx.timeStamp, 10) || nowSec));
+      const minsAgo = Math.max(1, Math.floor(secsAgo / 60));
+
+      const fn = (tx.functionName || '').trim();
+      const type = tx.isError === '1' ? 'Failed' : (fn ? fn : 'Transfer');
+      const icon = ethValNum >= 100 ? '🐋' : ethValNum >= 50 ? '🦈' : '⚡';
+
+      const d = {
+        icon,
+        type,
+        token: 'ETH',
+        chain: 'ETH',
+        usd: usdVal,
+        wallet: from,
+        mins: minsAgo
+      };
+      feed.appendChild(tdWhaleEl(d));
+    });
+  } catch (e) {
+    feed.innerHTML = '<div style="padding:14px 0;text-align:center;color:#2a2a2a;font-size:11px;font-family:\'Inter\',sans-serif;">Failed to load whale moves</div>';
+  }
 }
 
 function tdMakeWhaleItem() {
@@ -7533,8 +7585,6 @@ function tdRenderWhalesMock() {
 }
 
 function tdRenderWhales() {
-  // Start with mock data immediately, then replace with live data
-  tdRenderWhalesMock();
   tdLoadWhales();
 }
 
@@ -7557,17 +7607,7 @@ function tdWhaleEl(d) {
 function tdAddWhaleItem() {
   const feed = document.getElementById('td-whale-feed');
   if (!feed || !document.getElementById('pg-terminal')?.classList.contains('active')) return;
-  // Every 4th refresh, reload from Etherscan; otherwise add a mock item
-  if (!window._tdWhaleRefreshCount) window._tdWhaleRefreshCount = 0;
-  window._tdWhaleRefreshCount++;
-  if (window._tdWhaleRefreshCount % 4 === 0) {
-    tdLoadWhales();
-    return;
-  }
-  const el = tdWhaleEl(tdMakeWhaleItem());
-  el.classList.add('td-feed-item--new');
-  feed.insertBefore(el, feed.firstChild);
-  while (feed.children.length > 4) feed.removeChild(feed.lastChild);
+  tdLoadWhales();
 }
 
 /* ── Pump Feed ── */
