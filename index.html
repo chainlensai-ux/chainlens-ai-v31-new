@@ -7746,9 +7746,11 @@ async function tdRenderMarket() {
       else if (value < 75) color = '#2DD4BF';      // Greed
       else color = '#16a34a';                      // Extreme Greed
 
-      sentEl.textContent = classification.toUpperCase();
+      // Show the actual index number as the main value (e.g. "32")
+      sentEl.textContent = isNaN(value) ? '—' : value.toFixed(0);
       sentEl.style.color = color;
-      sentSub.textContent = 'Index ' + value.toFixed(0) + ' / 100';
+      // Subtext shows the textual classification (e.g. "Fear")
+      sentSub.textContent = (classification + ' sentiment').trim();
     }
   } catch (e) {
     // Fail silently to avoid breaking the terminal dashboard
