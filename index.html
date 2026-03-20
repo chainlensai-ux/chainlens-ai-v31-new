@@ -7344,7 +7344,7 @@ function initTerminal() {
   if (_tdPumpTimer) clearInterval(_tdPumpTimer);
   if (_tdMarketTimer) clearInterval(_tdMarketTimer);
   _tdWhaleTimer = setInterval(tdAddWhaleItem, 8000);
-  _tdPumpTimer = setInterval(tdAddPumpItem, 12000);
+  _tdPumpTimer = setInterval(tdAddPumpItem, 30000);
   _tdMarketTimer = setInterval(tdRenderMarket, 60000);
 }
 
@@ -7571,30 +7571,16 @@ function tdAddWhaleItem() {
 }
 
 /* ── Pump Feed ── */
-const _tdPumpCoins = [
-  {sym:'PEPE',chain:'ETH'},{sym:'WIF',chain:'SOL'},{sym:'BONK',chain:'SOL'},
-  {sym:'FLOKI',chain:'BSC'},{sym:'SHIB',chain:'ETH'},{sym:'MOG',chain:'ETH'},
-  {sym:'BRETT',chain:'BASE'},{sym:'POPCAT',chain:'SOL'},{sym:'APE',chain:'ETH'},
-  {sym:'GMX',chain:'ARB'},{sym:'JTO',chain:'SOL'},{sym:'PYTH',chain:'SOL'}
-];
+const _tdPumpChains = new Set(['base', 'solana']);
 
-function tdMakePumpItem() {
-  const coin = _tdPumpCoins[Math.floor(Math.random() * _tdPumpCoins.length)];
-  const chg = (Math.random() * 45 + 3).toFixed(1);
-  const isUp = Math.random() > 0.35;
-  const vol = (Math.random() * 50 + 2).toFixed(1);
-  const mins = Math.floor(Math.random() * 60) + 1;
-  return { ...coin, chg: isUp ? chg : '-' + chg, isUp, vol, mins };
-}
-
-function tdRenderPumps() {
-  const feed = document.getElementById('td-pump-feed');
-  if (!feed) return;
-  feed.innerHTML = '';
-  for (let i = 0; i < 3; i++) {
-    const d = tdMakePumpItem();
-    feed.appendChild(tdPumpEl(d));
-  }
+function tdFormatMoneyCompact(n) {
+  const v = typeof n === 'number' ? n : parseFloat(n);
+  if (!isFinite(v) || v <= 0) return '0';
+  if (v >= 1e9) return (v / 1e9).toFixed(2).replace(/\.00$/, '') + 'B';
+  if (v >= 1e6) return (v / 1e6).toFixed(2).replace(/\.00$/, '') + 'M';
+  if (v >= 1e3) return (v / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+  if (v >= 100) return v.toFixed(0);
+  return v.toFixed(2);
 }
 
 function tdPumpEl(d) {
@@ -7603,23 +7589,82 @@ function tdPumpEl(d) {
   el.innerHTML = `
     <div class="td-feed-item__icon">${d.isUp ? '🚀' : '📉'}</div>
     <div class="td-feed-item__info">
-      <div class="td-feed-item__token">${d.sym} <span style="color:#333;font-size:10px;">${d.chain}</span></div>
-      <div class="td-feed-item__desc">Vol $${d.vol}M · ${d.mins}m ago</div>
+      <div class="td-feed-item__token">${d.name} <span style="color:#333;font-size:10px;">${d.chain}</span></div>
+      <div class="td-feed-item__desc">Vol $${d.volume} · 1h</div>
     </div>
     <div class="td-feed-item__right">
-      <div><span class="td-pump-badge ${d.isUp ? 'td-pump-badge--up' : 'td-pump-badge--down'}">${d.isUp ? '+' : ''}${d.chg}%</span></div>
-      <div class="td-feed-item__time">${d.chain}</div>
+      <div><span class="td-pump-badge ${d.isUp ? 'td-pump-badge--up' : 'td-pump-badge--down'}">${d.pctStr}</span></div>
+      <div class="td-feed-item__time">1h</div>
     </div>`;
   return el;
+}
+
+async function tdFetchPumpPairs() {
+  // DexScreener search is token-query based; we use a generic query and then filter locally by Base + Solana.
+  const url =
+    'https://api.dexscreener.com/latest/dex/search?q=token&' +
+    'sort=volume&order=desc&limit=60&chainIds=base%2Csolana';
+
+  const res = await fetch(url);
+  if (!res.ok) return [];
+  const data = await res.json();
+  const pairs = Array.isArray(data?.pairs) ? data.pairs : [];
+
+  const mapped = pairs
+    .filter(p => p && _tdPumpChains.has(p.chainId))
+    .map(p => {
+      const chain = (p.chainId || '').toUpperCase();
+      const baseToken = p.baseToken || {};
+      const name = baseToken.name || baseToken.symbol || p.pairAddress || '—';
+
+      // DexScreener uses volume.h1 as the volume in the last hour.
+      const vol1h = p.volume?.h1 ?? p.volume?.h24 ?? 0;
+      const pct = p.priceChange?.h1 ?? p.priceChange?.h24 ?? 0;
+
+      const isUp = typeof pct === 'number' ? pct >= 0 : parseFloat(pct) >= 0;
+      const pctNum = typeof pct === 'number' ? pct : parseFloat(pct);
+
+      return {
+        name,
+        chain,
+        vol1h,
+        volume: tdFormatMoneyCompact(vol1h),
+        pctStr: (isUp ? '+' : '') + (isFinite(pctNum) ? pctNum.toFixed(1) : '0.0') + '%',
+        isUp
+      };
+    })
+    .filter(d => d.vol1h > 0);
+
+  mapped.sort((a, b) => (b.vol1h || 0) - (a.vol1h || 0));
+
+  // Ensure stable top-3 even if sorting above is approximate due to compact formatting.
+  return mapped.slice(0, 3);
+}
+
+function tdRenderPumps() {
+  const feed = document.getElementById('td-pump-feed');
+  if (!feed) return;
+
+  feed.innerHTML = '<div style="padding:16px 0;text-align:center;color:#2a2a2a;font-size:11px;font-family:\'Inter\',sans-serif;">Scanning pump signals...</div>';
+
+  tdFetchPumpPairs()
+    .then(items => {
+      feed.innerHTML = '';
+      if (!items || items.length === 0) {
+        feed.innerHTML = '<div style="padding:16px 0;text-align:center;color:#2a2a2a;font-size:11px;font-family:\'Inter\',sans-serif;">No pump signals found</div>';
+        return;
+      }
+      items.forEach(it => feed.appendChild(tdPumpEl(it)));
+    })
+    .catch(() => {
+      feed.innerHTML = '<div style="padding:16px 0;text-align:center;color:#2a2a2a;font-size:11px;font-family:\'Inter\',sans-serif;">Failed to load pump alerts</div>';
+    });
 }
 
 function tdAddPumpItem() {
   const feed = document.getElementById('td-pump-feed');
   if (!feed || !document.getElementById('pg-terminal')?.classList.contains('active')) return;
-  const el = tdPumpEl(tdMakePumpItem());
-  el.classList.add('td-feed-item--new');
-  feed.insertBefore(el, feed.firstChild);
-  while (feed.children.length > 3) feed.removeChild(feed.lastChild);
+  tdRenderPumps();
 }
 
 /* ── GhostTrade Positions ── */
