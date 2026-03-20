@@ -6642,6 +6642,14 @@ body::after {
       </div>
     </div>
 
+    <!-- LunarCrush Social Signal -->
+    <div class="cl-card" style="margin-top:14px;">
+      <div class="cl-label">Social Signal — LunarCrush</div>
+      <div id="ts-social" style="min-height:86px;color:var(--cl-text-3);font-size:12px;">
+        Scan a token to see bullish/bearish sentiment, social volume trend, and AltRank.
+      </div>
+    </div>
+
     <!-- Basescan deployer / dev wallet -->
     <div class="cl-card" style="margin-top:14px;">
       <div class="cl-label">Basescan — Deployer &amp; Dev Wallet Transfers</div>
@@ -10964,6 +10972,7 @@ async function doTokenScanner() {
   const pairsEl = document.getElementById('ts-pairs');
   const deployerEl = document.getElementById('ts-deployer');
   const aiEl = document.getElementById('ts-ai');
+  const socialEl = document.getElementById('ts-social');
   const query = (document.getElementById('ts-input')?.value || '').trim();
 
   if (!query) {
@@ -10976,6 +10985,7 @@ async function doTokenScanner() {
   pairsEl.innerHTML = '<div style="text-align:center;padding:32px;color:var(--cl-text-3);font-size:12px;"><span class="cl-spinner"></span> Fetching DexScreener data...</div>';
   deployerEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--cl-text-3);font-size:12px;"><span class="cl-spinner"></span> Fetching Basescan data...</div>';
   aiEl.innerHTML = '<span class="cl-spinner"></span> Analysing token...';
+  if (socialEl) socialEl.innerHTML = '<span class="cl-spinner"></span> Fetching LunarCrush social signal...';
 
   const isAddress = /^0x[0-9a-fA-F]{40}/.test(query);
 
@@ -11175,6 +11185,72 @@ ANALYSIS: [2-3 sentences on token health, dev wallet risk, and liquidity depth]`
     const signal = (signalMatch?.[1] || 'NEUTRAL').toUpperCase().trim();
     const safetyColor = safety.includes('RED') ? '#ef476f' : safety.includes('RISKY') ? '#f0b429' : '#00ffc8';
     const sigColor = signal === 'BULLISH' ? '#00ffc8' : signal === 'BEARISH' ? '#ef476f' : '#f0b429';
+
+    // ── LunarCrush Social Signal ──
+    try {
+      const topic = (tokenName || tokenSym || query || '').toString().trim();
+      if (socialEl && topic) {
+        const sr = await fetch('/api/lunarsocial', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ topic, interval: '1d', limit: 14 })
+        });
+        const sd = sr.ok ? await sr.json() : null;
+        const sent = sd?.sentiment;
+        const sentScore = sent?.score;
+        const bullishPct = sent?.bullishPct;
+        const bearishPct = sent?.bearishPct;
+        const gal = sd?.galaxyScore;
+        const altRank = sd?.altRank;
+        const volT = sd?.socialVolumeTrend;
+
+        const sentScoreSafe = Number.isFinite(sentScore) ? sentScore : 50;
+        const bullishSafe = Number.isFinite(bullishPct) ? bullishPct : sentScoreSafe;
+        const bearishSafe = Number.isFinite(bearishPct) ? bearishPct : (100 - sentScoreSafe);
+        const sentCol = sentScoreSafe >= 60 ? '#00ffc8' : sentScoreSafe <= 40 ? '#ef476f' : '#f0b429';
+        const volLatest = volT?.latest;
+        const volAvg = volT?.avg;
+        const volChange = volT?.changePct;
+        const volChangeSafe = Number.isFinite(volChange) ? volChange : null;
+
+        const fmtTiny = v => {
+          if (v == null || !Number.isFinite(Number(v))) return '—';
+          const n = Number(v);
+          if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+          if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+          if (n >= 1e3) return (n / 1e3).toFixed(0) + 'K';
+          return n.toFixed(0);
+        };
+
+        const volTrendTxt = volChangeSafe == null
+          ? 'Social volume trend unavailable'
+          : `Social volume is ${volChangeSafe >= 0 ? 'UP' : 'DOWN'} ${Math.abs(volChangeSafe).toFixed(1)}% vs average`;
+
+        socialEl.innerHTML = `
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+            <span style="background:${sentCol}15;border:1px solid ${sentCol}40;color:${sentCol};border-radius:12px;padding:3px 10px;font-size:10px;font-weight:800;">
+              💬 ${bullishSafe.toFixed(0)}% Bullish / ${bearishSafe.toFixed(0)}% Bearish
+            </span>
+            ${gal != null ? `<span style="background:rgba(176,144,232,0.08);border:1px solid rgba(176,144,232,0.18);color:#b090e8;border-radius:12px;padding:3px 10px;font-size:10px;font-weight:800;">🪐 Galaxy ${gal}/100</span>` : ''}
+            ${altRank != null ? `<span style="background:rgba(120,88,192,0.08);border:1px solid rgba(120,88,192,0.18);color:var(--cl-violet-light);border-radius:12px;padding:3px 10px;font-size:10px;font-weight:800;">🏷 AltRank ${altRank}</span>` : ''}
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:220px;">
+              <div style="font-size:11px;color:var(--cl-text-3);margin-bottom:6px;">Social Volume Trend</div>
+              <div style="font-size:12px;color:var(--cl-text);line-height:1.6;">
+                Latest: ${fmtTiny(volLatest)} · Avg: ${fmtTiny(volAvg)}
+              </div>
+              <div style="font-size:12px;color:${volChangeSafe == null ? 'var(--cl-text-3)' : (volChangeSafe >= 0 ? '#00ffc8' : '#ef476f')};line-height:1.6;margin-top:4px;">
+                ${volTrendTxt}
+              </div>
+            </div>
+          </div>
+          <div class="cl-ai-disclaimer" style="margin-top:10px;">LunarCrush social data. Not financial advice.</div>
+        `;
+      }
+    } catch(e) {
+      if (socialEl) socialEl.innerHTML = 'Social signal unavailable right now.';
+    }
 
     aiEl.innerHTML = `
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
