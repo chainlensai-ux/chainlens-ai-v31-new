@@ -3682,6 +3682,64 @@ body::after {
 .td-settings-link:hover .td-settings-link__icon { color: #00ffc8; }
 .td-settings-link__icon svg { width: 20px; height: 20px; display: block; }
 
+/* Terminal Settings modal (in-page, no route change) */
+.td-settings-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.72);
+  display: none; align-items: center; justify-content: center;
+  padding: 20px; box-sizing: border-box;
+}
+.td-settings-overlay.td-settings-overlay--open { display: flex; }
+.td-settings-modal {
+  width: 100%; max-width: 400px;
+  background: linear-gradient(180deg, #0d0d0d 0%, #0a0a0a 100%);
+  border: 1px solid #1a1a1a; border-radius: 10px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.55);
+  max-height: min(90vh, 560px); overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.td-settings-modal__header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; padding: 12px 14px; border-bottom: 1px solid #1a1a1a; flex-shrink: 0;
+}
+.td-settings-modal__title {
+  font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 800; color: #fff;
+  margin: 0;
+}
+.td-settings-modal__close {
+  background: none; border: none; color: #444; cursor: pointer; font-size: 18px;
+  padding: 4px 8px; line-height: 1; flex-shrink: 0;
+}
+.td-settings-modal__close:hover { color: #aaa; }
+.td-settings-modal__body {
+  padding: 14px; overflow-y: auto; flex: 1; min-height: 0;
+  font-family: 'Inter', sans-serif; font-size: 12px; color: #888;
+}
+.td-settings-row {
+  margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid #111;
+}
+.td-settings-row:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.td-settings-row__label {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: #333;
+  margin-bottom: 4px; font-weight: 700;
+}
+.td-settings-row__value { color: #ccc; font-family: 'JetBrains Mono', monospace; font-size: 11px; word-break: break-word; }
+.td-settings-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; }
+.td-settings-btn {
+  padding: 9px 12px; border-radius: 8px; font-family: 'Inter', sans-serif;
+  font-size: 11px; font-weight: 600; cursor: pointer;
+  border: 1px solid #1a1a1a; background: #0d0d0d; color: #aaa;
+}
+.td-settings-btn:hover { border-color: #333; color: #fff; }
+.td-settings-btn--primary {
+  background: rgba(139,92,246,0.12); border-color: rgba(139,92,246,0.35); color: #a78bfa;
+}
+.td-settings-btn--primary:hover { border-color: rgba(139,92,246,0.55); color: #c4b5fd; }
+.td-settings-btn--danger {
+  color: #ef476f; border-color: rgba(239,71,111,0.25); background: rgba(239,71,111,0.06);
+}
+.td-settings-btn--danger:hover { color: #ff6b8a; border-color: rgba(239,71,111,0.4); }
+
 /* Main Content */
 .td-main { flex: 1; overflow: hidden; background: #0a0a0a; padding: 10px; display: flex; flex-direction: column; min-height: 0; }
 .td-grid {
@@ -6974,7 +7032,7 @@ body::after {
           <div class="td-plan-badge__tier td-plan-badge__tier--free" id="td-plan-tier">FREE PLAN</div>
           <div class="td-plan-badge__wallet" id="td-plan-wallet">No wallet connected</div>
         </div>
-        <div class="td-settings-link" onclick="go('home')">
+        <div class="td-settings-link" onclick="tdOpenSettings()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();tdOpenSettings();}">
           <span class="td-settings-link__icon">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/>
@@ -7145,6 +7203,35 @@ body::after {
     </aside>
 
   </div><!-- /td-body-wrap -->
+
+  <div id="td-settings-overlay" class="td-settings-overlay" aria-hidden="true" onclick="if(event.target===this)tdCloseSettings()">
+    <div class="td-settings-modal" role="dialog" aria-modal="true" aria-labelledby="td-settings-title" onclick="event.stopPropagation()">
+      <div class="td-settings-modal__header">
+        <h2 class="td-settings-modal__title" id="td-settings-title">Settings &amp; Account</h2>
+        <button type="button" class="td-settings-modal__close" onclick="tdCloseSettings()" title="Close">✕</button>
+      </div>
+      <div class="td-settings-modal__body">
+        <div class="td-settings-row">
+          <div class="td-settings-row__label">Plan</div>
+          <div class="td-settings-row__value" id="td-settings-plan-val">—</div>
+        </div>
+        <div class="td-settings-row">
+          <div class="td-settings-row__label">Account</div>
+          <div class="td-settings-row__value" id="td-settings-email-val">—</div>
+        </div>
+        <div class="td-settings-row">
+          <div class="td-settings-row__label">Connected wallet</div>
+          <div class="td-settings-row__value" id="td-settings-wallet-val">—</div>
+        </div>
+        <div class="td-settings-actions">
+          <button type="button" class="td-settings-btn td-settings-btn--primary" id="td-settings-upgrade" onclick="tdCloseSettings();go('pricing');">Upgrade plan</button>
+          <button type="button" class="td-settings-btn" id="td-settings-auth" onclick="tdCloseSettings();openAuth('login');">Sign in / Create account</button>
+          <button type="button" class="td-settings-btn" onclick="tdCloseSettings();connectWallet();">Connect wallet</button>
+          <button type="button" class="td-settings-btn td-settings-btn--danger" id="td-settings-signout" onclick="tdCloseSettings();logout();">Sign out</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ═════════════════════════════════════
@@ -7405,6 +7492,39 @@ function tdTogglePanel() {
   }
 }
 
+function tdOpenSettings() {
+  const el = document.getElementById('td-settings-overlay');
+  if (!el) return;
+  el.classList.add('td-settings-overlay--open');
+  el.setAttribute('aria-hidden', 'false');
+  const planEl = document.getElementById('td-settings-plan-val');
+  const emailEl = document.getElementById('td-settings-email-val');
+  const walletEl = document.getElementById('td-settings-wallet-val');
+  const authBtn = document.getElementById('td-settings-auth');
+  const signOutBtn = document.getElementById('td-settings-signout');
+  if (planEl) planEl.textContent = (user && user.plan) ? String(user.plan).toUpperCase() + ' PLAN' : 'FREE PLAN';
+  if (emailEl) {
+    if (user && user.email) emailEl.textContent = user.email;
+    else if (user && user.name) emailEl.textContent = user.name;
+    else emailEl.textContent = 'Not signed in';
+  }
+  if (walletEl) {
+    const w = window._connectedWallet;
+    walletEl.textContent = (typeof w === 'string' && w.trim().startsWith('0x'))
+      ? (w.trim().slice(0, 6) + '…' + w.trim().slice(-4))
+      : 'Not connected';
+  }
+  if (authBtn) authBtn.style.display = user ? 'none' : 'block';
+  if (signOutBtn) signOutBtn.style.display = user ? 'block' : 'none';
+}
+
+function tdCloseSettings() {
+  const el = document.getElementById('td-settings-overlay');
+  if (!el) return;
+  el.classList.remove('td-settings-overlay--open');
+  el.setAttribute('aria-hidden', 'true');
+}
+
 function tdSearch(q) {
   if (!q) return;
   const el = document.getElementById('td-search-input');
@@ -7418,6 +7538,7 @@ function tdSearch(q) {
 }
 
 function initTerminal() {
+  tdCloseSettings();
   // Update plan badge + wallet
   const tierEl = document.getElementById('td-plan-tier');
   const walletEl = document.getElementById('td-plan-wallet');
