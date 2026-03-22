@@ -7005,6 +7005,7 @@ body::after {
             </div>
             <canvas class="td-sparkline" id="td-sparkline" height="36"></canvas>
             <div class="td-portfolio-sub" id="td-portfolio-sub">Connect wallet to load portfolio data</div>
+            <div id="td-debug-portfolio"></div>
           </div>
         </div>
 
@@ -7018,6 +7019,7 @@ body::after {
             <div class="td-feed" id="td-whale-feed">
               <div style="padding:16px 0;text-align:center;color:#2a2a2a;font-size:11px;font-family:'Inter',sans-serif;">Loading whale data...</div>
             </div>
+            <div id="td-debug-whale"></div>
           </div>
         </div>
 
@@ -7038,6 +7040,7 @@ body::after {
               </div>
               <div class="td-gauge-score-label" id="td-gauge-label" style="color:#2DD4BF;">—</div>
               <div class="td-gauge-cortex" id="td-gauge-cortex">CORTEX analyzing market conditions...</div>
+              <div id="td-debug-bearproof"></div>
             </div>
           </div>
         </div>
@@ -7052,6 +7055,7 @@ body::after {
             <div class="td-feed" id="td-pump-feed">
               <div style="padding:16px 0;text-align:center;color:#2a2a2a;font-size:11px;font-family:'Inter',sans-serif;">Scanning pump signals...</div>
             </div>
+            <div id="td-debug-pump"></div>
           </div>
         </div>
 
@@ -7065,6 +7069,7 @@ body::after {
             <div id="td-positions">
               <div style="padding:16px 0;text-align:center;color:#2a2a2a;font-size:11px;font-family:'Inter',sans-serif;">No open positions</div>
             </div>
+            <div id="td-debug-ghost"></div>
           </div>
         </div>
 
@@ -7097,6 +7102,7 @@ body::after {
                 <div class="td-market-card__change td-market-card__change--neutral" id="td-mkt-btcdom-sub">—</div>
               </div>
             </div>
+            <div id="td-debug-market"></div>
           </div>
         </div>
 
@@ -7441,6 +7447,11 @@ function initTerminal() {
   _tdMarketTimer = setInterval(tdRenderMarket, 60000);
 }
 
+function tdSetWidgetDebug(elId, text) {
+  const el = document.getElementById(elId);
+  if (el) el.textContent = text || '';
+}
+
 /* ── Portfolio Widget ── */
 function tdRenderPortfolio() {
   const valEl = document.getElementById('td-portfolio-val');
@@ -7453,6 +7464,7 @@ function tdRenderPortfolio() {
   const hasWallet = typeof wallet === 'string' && wallet.trim().startsWith('0x');
 
   if (!hasWallet) {
+    tdSetWidgetDebug('td-debug-portfolio', '');
     if (valEl) valEl.textContent = '$—';
     if (chgEl) chgEl.className = 'td-portfolio-change';
     if (chgIcon) chgIcon.textContent = '—';
@@ -7462,6 +7474,7 @@ function tdRenderPortfolio() {
     return;
   }
 
+  tdSetWidgetDebug('td-debug-portfolio', '');
   if (subEl) subEl.textContent = 'Loading portfolio...';
   if (valEl) valEl.textContent = '$—';
   if (chgVal) chgVal.textContent = '—';
@@ -7481,7 +7494,7 @@ function tdRenderPortfolio() {
         })
       });
 
-      if (!r.ok) throw new Error('Covalent request failed');
+      if (!r.ok) throw new Error('POST /api/covalent rejected: HTTP ' + r.status + ' ' + (r.statusText || ''));
 
       const data = await r.json();
       if (data?.error) {
@@ -7558,7 +7571,10 @@ function tdRenderPortfolio() {
       }
 
       tdDrawSparkline(dayValues);
+      tdSetWidgetDebug('td-debug-portfolio', '');
     } catch (e) {
+      const why = (e && e.message) ? e.message : String(e);
+      tdSetWidgetDebug('td-debug-portfolio', 'DEBUG: Portfolio Value — ' + why + (String(why).indexOf('404') >= 0 ? ' (this repo has no api/covalent handler).' : ''));
       if (subEl) subEl.textContent = 'Failed to load portfolio data';
       if (valEl) valEl.textContent = '$—';
       if (chgVal) chgVal.textContent = '—';
@@ -7645,6 +7661,17 @@ function tdDrawGauge() {
   };
   if (cortexEl) cortexEl.textContent = cortexMessages[grade];
 
+  const btcOk = px && px.bitcoin && typeof px.bitcoin.usd_24h_change === 'number';
+  const ethOk = px && px.ethereum && typeof px.ethereum.usd_24h_change === 'number';
+  if (!btcOk || !ethOk) {
+    const missing = [];
+    if (!btcOk) missing.push('bitcoin.usd_24h_change');
+    if (!ethOk) missing.push('ethereum.usd_24h_change');
+    tdSetWidgetDebug('td-debug-bearproof', 'DEBUG: BearProof Score — score uses 0% fallback for missing CoinGecko `px` fields: ' + missing.join(', ') + ' (initTerminal often runs before loadPrices(); gauge is not from a dedicated API).');
+  } else {
+    tdSetWidgetDebug('td-debug-bearproof', '');
+  }
+
   const ctx = canvas.getContext('2d');
   const cx = 40, cy = 40, r = 28;
   ctx.clearRect(0, 0, 80, 80);
@@ -7671,6 +7698,7 @@ function tdDrawGauge() {
 async function tdLoadWhales() {
   const feed = document.getElementById('td-whale-feed');
   if (!feed) return;
+  tdSetWidgetDebug('td-debug-whale', '');
   try {
     const ethPrice = px['ethereum']?.usd || 3000;
     const minUsd = 50000;
@@ -7697,7 +7725,9 @@ async function tdLoadWhales() {
       })
     ]);
 
-    if (!latestR.ok || !sinceR.ok) throw new Error('block fetch failed');
+    if (!latestR.ok || !sinceR.ok) {
+      throw new Error('POST /api/scan (eth_blockNumber or getblocknobytime) failed: latest HTTP ' + latestR.status + ', since HTTP ' + sinceR.status + '. Server must set ETHERSCAN_KEY or URLs keep apikey=ENV (invalid).');
+    }
 
     const latestData = await latestR.json();
     const sinceData = await sinceR.json();
@@ -7716,8 +7746,11 @@ async function tdLoadWhales() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url })
     });
-    if (!r.ok) throw new Error('fetch failed');
+    if (!r.ok) throw new Error('POST /api/scan (txlist deposit contract) failed: HTTP ' + r.status);
     const data = await r.json();
+    if (data && data.status === '0' && data.message && String(data.message).toLowerCase().includes('invalid api key')) {
+      throw new Error('Etherscan API error: ' + data.message + ' (ETHERSCAN_KEY missing or wrong on server).');
+    }
 
     const txs = (data.result || [])
       .filter(tx => {
@@ -7756,7 +7789,10 @@ async function tdLoadWhales() {
       };
       feed.appendChild(tdWhaleEl(d));
     });
+    tdSetWidgetDebug('td-debug-whale', '');
   } catch (e) {
+    const why = (e && e.message) ? e.message : String(e);
+    tdSetWidgetDebug('td-debug-whale', 'DEBUG: Whale Moves — ' + why);
     feed.innerHTML = '<div style="padding:14px 0;text-align:center;color:#2a2a2a;font-size:11px;font-family:\'Inter\',sans-serif;">Failed to load whale moves</div>';
   }
 }
@@ -7849,9 +7885,10 @@ async function tdFetchPumpPairs() {
     'sort=volume&order=desc&limit=60&chainIds=base%2Csolana';
 
   const res = await fetch(url);
-  if (!res.ok) return [];
+  if (!res.ok) throw new Error('GET https://api.dexscreener.com/latest/dex/search failed: HTTP ' + res.status);
   const data = await res.json();
   const pairs = Array.isArray(data?.pairs) ? data.pairs : [];
+  const rawLen = pairs.length;
 
   const mapped = pairs
     .filter(p => p && _tdPumpChains.has(p.chainId))
@@ -7881,25 +7918,30 @@ async function tdFetchPumpPairs() {
   mapped.sort((a, b) => (b.vol1h || 0) - (a.vol1h || 0));
 
   // Ensure stable top-3 even if sorting above is approximate due to compact formatting.
-  return mapped.slice(0, 3);
+  return { items: mapped.slice(0, 3), rawLen };
 }
 
 function tdRenderPumps() {
   const feed = document.getElementById('td-pump-feed');
   if (!feed) return;
 
+  tdSetWidgetDebug('td-debug-pump', '');
   feed.innerHTML = '<div style="padding:16px 0;text-align:center;color:#2a2a2a;font-size:11px;font-family:\'Inter\',sans-serif;">Scanning pump signals...</div>';
 
   tdFetchPumpPairs()
-    .then(items => {
+    .then(({ items, rawLen }) => {
       feed.innerHTML = '';
       if (!items || items.length === 0) {
+        tdSetWidgetDebug('td-debug-pump', 'DEBUG: Pump Alerts — DexScreener HTTP 200 but 0 pairs after Base/Solana + volume filter (raw pairs: ' + rawLen + '). Request: direct browser fetch (not /api/scan).');
         feed.innerHTML = '<div style="padding:16px 0;text-align:center;color:#2a2a2a;font-size:11px;font-family:\'Inter\',sans-serif;">No pump signals found</div>';
         return;
       }
+      tdSetWidgetDebug('td-debug-pump', '');
       items.forEach(it => feed.appendChild(tdPumpEl(it)));
     })
-    .catch(() => {
+    .catch((e) => {
+      const why = (e && e.message) ? e.message : String(e);
+      tdSetWidgetDebug('td-debug-pump', 'DEBUG: Pump Alerts — ' + why);
       feed.innerHTML = '<div style="padding:16px 0;text-align:center;color:#2a2a2a;font-size:11px;font-family:\'Inter\',sans-serif;">Failed to load pump alerts</div>';
     });
 }
@@ -7915,6 +7957,7 @@ function tdRenderPositions() {
   const container = document.getElementById('td-positions');
   if (!container) return;
 
+  tdSetWidgetDebug('td-debug-ghost', '');
   // Pull from existing ghosttrade data if available
   const trades = (typeof gtTrades !== 'undefined') ? gtTrades.filter(t => !t.closed).slice(0, 3) : [];
 
@@ -7923,7 +7966,11 @@ function tdRenderPositions() {
     const btc = px['bitcoin']?.usd || 0;
     const eth = px['ethereum']?.usd || 0;
     const sol = px['solana']?.usd || 0;
-    if (btc === 0) { container.innerHTML = '<div style="padding:14px 0;text-align:center;color:#2a2a2a;font-size:11px;font-family:Inter,sans-serif;">No open positions — start paper trading</div>'; return; }
+    if (btc === 0) {
+      tdSetWidgetDebug('td-debug-ghost', 'DEBUG: GhostTrade — sample paper rows need CoinGecko `px` (bitcoin.usd etc.); got btc=' + btc + ' (loadPrices() not finished or fetch failed). No API call in this widget.');
+      container.innerHTML = '<div style="padding:14px 0;text-align:center;color:#2a2a2a;font-size:11px;font-family:Inter,sans-serif;">No open positions — start paper trading</div>';
+      return;
+    }
     const samples = [
       { token: 'BTC', entry: (btc * 0.97).toFixed(0), current: btc, isUp: true },
       { token: 'ETH', entry: (eth * 1.03).toFixed(2), current: eth, isUp: false },
@@ -7944,6 +7991,7 @@ function tdRenderPositions() {
         <div class="td-position__pnl ${isUp ? 'td-position__pnl--up' : 'td-position__pnl--down'}">${isUp ? '+' : ''}${pnlPct}%</div>`;
       container.appendChild(div);
     });
+    tdSetWidgetDebug('td-debug-ghost', '');
     return;
   }
 
@@ -7963,6 +8011,7 @@ function tdRenderPositions() {
       <div class="td-position__pnl ${isUp ? 'td-position__pnl--up' : 'td-position__pnl--down'}">${isUp ? '+' : ''}${pnlPct}%</div>`;
     container.appendChild(div);
   });
+  tdSetWidgetDebug('td-debug-ghost', '');
 }
 
 /* ── Market Snapshot ── */
@@ -7976,6 +8025,7 @@ async function tdRenderMarket() {
   const btcDomEl = document.getElementById('td-mkt-btcdom');
   const btcDomSub = document.getElementById('td-mkt-btcdom-sub');
 
+  tdSetWidgetDebug('td-debug-market', '');
   try {
     const [marketsRes, globalRes, fearGreedRes] = await Promise.all([
       fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=150&page=1&price_change_percentage=24h'),
@@ -7983,9 +8033,29 @@ async function tdRenderMarket() {
       fetch('https://api.alternative.me/fng/?limit=1&format=json')
     ]);
 
-    const markets = marketsRes.ok ? await marketsRes.json() : [];
-    const globalData = globalRes.ok ? await globalRes.json() : null;
-    const fearGreedData = fearGreedRes.ok ? await fearGreedRes.json() : null;
+    const issues = [];
+    if (!marketsRes.ok) issues.push('CoinGecko /coins/markets HTTP ' + marketsRes.status);
+    if (!globalRes.ok) issues.push('CoinGecko /global HTTP ' + globalRes.status);
+    if (!fearGreedRes.ok) issues.push('Alternative.me /fng HTTP ' + fearGreedRes.status);
+
+    let markets = [];
+    try {
+      markets = marketsRes.ok ? await marketsRes.json() : [];
+    } catch (parseE) {
+      issues.push('CoinGecko /coins/markets JSON parse error: ' + ((parseE && parseE.message) || String(parseE)));
+    }
+    let globalData = null;
+    try {
+      globalData = globalRes.ok ? await globalRes.json() : null;
+    } catch (parseE) {
+      issues.push('CoinGecko /global JSON parse error: ' + ((parseE && parseE.message) || String(parseE)));
+    }
+    let fearGreedData = null;
+    try {
+      fearGreedData = fearGreedRes.ok ? await fearGreedRes.json() : null;
+    } catch (parseE) {
+      issues.push('Alternative.me JSON parse error: ' + ((parseE && parseE.message) || String(parseE)));
+    }
 
     // Top gainer / loser from CoinGecko markets (by 24h change)
     if (Array.isArray(markets) && markets.length > 0) {
@@ -8010,6 +8080,13 @@ async function tdRenderMarket() {
         loserEl.textContent = (loser.symbol || loser.id || '').toUpperCase().slice(0, 8);
         loserChg.textContent = (lChg >= 0 ? '+' : '') + lChg.toFixed(2) + '%';
       }
+      if (sorted.length === 0) {
+        issues.push('CoinGecko /coins/markets: no entries with 24h change fields (Top Gainer/Loser stay —)');
+      }
+    } else if (marketsRes.ok && Array.isArray(markets) && markets.length === 0) {
+      issues.push('CoinGecko /coins/markets returned empty array');
+    } else if (marketsRes.ok && !Array.isArray(markets)) {
+      issues.push('CoinGecko /coins/markets response is not an array');
     }
 
     // BTC dominance from CoinGecko /global
@@ -8019,6 +8096,8 @@ async function tdRenderMarket() {
         btcDomEl.textContent = btcDom.toFixed(1) + '%';
         btcDomSub.textContent = 'Share of total market cap';
       }
+    } else if (globalRes.ok && globalData) {
+      issues.push('CoinGecko /global missing data.market_cap_percentage.btc');
     }
 
     // Fear / Greed sentiment (Alternative.me)
@@ -8039,9 +8118,16 @@ async function tdRenderMarket() {
       sentEl.style.color = color;
       // Subtext shows the textual classification (e.g. "Fear")
       sentSub.textContent = (classification + ' sentiment').trim();
+    } else if (fearGreedRes.ok) {
+      issues.push('Alternative.me /fng returned no data[] entry');
+    }
+
+    if (issues.length) {
+      tdSetWidgetDebug('td-debug-market', 'DEBUG: Market Snapshot — ' + issues.join(' | ') + ' (direct browser fetches; rate limit / CORS / demo key may apply).');
     }
   } catch (e) {
-    // Fail silently to avoid breaking the terminal dashboard
+    const why = (e && e.message) ? e.message : String(e);
+    tdSetWidgetDebug('td-debug-market', 'DEBUG: Market Snapshot — exception: ' + why);
   }
 }
 
