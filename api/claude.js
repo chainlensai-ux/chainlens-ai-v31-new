@@ -41,33 +41,70 @@ const LUNAR_TOPIC_MAP = {
   arbitrum: 'arbitrum',
 };
 
+/** Strip protocol and path so VERCEL_URL / production URL always become a bare host. */
+function normalizeDeploymentHost(h) {
+  if (!h || typeof h !== 'string') return '';
+  return h.replace(/^https?:\/\//i, '').trim().split('/')[0];
+}
+
+/**
+ * Base URL for same-project /api/* calls. Prefer the incoming request host (correct preview + custom domain),
+ * then VERCEL_URL / production URL (always https).
+ */
 function internalOrigin(req) {
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  const h = req.headers['x-forwarded-host'] || req.headers.host;
-  const p = (req.headers['x-forwarded-proto'] || 'http').split(',')[0].trim();
-  if (h) return `${p}://${h}`;
+  const proto = (req.headers['x-forwarded-proto'] || 'https').split(',')[0].trim() || 'https';
+  const xfHost = req.headers['x-forwarded-host']?.split(',')[0].trim();
+  const hostHeader = req.headers.host;
+  const fromRequest = xfHost || hostHeader;
+  if (fromRequest && !/^127\.0\.0\.1(?::\d+)?$/.test(fromRequest) && !/^localhost(?::\d+)?$/i.test(fromRequest)) {
+    const p = proto === 'http' && fromRequest.includes('localhost') ? 'http' : 'https';
+    return `${p}://${fromRequest}`;
+  }
+  const vu = normalizeDeploymentHost(process.env.VERCEL_URL);
+  if (vu) return `https://${vu}`;
+  const prod = normalizeDeploymentHost(process.env.VERCEL_PROJECT_PRODUCTION_URL);
+  if (prod) return `https://${prod}`;
+  if (fromRequest) return `${proto}://${fromRequest}`;
   return 'http://127.0.0.1:3000';
 }
 
-function cgKeySuffix() {
-  const k = process.env.COINGECKO_API_KEY || process.env.COINGECKO_DEMO_API_KEY || '';
-  return k ? `&x_cg_demo_api_key=${encodeURIComponent(k)}` : '';
+/** CoinGecko Pro uses x_cg_pro_api_key; Demo uses x_cg_demo_api_key (header name x-cg-demo-api-key). */
+function appendCoinGeckoKeyToUrl(fullUrl) {
+  const pro = (process.env.COINGECKO_PRO_API_KEY || '').trim();
+  const demo = (process.env.COINGECKO_DEMO_API_KEY || '').trim();
+  const generic = (process.env.COINGECKO_API_KEY || process.env.CG_API_KEY || '').trim();
+  const sep = fullUrl.includes('?') ? '&' : '?';
+  if (pro) return `${fullUrl}${sep}x_cg_pro_api_key=${encodeURIComponent(pro)}`;
+  const key = demo || generic;
+  if (key) return `${fullUrl}${sep}x_cg_demo_api_key=${encodeURIComponent(key)}`;
+  return fullUrl;
 }
 
 async function scanPost(origin, url) {
-  const r = await fetch(`${origin}/api/scan`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ url }),
-  });
-  const text = await r.text();
-  let json;
   try {
-    json = JSON.parse(text);
-  } catch {
-    json = { _parseError: true, snippet: text.slice(0, 400) };
+    const target = `${origin.replace(/\/$/, '')}/api/scan`;
+    const r = await fetch(target, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    });
+    const text = await r.text();
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch {
+      json = { _parseError: true, snippet: text.slice(0, 400) };
+    }
+    const cgError =
+      json &&
+      typeof json === 'object' &&
+      (typeof json.error === 'string' ||
+        (json.error && typeof json.error === 'object' && json.error.status?.error_code));
+    const ok = r.ok && !json._parseError && !cgError;
+    return { ok, status: r.status, json, skipped: !ok };
+  } catch (e) {
+    return { ok: false, status: 0, json: { _fetchError: String(e.message || e) }, skipped: true };
   }
-  return { ok: r.ok, status: r.status, json };
 }
 
 function safeStringify(obj, maxLen = 10000) {
@@ -126,31 +163,36 @@ function slimDexPairs(pairs) {
 }
 
 async function fetchLunarForTopic(origin, topic) {
-  const r = await fetch(`${origin}/api/lunarsentiment`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ topic, interval: '1d', limit: 12 }),
-  });
-  const text = await r.text();
-  let json;
   try {
-    json = JSON.parse(text);
+    const base = origin.replace(/\/$/, '');
+    const r = await fetch(`${base}/api/lunarsentiment`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic, interval: '1d', limit: 12 }),
+    });
+    const text = await r.text();
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch {
+      return null;
+    }
+    if (!r.ok) return null;
+    const arr = Array.isArray(json.data) ? json.data : [];
+    const latest = arr[0];
+    return {
+      topic,
+      lunarCrushSentimentGauge0to100: latest?.value ?? null,
+      classification: latest?.value_classification ?? null,
+      samplePoints: arr.slice(0, 5).map((d) => ({
+        value: d.value,
+        classification: d.value_classification,
+        time: d.time,
+      })),
+    };
   } catch {
-    return { topic, error: 'non-JSON', snippet: text.slice(0, 200) };
+    return null;
   }
-  if (!r.ok) return { topic, error: json.error || json.message || `HTTP ${r.status}` };
-  const arr = Array.isArray(json.data) ? json.data : [];
-  const latest = arr[0];
-  return {
-    topic,
-    lunarCrushSentimentGauge0to100: latest?.value ?? null,
-    classification: latest?.value_classification ?? null,
-    samplePoints: arr.slice(0, 5).map((d) => ({
-      value: d.value,
-      classification: d.value_classification,
-      time: d.time,
-    })),
-  };
 }
 
 async function fetchWhaleMovesViaScan(origin, ethUsd) {
@@ -239,65 +281,105 @@ async function fetchWhaleMovesViaScan(origin, ethUsd) {
 }
 
 async function buildLiveContextBlock(req, userPrompt) {
-  const origin = internalOrigin(req);
-  const cgQ = cgKeySuffix();
-
-  const priceUrl = `${CG_BASE}/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true${cgQ}`;
-  const globalUrl = `${CG_BASE}/global${cgQ ? '?' + cgQ.replace(/^&/, '') : ''}`;
-
-  const topics = extractLunarTopics(userPrompt);
-
-  const [priceBox, globalBox, dexBox, ...lunarResults] = await Promise.all([
-    scanPost(origin, priceUrl),
-    scanPost(origin, globalUrl),
-    scanPost(origin, DEX_TOP_VOL_URL),
-    ...topics.map((t) => fetchLunarForTopic(origin, t)),
-  ]);
-
-  let ethUsd = 3000;
-  if (priceBox.ok && priceBox.json?.ethereum?.usd) {
-    ethUsd = Number(priceBox.json.ethereum.usd) || ethUsd;
-  }
-
-  let whaleBox;
   try {
-    whaleBox = await fetchWhaleMovesViaScan(origin, ethUsd);
+    let origin = internalOrigin(req);
+    const priceUrl = appendCoinGeckoKeyToUrl(
+      `${CG_BASE}/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true`
+    );
+    const globalUrl = appendCoinGeckoKeyToUrl(`${CG_BASE}/global`);
+
+    const topics = extractLunarTopics(userPrompt);
+
+    let priceBox = await scanPost(origin, priceUrl);
+    let globalBox = await scanPost(origin, globalUrl);
+    let dexBox = await scanPost(origin, DEX_TOP_VOL_URL);
+
+    const altOrigin =
+      normalizeDeploymentHost(process.env.VERCEL_URL) &&
+      `https://${normalizeDeploymentHost(process.env.VERCEL_URL)}`;
+    if ((!priceBox.ok || !globalBox.ok || !dexBox.ok) && altOrigin && altOrigin !== origin.replace(/\/$/, '')) {
+      if (!priceBox.ok) priceBox = await scanPost(altOrigin, priceUrl);
+      if (!globalBox.ok) globalBox = await scanPost(altOrigin, globalUrl);
+      if (!dexBox.ok) dexBox = await scanPost(altOrigin, DEX_TOP_VOL_URL);
+      if (priceBox.ok || globalBox.ok || dexBox.ok) origin = altOrigin;
+    }
+
+    const lunarSettled = await Promise.all(
+      topics.map((t) => fetchLunarForTopic(origin, t).catch(() => null))
+    );
+    const lunarResults = lunarSettled.filter(Boolean);
+
+    let ethUsd = 3000;
+    if (priceBox.ok && priceBox.json?.ethereum?.usd) {
+      ethUsd = Number(priceBox.json.ethereum.usd) || ethUsd;
+    }
+
+    let whaleBox = null;
+    try {
+      whaleBox = await fetchWhaleMovesViaScan(origin, ethUsd);
+    } catch {
+      whaleBox = { error: 'whale_context_unavailable' };
+    }
+
+    const parts = [];
+
+    parts.push(
+      'CHAIN_LENS_INTERNAL_API_BASE: ' +
+        origin +
+        (appendCoinGeckoKeyToUrl(`${CG_BASE}/global`) === `${CG_BASE}/global`
+          ? ' (CoinGecko URLs have no server key; set COINGECKO_PRO_API_KEY or COINGECKO_DEMO_API_KEY / COINGECKO_API_KEY on Vercel)'
+          : '')
+    );
+
+    parts.push(
+      'COIN_GECKO_BTC_ETH (via /api/scan): ' +
+        (priceBox.ok
+          ? safeStringify(priceBox.json, 2500)
+          : '(skipped — unavailable or auth error)')
+    );
+
+    parts.push(
+      'COIN_GECKO_GLOBAL (via /api/scan): ' +
+        (globalBox.ok
+          ? safeStringify(globalBox.json?.data ?? globalBox.json, 3500)
+          : '(skipped — unavailable or auth error)')
+    );
+
+    const dexPairs = dexBox.json?.pairs;
+    parts.push(
+      'DEXSCREENER_TOP_VOLUME_PAIRS (via /api/scan): ' +
+        (dexBox.ok && Array.isArray(dexPairs) && dexPairs.length
+          ? safeStringify(slimDexPairs(dexPairs), 6000)
+          : '(skipped — unavailable)')
+    );
+
+    parts.push(
+      'ETHERSCAN_WHALE_MOVES (via /api/scan, ETH mainnet, high-flow watch wallet): ' +
+        (whaleBox && !whaleBox.error
+          ? safeStringify(whaleBox, 4000)
+          : '(skipped — unavailable)')
+    );
+
+    if (topics.length) {
+      parts.push(
+        'LUNARCRUSH_SENTIMENT_GAUGE (via /api/lunarsentiment; LUNARCRUSH_KEY on server): ' +
+          (lunarResults.length
+            ? safeStringify(lunarResults, 6000)
+            : '(skipped — no data or LUNARCRUSH_KEY / route error)')
+      );
+    } else {
+      parts.push(
+        'LUNARCRUSH_SENTIMENT_GAUGE: no token/topic detected in user message (skip). If needed, infer only from other context above.'
+      );
+    }
+
+    return parts.join('\n\n');
   } catch (e) {
-    whaleBox = { error: String(e.message || e) };
-  }
-
-  const parts = [];
-
-  parts.push(
-    'COIN_GECKO_BTC_ETH (via /api/scan): ' +
-      (priceBox.ok ? safeStringify(priceBox.json, 2500) : `HTTP ${priceBox.status} ${safeStringify(priceBox.json, 800)}`)
-  );
-
-  parts.push(
-    'COIN_GECKO_GLOBAL (via /api/scan): ' +
-      (globalBox.ok ? safeStringify(globalBox.json?.data ?? globalBox.json, 3500) : `HTTP ${globalBox.status} ${safeStringify(globalBox.json, 800)}`)
-  );
-
-  const dexPairs = dexBox.json?.pairs;
-  parts.push(
-    'DEXSCREENER_TOP_VOLUME_PAIRS (via /api/scan): ' +
-      (dexBox.ok ? safeStringify(slimDexPairs(dexPairs), 6000) : `HTTP ${dexBox.status} ${safeStringify(dexBox.json, 800)}`)
-  );
-
-  parts.push('ETHERSCAN_WHALE_MOVES (via /api/scan, ETH mainnet, high-flow watch wallet): ' + safeStringify(whaleBox, 4000));
-
-  if (topics.length) {
-    parts.push(
-      'LUNARCRUSH_SENTIMENT_GAUGE (via /api/lunarsentiment; galaxy/social-style 0–100 + classification): ' +
-        safeStringify(lunarResults, 6000)
-    );
-  } else {
-    parts.push(
-      'LUNARCRUSH_SENTIMENT_GAUGE: no token/topic detected in user message (skip). If needed, infer only from other context above.'
+    return (
+      'LIVE_CONTEXT_PARTIAL: aggregation error — continuing without full live block. ' +
+      String(e.message || e)
     );
   }
-
-  return parts.join('\n\n');
 }
 
 export default async function handler(req, res) {
