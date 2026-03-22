@@ -3913,11 +3913,13 @@ body::after {
   box-shadow: 0 1px 8px rgba(45,212,191,0.08);
 }
 .td-right__clark-logo {
-  width: 26px; height: 26px;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7858c0, #00ffc8);
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
-.td-right__clark-logo svg { display: block; }
+.td-right__clark-logo svg { display: block; width: 36px; height: 36px; }
 .td-right__name {
   font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800; color: #fff; flex: 1;
 }
@@ -7229,9 +7231,24 @@ body::after {
     <aside class="td-right" id="td-right-panel">
       <div class="td-right__header">
         <div class="td-right__clark-logo" aria-hidden="true">
-          <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="16" cy="16" r="16" fill="#8b5cf6"/>
-            <text x="16" y="21" text-anchor="middle" fill="#ffffff" font-family="Syne, Inter, system-ui, sans-serif" font-size="11" font-weight="800" letter-spacing="-0.5px">CL</text>
+          <svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg" style="image-rendering:pixelated" width="36" height="36">
+            <defs><clipPath id="td-clark-logo-clip"><circle cx="18" cy="18" r="18"/></clipPath></defs>
+            <circle cx="18" cy="18" r="18" fill="transparent"/>
+            <g clip-path="url(#td-clark-logo-clip)">
+              <rect x="7" y="2" width="22" height="3" fill="#111"/>
+              <rect x="5" y="5" width="26" height="4" fill="#111"/>
+              <rect x="4" y="9" width="4" height="5" fill="#111"/>
+              <rect x="28" y="9" width="4" height="4" fill="#111"/>
+              <rect x="8" y="8" width="20" height="18" fill="#d4a274"/>
+              <rect x="5" y="11" width="9" height="4" fill="#111"/>
+              <rect x="22" y="11" width="9" height="4" fill="#111"/>
+              <rect x="14" y="12" width="8" height="2" fill="#2a2a2a"/>
+              <rect x="16" y="19" width="3" height="3" fill="#a07840"/>
+              <rect x="12" y="23" width="12" height="2" fill="#2a2a2a"/>
+              <rect x="5" y="27" width="26" height="10" fill="#b038b8"/>
+              <rect x="13" y="27" width="4" height="4" fill="#8c2a9a"/>
+              <rect x="19" y="27" width="4" height="4" fill="#8c2a9a"/>
+            </g>
           </svg>
         </div>
         <div class="td-right__name">Clark AI</div>
