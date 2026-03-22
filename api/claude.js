@@ -16,6 +16,8 @@ const DEX_TOP_VOL_URL =
 const ETHERSCAN_V2 = 'https://api.etherscan.io/v2/api';
 const WHALE_WATCH = '0x21a31Ee1afC51d94C2eFcCAa2092aD1028285549';
 
+const LUNARCRUSH_API = 'https://lunarcrush.com/api4/public';
+
 const LUNAR_TOPIC_MAP = {
   btc: 'bitcoin',
   bitcoin: 'bitcoin',
@@ -41,33 +43,6 @@ const LUNAR_TOPIC_MAP = {
   arbitrum: 'arbitrum',
 };
 
-/** Strip protocol and path so VERCEL_URL / production URL always become a bare host. */
-function normalizeDeploymentHost(h) {
-  if (!h || typeof h !== 'string') return '';
-  return h.replace(/^https?:\/\//i, '').trim().split('/')[0];
-}
-
-/**
- * Base URL for same-project /api/* calls. Prefer the incoming request host (correct preview + custom domain),
- * then VERCEL_URL / production URL (always https).
- */
-function internalOrigin(req) {
-  const proto = (req.headers['x-forwarded-proto'] || 'https').split(',')[0].trim() || 'https';
-  const xfHost = req.headers['x-forwarded-host']?.split(',')[0].trim();
-  const hostHeader = req.headers.host;
-  const fromRequest = xfHost || hostHeader;
-  if (fromRequest && !/^127\.0\.0\.1(?::\d+)?$/.test(fromRequest) && !/^localhost(?::\d+)?$/i.test(fromRequest)) {
-    const p = proto === 'http' && fromRequest.includes('localhost') ? 'http' : 'https';
-    return `${p}://${fromRequest}`;
-  }
-  const vu = normalizeDeploymentHost(process.env.VERCEL_URL);
-  if (vu) return `https://${vu}`;
-  const prod = normalizeDeploymentHost(process.env.VERCEL_PROJECT_PRODUCTION_URL);
-  if (prod) return `https://${prod}`;
-  if (fromRequest) return `${proto}://${fromRequest}`;
-  return 'http://127.0.0.1:3000';
-}
-
 /** CoinGecko Pro uses x_cg_pro_api_key; Demo uses x_cg_demo_api_key (header name x-cg-demo-api-key). */
 function appendCoinGeckoKeyToUrl(fullUrl) {
   const pro = (process.env.COINGECKO_PRO_API_KEY || '').trim();
@@ -80,31 +55,44 @@ function appendCoinGeckoKeyToUrl(fullUrl) {
   return fullUrl;
 }
 
-async function scanPost(origin, url) {
+async function fetchJsonDirect(url, init = {}) {
+  const r = await fetch(url, {
+    ...init,
+    headers: {
+      Accept: 'application/json',
+      'User-Agent': 'ChainLens-Clark/1.0',
+      ...(init.headers || {}),
+    },
+  });
+  const text = await r.text();
+  let json;
   try {
-    const target = `${origin.replace(/\/$/, '')}/api/scan`;
-    const r = await fetch(target, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url }),
-    });
-    const text = await r.text();
-    let json;
-    try {
-      json = JSON.parse(text);
-    } catch {
-      json = { _parseError: true, snippet: text.slice(0, 400) };
-    }
-    const cgError =
-      json &&
-      typeof json === 'object' &&
-      (typeof json.error === 'string' ||
-        (json.error && typeof json.error === 'object' && json.error.status?.error_code));
-    const ok = r.ok && !json._parseError && !cgError;
-    return { ok, status: r.status, json, skipped: !ok };
-  } catch (e) {
-    return { ok: false, status: 0, json: { _fetchError: String(e.message || e) }, skipped: true };
+    json = JSON.parse(text);
+  } catch {
+    return null;
   }
+  if (!r.ok) return null;
+  if (json && typeof json === 'object' && typeof json.error === 'string' && json.error) return null;
+  if (json?.error && typeof json.error === 'object' && json.error.status?.error_code) return null;
+  return json;
+}
+
+function pickLunarNumber(obj, keys) {
+  if (!obj) return null;
+  for (const k of keys) {
+    if (obj[k] == null) continue;
+    const v = Number(obj[k]);
+    if (Number.isFinite(v)) return v;
+  }
+  return null;
+}
+
+function classifyLunarSentiment(val) {
+  if (val < 25) return 'Extreme Fear';
+  if (val < 45) return 'Fear';
+  if (val < 55) return 'Neutral';
+  if (val < 75) return 'Greed';
+  return 'Extreme Greed';
 }
 
 function safeStringify(obj, maxLen = 10000) {
@@ -162,127 +150,188 @@ function slimDexPairs(pairs) {
   }));
 }
 
-async function fetchLunarForTopic(origin, topic) {
+async function fetchLunarDirect(topic) {
   try {
-    const base = origin.replace(/\/$/, '');
-    const r = await fetch(`${base}/api/lunarsentiment`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ topic, interval: '1d', limit: 12 }),
-    });
-    const text = await r.text();
-    let json;
-    try {
-      json = JSON.parse(text);
-    } catch {
-      return null;
+    const key = (process.env.LUNARCRUSH_KEY || '').trim();
+    if (!key) return null;
+    const headers = { Authorization: `Bearer ${key}` };
+    const overviewUrl = `${LUNARCRUSH_API}/topic/${encodeURIComponent(topic)}/v1`;
+    const tsUrl = `${LUNARCRUSH_API}/topic/${encodeURIComponent(topic)}/time-series/v1?interval=1d&data_points=12`;
+
+    const [ovRes, tsRes] = await Promise.all([
+      fetch(overviewUrl, { headers: { ...headers, Accept: 'application/json', 'User-Agent': 'ChainLens-Clark/1.0' } }),
+      fetch(tsUrl, { headers: { ...headers, Accept: 'application/json', 'User-Agent': 'ChainLens-Clark/1.0' } }),
+    ]);
+
+    if (!ovRes.ok && !tsRes.ok) return null;
+
+    let overview = {};
+    if (ovRes.ok) {
+      try {
+        overview = await ovRes.json();
+      } catch {
+        overview = {};
+      }
     }
-    if (!r.ok) return null;
-    const arr = Array.isArray(json.data) ? json.data : [];
-    const latest = arr[0];
+
+    let seriesPoints = [];
+    if (tsRes.ok) {
+      try {
+        const tsJson = await tsRes.json();
+        seriesPoints = Array.isArray(tsJson.data) ? tsJson.data : [];
+      } catch {
+        seriesPoints = [];
+      }
+    }
+
+    let currentVal = pickLunarNumber(overview, [
+      'sentiment',
+      'social_sentiment',
+      'galaxy_score',
+      'galaxyScore',
+      'average_sentiment',
+      'sentiment_score',
+    ]);
+    if (currentVal == null) currentVal = 50;
+    currentVal = Math.max(0, Math.min(100, Math.round(currentVal)));
+
+    const samplePoints = seriesPoints.slice(0, 5).map((p) => {
+      const v = pickLunarNumber(p, [
+        'sentiment',
+        'galaxy_score',
+        'galaxyScore',
+        'social_sentiment',
+        'average_sentiment',
+      ]);
+      const val = v != null ? Math.max(0, Math.min(100, Math.round(v))) : currentVal;
+      return {
+        value: val,
+        value_classification: classifyLunarSentiment(val),
+        time: p.time ?? p.timestamp ?? null,
+      };
+    });
+
+    if (!samplePoints.length) {
+      samplePoints.push({
+        value: currentVal,
+        value_classification: classifyLunarSentiment(currentVal),
+        time: Date.now(),
+      });
+    } else {
+      samplePoints[0].value = currentVal;
+      samplePoints[0].value_classification = classifyLunarSentiment(currentVal);
+    }
+
     return {
       topic,
-      lunarCrushSentimentGauge0to100: latest?.value ?? null,
-      classification: latest?.value_classification ?? null,
-      samplePoints: arr.slice(0, 5).map((d) => ({
-        value: d.value,
-        classification: d.value_classification,
-        time: d.time,
-      })),
+      lunarCrushSentimentGauge0to100: currentVal,
+      classification: classifyLunarSentiment(currentVal),
+      galaxyScoreOrSentimentFields: {
+        galaxy_score: overview.galaxy_score ?? overview.galaxyScore ?? null,
+        sentiment: overview.sentiment ?? overview.social_sentiment ?? null,
+      },
+      samplePoints,
     };
   } catch {
     return null;
   }
 }
 
-async function fetchWhaleMovesViaScan(origin, ethUsd) {
-  const price = Number.isFinite(ethUsd) && ethUsd > 0 ? ethUsd : 3000;
-  const minUsd = 50000;
-  const minEth = minUsd / price;
-  const nowSec = Math.floor(Date.now() / 1000);
-  const sinceSec = nowSec - 7200;
+async function fetchWhaleMovesDirect(ethUsd) {
+  try {
+    const escan = (process.env.ETHERSCAN_KEY || '').trim();
+    if (!escan) {
+      return { error: 'ETHERSCAN_KEY not set' };
+    }
+    const apikey = encodeURIComponent(escan);
+    const price = Number.isFinite(ethUsd) && ethUsd > 0 ? ethUsd : 3000;
+    const minUsd = 50000;
+    const minEth = minUsd / price;
+    const nowSec = Math.floor(Date.now() / 1000);
+    const sinceSec = nowSec - 7200;
 
-  const latestBlockUrl = `${ETHERSCAN_V2}?chainid=1&module=proxy&action=eth_blockNumber&apikey=ENV`;
-  const sinceBlockUrl = `${ETHERSCAN_V2}?chainid=1&module=block&action=getblocknobytime&timestamp=${sinceSec}&closest=before&apikey=ENV`;
+    const latestBlockUrl = `${ETHERSCAN_V2}?chainid=1&module=proxy&action=eth_blockNumber&apikey=${apikey}`;
+    const sinceBlockUrl = `${ETHERSCAN_V2}?chainid=1&module=block&action=getblocknobytime&timestamp=${sinceSec}&closest=before&apikey=${apikey}`;
 
-  const [latestBox, sinceBox] = await Promise.all([
-    scanPost(origin, latestBlockUrl),
-    scanPost(origin, sinceBlockUrl),
-  ]);
+    const [latestJson, sinceJson] = await Promise.all([
+      fetchJsonDirect(latestBlockUrl),
+      fetchJsonDirect(sinceBlockUrl),
+    ]);
 
-  if (!latestBox.ok || latestBox.json?.error) {
-    return { error: 'eth_blockNumber failed', detail: safeStringify(latestBox.json, 800) };
+    if (!latestJson || latestJson.result == null) {
+      return { error: 'eth_blockNumber failed' };
+    }
+    if (sinceJson?.status === '0' && typeof sinceJson?.result === 'string') {
+      return { error: 'getblocknobytime failed', detail: sinceJson.result };
+    }
+
+    const latestRaw = String(latestJson.result);
+    const latestBlock = latestRaw.startsWith('0x')
+      ? parseInt(latestRaw, 16)
+      : parseInt(latestRaw, 10);
+    if (!Number.isFinite(latestBlock) || latestBlock <= 0) {
+      return { error: 'bad latest block', detail: latestRaw };
+    }
+
+    let sinceBlock = parseInt(String(sinceJson?.result ?? ''), 10);
+    if (!Number.isFinite(sinceBlock) || sinceBlock < 0) {
+      return { error: 'bad since block' };
+    }
+
+    let startBlock = sinceBlock;
+    const endBlock = latestBlock;
+    if (startBlock > endBlock) startBlock = Math.max(0, endBlock - 3000);
+
+    const txUrl =
+      `${ETHERSCAN_V2}?chainid=1&module=account&action=txlist&address=${WHALE_WATCH}` +
+      `&startblock=${startBlock}&endblock=${endBlock}&page=1&offset=1000&sort=desc&apikey=${apikey}`;
+
+    const data = await fetchJsonDirect(txUrl);
+    if (!data) return { error: 'txlist fetch failed' };
+    if (data.status === '0' && typeof data.result === 'string') {
+      return { error: 'Etherscan txlist', detail: data.result };
+    }
+    const rawList = data.result;
+    if (!Array.isArray(rawList)) {
+      return { error: 'txlist not array' };
+    }
+
+    const watchLower = WHALE_WATCH.toLowerCase();
+    const txs = rawList
+      .filter((tx) => {
+        if (!tx || tx.isError === '1') return false;
+        if (tx.txreceipt_status === '0') return false;
+        const txTs = parseInt(tx.timeStamp, 10) || 0;
+        if (txTs < sinceSec) return false;
+        const ethVal = parseFloat(tx.value) / 1e18;
+        return ethVal >= minEth;
+      })
+      .sort((a, b) => (parseFloat(b.value) || 0) - (parseFloat(a.value) || 0))
+      .slice(0, 6)
+      .map((tx) => {
+        const ethVal = parseFloat(tx.value) / 1e18;
+        return {
+          hash: tx.hash,
+          from: tx.from,
+          to: tx.to,
+          eth: Math.round(ethVal * 1000) / 1000,
+          usdApprox: Math.round(ethVal * price),
+          timestampUtc: tx.timeStamp
+            ? new Date(parseInt(tx.timeStamp, 10) * 1000).toISOString()
+            : null,
+          directionVsWatch:
+            (tx.from || '').toLowerCase() === watchLower ? 'out' : 'in',
+        };
+      });
+
+    return { watchWallet: WHALE_WATCH, minEthFilter: Math.round(minEth * 1e6) / 1e6, moves: txs };
+  } catch {
+    return { error: 'etherscan_whale_fetch_failed' };
   }
-  if (sinceBox.json?.status === '0' && typeof sinceBox.json?.result === 'string') {
-    return { error: 'getblocknobytime failed', detail: sinceBox.json.result };
-  }
-
-  const latestRaw = latestBox.json?.result != null ? String(latestBox.json.result) : '';
-  const latestBlock = latestRaw.startsWith('0x')
-    ? parseInt(latestRaw, 16)
-    : parseInt(latestRaw, 10);
-  if (!Number.isFinite(latestBlock) || latestBlock <= 0) {
-    return { error: 'bad latest block', detail: latestRaw };
-  }
-
-  let sinceBlock = parseInt(String(sinceBox.json?.result ?? ''), 10);
-  if (!Number.isFinite(sinceBlock) || sinceBlock < 0) {
-    return { error: 'bad since block', detail: String(sinceBox.json?.result) };
-  }
-
-  let startBlock = sinceBlock;
-  const endBlock = latestBlock;
-  if (startBlock > endBlock) startBlock = Math.max(0, endBlock - 3000);
-
-  const txUrl =
-    `${ETHERSCAN_V2}?chainid=1&module=account&action=txlist&address=${WHALE_WATCH}` +
-    `&startblock=${startBlock}&endblock=${endBlock}&page=1&offset=1000&sort=desc&apikey=ENV`;
-
-  const txBox = await scanPost(origin, txUrl);
-  if (!txBox.ok) return { error: 'txlist scan HTTP', status: txBox.status };
-  const data = txBox.json;
-  if (data?.status === '0' && typeof data?.result === 'string') {
-    return { error: 'Etherscan txlist', detail: data.result };
-  }
-  const rawList = data?.result;
-  if (!Array.isArray(rawList)) {
-    return { error: 'txlist not array', detail: typeof rawList };
-  }
-
-  const watchLower = WHALE_WATCH.toLowerCase();
-  const txs = rawList
-    .filter((tx) => {
-      if (!tx || tx.isError === '1') return false;
-      if (tx.txreceipt_status === '0') return false;
-      const txTs = parseInt(tx.timeStamp, 10) || 0;
-      if (txTs < sinceSec) return false;
-      const ethVal = parseFloat(tx.value) / 1e18;
-      return ethVal >= minEth;
-    })
-    .sort((a, b) => (parseFloat(b.value) || 0) - (parseFloat(a.value) || 0))
-    .slice(0, 6)
-    .map((tx) => {
-      const ethVal = parseFloat(tx.value) / 1e18;
-      return {
-        hash: tx.hash,
-        from: tx.from,
-        to: tx.to,
-        eth: Math.round(ethVal * 1000) / 1000,
-        usdApprox: Math.round(ethVal * price),
-        timestampUtc: tx.timeStamp
-          ? new Date(parseInt(tx.timeStamp, 10) * 1000).toISOString()
-          : null,
-        directionVsWatch:
-          (tx.from || '').toLowerCase() === watchLower ? 'out' : 'in',
-      };
-    });
-
-  return { watchWallet: WHALE_WATCH, minEthFilter: Math.round(minEth * 1e6) / 1e6, moves: txs };
 }
 
 async function buildLiveContextBlock(req, userPrompt) {
   try {
-    let origin = internalOrigin(req);
     const priceUrl = appendCoinGeckoKeyToUrl(
       `${CG_BASE}/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true`
     );
@@ -290,33 +339,45 @@ async function buildLiveContextBlock(req, userPrompt) {
 
     const topics = extractLunarTopics(userPrompt);
 
-    let priceBox = await scanPost(origin, priceUrl);
-    let globalBox = await scanPost(origin, globalUrl);
-    let dexBox = await scanPost(origin, DEX_TOP_VOL_URL);
-
-    const altOrigin =
-      normalizeDeploymentHost(process.env.VERCEL_URL) &&
-      `https://${normalizeDeploymentHost(process.env.VERCEL_URL)}`;
-    if ((!priceBox.ok || !globalBox.ok || !dexBox.ok) && altOrigin && altOrigin !== origin.replace(/\/$/, '')) {
-      if (!priceBox.ok) priceBox = await scanPost(altOrigin, priceUrl);
-      if (!globalBox.ok) globalBox = await scanPost(altOrigin, globalUrl);
-      if (!dexBox.ok) dexBox = await scanPost(altOrigin, DEX_TOP_VOL_URL);
-      if (priceBox.ok || globalBox.ok || dexBox.ok) origin = altOrigin;
+    let priceJson = null;
+    try {
+      priceJson = await fetchJsonDirect(priceUrl);
+    } catch {
+      priceJson = null;
     }
 
-    const lunarSettled = await Promise.all(
-      topics.map((t) => fetchLunarForTopic(origin, t).catch(() => null))
-    );
-    const lunarResults = lunarSettled.filter(Boolean);
+    let globalJson = null;
+    try {
+      globalJson = await fetchJsonDirect(globalUrl);
+    } catch {
+      globalJson = null;
+    }
+
+    let dexJson = null;
+    try {
+      dexJson = await fetchJsonDirect(DEX_TOP_VOL_URL);
+    } catch {
+      dexJson = null;
+    }
 
     let ethUsd = 3000;
-    if (priceBox.ok && priceBox.json?.ethereum?.usd) {
-      ethUsd = Number(priceBox.json.ethereum.usd) || ethUsd;
+    if (priceJson?.ethereum?.usd != null) {
+      ethUsd = Number(priceJson.ethereum.usd) || ethUsd;
+    }
+
+    const lunarResults = [];
+    for (const t of topics) {
+      try {
+        const row = await fetchLunarDirect(t);
+        if (row) lunarResults.push(row);
+      } catch {
+        /* soft fail per topic */
+      }
     }
 
     let whaleBox = null;
     try {
-      whaleBox = await fetchWhaleMovesViaScan(origin, ethUsd);
+      whaleBox = await fetchWhaleMovesDirect(ethUsd);
     } catch {
       whaleBox = { error: 'whale_context_unavailable' };
     }
@@ -324,37 +385,33 @@ async function buildLiveContextBlock(req, userPrompt) {
     const parts = [];
 
     parts.push(
-      'CHAIN_LENS_INTERNAL_API_BASE: ' +
-        origin +
-        (appendCoinGeckoKeyToUrl(`${CG_BASE}/global`) === `${CG_BASE}/global`
-          ? ' (CoinGecko URLs have no server key; set COINGECKO_PRO_API_KEY or COINGECKO_DEMO_API_KEY / COINGECKO_API_KEY on Vercel)'
-          : '')
+      'LIVE_CONTEXT_SOURCE: direct HTTP to CoinGecko, DexScreener, Etherscan, LunarCrush (no internal /api proxy).'
     );
 
     parts.push(
-      'COIN_GECKO_BTC_ETH (via /api/scan): ' +
-        (priceBox.ok
-          ? safeStringify(priceBox.json, 2500)
-          : '(skipped — unavailable or auth error)')
+      'COIN_GECKO_BTC_ETH (direct): ' +
+        (priceJson ? safeStringify(priceJson, 2500) : '(skipped — unavailable or auth error)')
     );
 
     parts.push(
-      'COIN_GECKO_GLOBAL (via /api/scan): ' +
-        (globalBox.ok
-          ? safeStringify(globalBox.json?.data ?? globalBox.json, 3500)
-          : '(skipped — unavailable or auth error)')
+      'COIN_GECKO_GLOBAL (direct): ' +
+        (globalJson?.data != null
+          ? safeStringify(globalJson.data, 3500)
+          : globalJson
+            ? safeStringify(globalJson, 3500)
+            : '(skipped — unavailable or auth error)')
     );
 
-    const dexPairs = dexBox.json?.pairs;
+    const dexPairs = dexJson?.pairs;
     parts.push(
-      'DEXSCREENER_TOP_VOLUME_PAIRS (via /api/scan): ' +
-        (dexBox.ok && Array.isArray(dexPairs) && dexPairs.length
+      'DEXSCREENER_TOP_VOLUME_PAIRS (direct): ' +
+        (Array.isArray(dexPairs) && dexPairs.length
           ? safeStringify(slimDexPairs(dexPairs), 6000)
           : '(skipped — unavailable)')
     );
 
     parts.push(
-      'ETHERSCAN_WHALE_MOVES (via /api/scan, ETH mainnet, high-flow watch wallet): ' +
+      'ETHERSCAN_WHALE_MOVES (direct, ETH mainnet, high-flow watch wallet): ' +
         (whaleBox && !whaleBox.error
           ? safeStringify(whaleBox, 4000)
           : '(skipped — unavailable)')
@@ -362,10 +419,10 @@ async function buildLiveContextBlock(req, userPrompt) {
 
     if (topics.length) {
       parts.push(
-        'LUNARCRUSH_SENTIMENT_GAUGE (via /api/lunarsentiment; LUNARCRUSH_KEY on server): ' +
+        'LUNARCRUSH_SENTIMENT_GAUGE (direct, LUNARCRUSH_KEY): ' +
           (lunarResults.length
             ? safeStringify(lunarResults, 6000)
-            : '(skipped — no data or LUNARCRUSH_KEY / route error)')
+            : '(skipped — no data or LUNARCRUSH_KEY / API error)')
       );
     } else {
       parts.push(
