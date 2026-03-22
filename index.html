@@ -512,6 +512,27 @@ body::after {
   background: var(--cl-border);
   margin: 4px 0;
 }
+.cl-user-menu__header {
+  padding: 8px 14px 6px;
+  border-bottom: 1px solid var(--cl-border);
+  margin-bottom: 4px;
+}
+.cl-auth-account-view__title {
+  font-size: 15px; font-weight: 700; color: var(--cl-text-1); margin-bottom: 14px;
+}
+.cl-auth-account-view__row { font-size: 12px; color: var(--cl-text-2); margin-bottom: 10px; line-height: 1.4; }
+.cl-auth-account-view__label {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--cl-text-3); margin-bottom: 3px; font-weight: 700;
+}
+.cl-auth-account-view__tier {
+  display: inline-block; margin-top: 4px; padding: 4px 10px; border-radius: 8px;
+  font-size: 11px; font-weight: 800; letter-spacing: 0.02em;
+  border: 1px solid var(--cl-border-strong);
+  background: rgba(120,88,192,0.12); color: var(--cl-cyan);
+}
+.cl-auth-account-view__tier--elite { color: var(--cl-elite); background: rgba(212,175,55,0.12); }
+.cl-auth-account-view__tier--free { color: var(--cl-text-3); }
+.cl-auth-account-view__actions { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; }
 
 /* ════════════════════════════════════════════════
    COMPONENT: MODAL
@@ -4138,10 +4159,16 @@ body::after {
 
 <!-- User menu dropdown -->
 <div class="cl-user-menu" id="user-menu">
+  <div class="cl-user-menu__header" id="user-menu-header" style="display:none;">
+    <div id="user-menu-email" style="font-size:11px;font-weight:600;color:var(--cl-text-1);word-break:break-all;line-height:1.35;"></div>
+    <div id="user-menu-plan" style="font-size:10px;font-weight:800;margin-top:6px;"></div>
+  </div>
+  <div class="cl-user-menu__divider" id="user-menu-hdr-div" style="display:none;"></div>
   <div class="cl-user-menu__item cl-user-menu__item--muted" id="sync-status">Synced</div>
   <div class="cl-user-menu__divider"></div>
-  <div class="cl-user-menu__item" onclick="go('pricing')">Upgrade Plan</div>
-  <div class="cl-user-menu__item cl-user-menu__item--danger" onclick="logout()">Sign Out</div>
+  <div class="cl-user-menu__item" onclick="userMenuOpenSettings()">Account &amp; settings</div>
+  <div class="cl-user-menu__item" onclick="go('pricing'); document.getElementById('user-menu').classList.remove('open');">Upgrade plan</div>
+  <div class="cl-user-menu__item cl-user-menu__item--danger" onclick="logout()">Sign out</div>
 </div>
 
 <!-- ═════════════════════════════════════
@@ -4211,6 +4238,34 @@ body::after {
       </label>
       <button class="cl-btn cl-btn--primary cl-btn--full" id="auth-btn" onclick="doAuth()">Create Account →</button>
       <div style="font-size:11px;color:var(--cl-text-3);text-align:center;">7-day free trial on Pro & Elite.</div>
+    </div>
+    <div id="auth-account-view" class="cl-auth-account-view" style="display:none;">
+      <div class="cl-auth-account-view__title">Your account</div>
+      <div class="cl-auth-account-view__row">
+        <div class="cl-auth-account-view__label">Email</div>
+        <div id="auth-account-email">—</div>
+      </div>
+      <div class="cl-auth-account-view__row">
+        <div class="cl-auth-account-view__label">Display name</div>
+        <div id="auth-account-name">—</div>
+      </div>
+      <div class="cl-auth-account-view__row">
+        <div class="cl-auth-account-view__label">Subscription</div>
+        <div><span id="auth-account-plan" class="cl-auth-account-view__tier">Free Plan</span></div>
+      </div>
+      <div class="cl-auth-account-view__row" style="font-size:11px;color:var(--cl-text-3);margin-bottom:0;">
+        <span id="auth-account-joined">Member since —</span>
+      </div>
+      <div class="cl-auth-account-view__actions" id="auth-account-login-actions">
+        <button type="button" class="cl-btn cl-btn--secondary cl-btn--full" onclick="go('pricing'); closeAuth();">Upgrade plan</button>
+        <button type="button" class="cl-btn cl-btn--ghost cl-btn--full" onclick="closeAuth(); go('terminal'); setTimeout(function(){ if(typeof tdOpenSettings==='function') tdOpenSettings(); }, 450);">Account &amp; settings</button>
+        <button type="button" class="cl-btn cl-btn--ghost cl-btn--full" onclick="logout();">Sign out</button>
+        <button type="button" class="cl-btn cl-btn--primary cl-btn--full" onclick="closeAuth();">Done</button>
+      </div>
+      <div class="cl-auth-account-view__actions" id="auth-account-signup-actions" style="display:none;">
+        <button type="button" class="cl-btn cl-btn--primary cl-btn--full" onclick="authContinueAfterSignup()">Continue — quick tour</button>
+        <button type="button" class="cl-btn cl-btn--ghost cl-btn--full" onclick="closeAuth();">Skip tour</button>
+      </div>
     </div>
   </div>
 </div>
@@ -8635,7 +8690,9 @@ async function sbAuth(action, body = {}) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action, ...body })
   });
-  return await r.json();
+  let json = {};
+  try { json = await r.json(); } catch (e) { json = {}; }
+  return { ...json, _httpStatus: r.status };
 }
 
 async function sbData(action, table, extra = {}) {
@@ -8780,7 +8837,7 @@ async function initAuth() {
           localStorage.setItem('cl_session', JSON.stringify(user));
           updateNav();
           syncAllDataDown();
-        } else {
+        } else if (res._httpStatus === 401) {
           user = null;
           localStorage.removeItem('cl_session');
           updateNav();
@@ -8793,8 +8850,12 @@ async function initAuth() {
 
 function updateNav() {
   const navAuth = document.getElementById('nav-auth');
+  const planColors = { free: 'var(--cl-text-3)', pro: 'var(--cl-cyan)', elite: 'var(--cl-elite)' };
+  const umH = document.getElementById('user-menu-header');
+  const umD = document.getElementById('user-menu-hdr-div');
+  const umE = document.getElementById('user-menu-email');
+  const umP = document.getElementById('user-menu-plan');
   if (user) {
-    const planColors = { free: 'var(--cl-text-3)', pro: 'var(--cl-cyan)', elite: 'var(--cl-elite)' };
     const userPlan = user.plan || 'free';
     const planLabel = userPlan.charAt(0).toUpperCase() + userPlan.slice(1);
     const firstName = (user.name || 'Trader').split(' ')[0];
@@ -8804,10 +8865,18 @@ function updateNav() {
         <span style="font-size:13px;">${firstName}</span>
         <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(120,88,192,0.12);color:${planColors[userPlan]};">${planLabel}</span>
       </div>`;
+    if (umH && umE && umP) {
+      umH.style.display = 'block';
+      if (umD) umD.style.display = 'block';
+      umE.textContent = user.email || user.name || (user.wallet ? (user.wallet.slice(0, 6) + '…' + user.wallet.slice(-4)) : 'Account');
+      umP.textContent = planLabel + ' · Subscription tier';
+      umP.style.color = planColors[userPlan] || planColors.free;
+    }
   } else {
     navAuth.innerHTML = `
       <button class="cl-btn cl-btn--ghost cl-btn--sm" onclick="openAuth('login')">Sign In</button>
       <button class="cl-btn cl-btn--primary cl-btn--sm" onclick="openAuth('signup')">Get Access</button>`;
+    if (umH && umD) { umH.style.display = 'none'; umD.style.display = 'none'; }
   }
   updateHeroTierLabel();
 }
@@ -8818,11 +8887,76 @@ document.addEventListener('click', e => {
     document.getElementById('user-menu')?.classList.remove('open');
 });
 
+function resetAuthModalViews() {
+  const modal = document.getElementById('auth-modal');
+  if (!modal) return;
+  const acc = document.getElementById('auth-account-view');
+  const form = modal.querySelector('.cl-auth-form');
+  const tabs = modal.querySelector('.cl-modal__tabs');
+  const title = modal.querySelector('.cl-modal__title');
+  const sub = document.getElementById('auth-sub');
+  if (acc) acc.style.display = 'none';
+  if (form) form.style.display = 'block';
+  if (tabs) tabs.style.display = '';
+  if (title) { title.textContent = 'ChainLens AI'; title.style.display = ''; }
+  if (sub) sub.style.display = '';
+}
+
+function showAuthAccountView(isSignup) {
+  const modal = document.getElementById('auth-modal');
+  if (!modal || !user) return;
+  const acc = document.getElementById('auth-account-view');
+  const form = modal.querySelector('.cl-auth-form');
+  const tabs = modal.querySelector('.cl-modal__tabs');
+  const title = modal.querySelector('.cl-modal__title');
+  const sub = document.getElementById('auth-sub');
+  if (form) form.style.display = 'none';
+  if (tabs) tabs.style.display = 'none';
+  if (title) title.textContent = 'Your account';
+  if (sub) { sub.textContent = 'Signed in — manage your plan and settings below.'; sub.style.display = 'block'; }
+  const plan = (user.plan || 'free');
+  const planLabel = plan.charAt(0).toUpperCase() + plan.slice(1);
+  const emailEl = document.getElementById('auth-account-email');
+  const nameEl = document.getElementById('auth-account-name');
+  const planEl = document.getElementById('auth-account-plan');
+  const joinedEl = document.getElementById('auth-account-joined');
+  if (emailEl) emailEl.textContent = user.email || '—';
+  if (nameEl) nameEl.textContent = user.name || 'Trader';
+  if (planEl) {
+    planEl.textContent = planLabel + ' plan';
+    planEl.className = 'cl-auth-account-view__tier' + (plan === 'elite' ? ' cl-auth-account-view__tier--elite' : plan === 'free' ? ' cl-auth-account-view__tier--free' : '');
+  }
+  if (joinedEl) {
+    const j = user.joined ? new Date(user.joined).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
+    joinedEl.textContent = 'Member since ' + j;
+  }
+  const loginAct = document.getElementById('auth-account-login-actions');
+  const signupAct = document.getElementById('auth-account-signup-actions');
+  if (loginAct) loginAct.style.display = isSignup ? 'none' : 'flex';
+  if (signupAct) signupAct.style.display = isSignup ? 'flex' : 'none';
+  if (acc) acc.style.display = 'block';
+}
+
+function authContinueAfterSignup() {
+  closeAuth();
+  showOnboarding();
+}
+
+function userMenuOpenSettings() {
+  document.getElementById('user-menu')?.classList.remove('open');
+  go('terminal');
+  setTimeout(function () { if (typeof tdOpenSettings === 'function') tdOpenSettings(); }, 450);
+}
+
 function openAuth(tab = 'signup') {
+  resetAuthModalViews();
   document.getElementById('auth-modal').classList.add('open');
   switchTab(tab);
 }
-function closeAuth() { document.getElementById('auth-modal').classList.remove('open'); }
+function closeAuth() {
+  document.getElementById('auth-modal').classList.remove('open');
+  resetAuthModalViews();
+}
 
 function connectWallet() {
   const modal = document.getElementById('wallet-modal');
@@ -8870,10 +9004,13 @@ document.getElementById('auth-modal').addEventListener('click', e => { if (e.tar
 document.getElementById('wallet-modal').addEventListener('click', e => { if (e.target === document.getElementById('wallet-modal')) document.getElementById('wallet-modal').classList.remove('open'); });
 
 function switchTab(tab) {
+  resetAuthModalViews();
   document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
   document.getElementById('tab-login').classList.toggle('active', tab === 'login');
   document.getElementById('signup-name-wrap').style.display = tab === 'signup' ? 'block' : 'none';
   document.getElementById('plan-select-wrap').style.display = tab === 'signup' ? 'block' : 'none';
+  const termsRow = document.querySelector('#auth-modal .cl-terms-row');
+  if (termsRow) termsRow.style.display = tab === 'signup' ? '' : 'none';
   document.getElementById('auth-btn').textContent = tab === 'signup' ? 'Create Account →' : 'Log In →';
   document.getElementById('auth-sub').textContent = tab === 'signup' ? 'Built for serious crypto traders.' : 'Welcome back.';
 }
@@ -8895,16 +9032,17 @@ async function doAuth() {
     user = res.user;
     localStorage.setItem('cl_session', JSON.stringify(user));
     toast(`Welcome to ChainLens AI, ${name}.`);
-    closeAuth(); updateNav();
-    showOnboarding();
+    updateNav();
+    showAuthAccountView(true);
   } else {
     const res = await sbAuth('login', { email, password: pass });
     if (!res.success) { toast(res.error || 'Login failed', 'er'); btn.disabled = false; btn.textContent = 'Log In →'; return; }
     user = res.user;
     localStorage.setItem('cl_session', JSON.stringify(user));
     toast(`Welcome back, ${(user.name || 'Trader').split(' ')[0]}`);
-    closeAuth(); updateNav();
+    updateNav();
     syncAllDataDown();
+    showAuthAccountView(false);
   }
   btn.disabled = false;
   btn.textContent = tab === 'signup' ? 'Create Account →' : 'Log In →';
@@ -8918,6 +9056,8 @@ function logout() {
   journal = [];
   priceAlerts = [];
   savedWallets = [];
+  document.getElementById('auth-modal')?.classList.remove('open');
+  resetAuthModalViews();
   updateNav();
   go('home');
   toast('Signed out');
