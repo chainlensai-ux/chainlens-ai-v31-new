@@ -131,8 +131,19 @@ async function alchemyScanRpc(req, rpcBody) {
         body: rpcBody,
       }),
     });
-    if (!r.ok) return null;
-    return await r.json();
+    if (!r.ok) {
+      console.log('[claude] Alchemy scan rpc HTTP failure', { status: r.status, method: rpcBody?.method || null });
+      return null;
+    }
+    const data = await r.json();
+    console.log('[claude] Alchemy scan rpc response', {
+      method: rpcBody?.method || null,
+      hasError: !!data?.error,
+      transfers: Array.isArray(data?.result?.transfers) ? data.result.transfers.length : null,
+      tokenBalances: Array.isArray(data?.result?.tokenBalances) ? data.result.tokenBalances.length : null,
+      pageKey: data?.result?.pageKey || null,
+    });
+    return data;
   } catch {
     return null;
   }
@@ -153,7 +164,8 @@ async function fetchAlchemyWalletContext(req, wallet) {
       .map((t) => ({ contractAddress: t.contractAddress, rawBalance: t.tokenBalance }));
 
     const allTransfers = [];
-    let pageKey = null;
+    let pageKeyOut = null;
+    let pageKeyIn = null;
     for (let i = 0; i < 4; i++) {
       const [outRes, inRes] = await Promise.all([
         alchemyScanRpc(req, {
@@ -166,8 +178,9 @@ async function fetchAlchemyWalletContext(req, wallet) {
             fromAddress: wallet,
             category: ['external', 'erc20', 'erc721', 'erc1155', 'internal'],
             withMetadata: true,
-            maxCount: '0x3e8',
-            ...(pageKey ? { pageKey } : {}),
+            maxCount: '0x64',
+            order: 'desc',
+            ...(pageKeyOut ? { pageKey: pageKeyOut } : {}),
           }],
         }),
         alchemyScanRpc(req, {
@@ -180,17 +193,24 @@ async function fetchAlchemyWalletContext(req, wallet) {
             toAddress: wallet,
             category: ['external', 'erc20', 'erc721', 'erc1155', 'internal'],
             withMetadata: true,
-            maxCount: '0x3e8',
-            ...(pageKey ? { pageKey } : {}),
+            maxCount: '0x64',
+            order: 'desc',
+            ...(pageKeyIn ? { pageKey: pageKeyIn } : {}),
           }],
         }),
       ]);
       const outs = Array.isArray(outRes?.result?.transfers) ? outRes.result.transfers : [];
       const ins = Array.isArray(inRes?.result?.transfers) ? inRes.result.transfers : [];
       allTransfers.push(...outs, ...ins);
-      pageKey = outRes?.result?.pageKey || inRes?.result?.pageKey || null;
-      if (!pageKey) break;
+      pageKeyOut = outRes?.result?.pageKey || null;
+      pageKeyIn = inRes?.result?.pageKey || null;
+      if (!pageKeyOut && !pageKeyIn) break;
     }
+    console.log('[claude] Alchemy wallet context aggregate', {
+      wallet,
+      holdings: holdings.length,
+      transfers: allTransfers.length,
+    });
 
     const txs = allTransfers
       .slice(0, 80)

@@ -24,7 +24,7 @@ export default async function handler(req, res) {
     });
   }
   if (ESCAN) url = url.replace(/apikey=ENV\b/g, () => `apikey=${encodeURIComponent(String(ESCAN).trim())}`);
-  if (ALCHEMY) url = url.replace(/\/v2\/ENV\b/g, () => `/v2/${encodeURIComponent(String(ALCHEMY).trim())}`);
+  if (ALCHEMY) url = url.replace(/\/v2\/ENV\b/g, () => `/v2/${String(ALCHEMY).trim()}`);
   const allowed = [
     'api.etherscan.io',
     'api.basescan.org',
@@ -51,18 +51,39 @@ export default async function handler(req, res) {
   }
   try {
     const isMoralis = typeof url === 'string' && (url.includes('api.moralis.io') || url.includes('deep-index.moralis.io'));
+    const isAlchemyReq = typeof url === 'string' && url.includes('g.alchemy.com');
     const fetchOptions = {
       method: method || 'GET',
       headers: { 'Content-Type': 'application/json', 'User-Agent': 'ChainLens/1.0' }
     };
     if (isMoralis && MORALIS) fetchOptions.headers['X-API-Key'] = String(MORALIS).trim();
     if (body) fetchOptions.body = typeof body === 'string' ? body : JSON.stringify(body);
+    if (isAlchemyReq) {
+      console.log('[scan] Alchemy request', {
+        method: fetchOptions.method,
+        url: String(url || '').replace(String(ALCHEMY || ''), '***'),
+        hasAlchemyKey: !!String(ALCHEMY || '').trim(),
+        bodyMethod: body?.method || null,
+      });
+    }
     const response = await fetch(url, fetchOptions);
     const text = await response.text();
     // Pass upstream status through so callers can detect errors
     const status = response.ok ? 200 : response.status;
     try {
-      return res.status(status).json(JSON.parse(text));
+      const json = JSON.parse(text);
+      if (isAlchemyReq) {
+        const transfers = Array.isArray(json?.result?.transfers) ? json.result.transfers.length : null;
+        const tokenBalances = Array.isArray(json?.result?.tokenBalances) ? json.result.tokenBalances.length : null;
+        console.log('[scan] Alchemy response', {
+          status,
+          hasError: !!json?.error,
+          transfers,
+          tokenBalances,
+          pageKey: json?.result?.pageKey || null,
+        });
+      }
+      return res.status(status).json(json);
     } catch {
       return res.status(status).send(text);
     }
