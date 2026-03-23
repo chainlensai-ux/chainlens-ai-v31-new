@@ -15,6 +15,7 @@ const DEX_TOP_VOL_URL =
   'https://api.dexscreener.com/latest/dex/search?q=USDC&sort=volume&order=desc&limit=20';
 const ETHERSCAN_V2 = 'https://api.etherscan.io/v2/api';
 const WHALE_WATCH = '0x21a31Ee1afC51d94C2eFcCAa2092aD1028285549';
+const ALCHEMY_RPC_ENV_URL = 'https://eth-mainnet.g.alchemy.com/v2/ENV';
 
 const LUNARCRUSH_API = 'https://lunarcrush.com/api4/public';
 
@@ -101,6 +102,111 @@ function safeStringify(obj, maxLen = 10000) {
     return s.length > maxLen ? s.slice(0, maxLen) + '…[truncated]' : s;
   } catch {
     return String(obj).slice(0, 800);
+  }
+}
+
+function internalApiOrigin(req) {
+  const host = (req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim();
+  const proto = (req.headers['x-forwarded-proto'] || 'https').split(',')[0].trim();
+  if (host) return `${proto}://${host}`;
+  if (process.env.VERCEL_URL) return `https://${String(process.env.VERCEL_URL).replace(/^https?:\/\//i, '')}`;
+  return 'http://127.0.0.1:3000';
+}
+
+function extractWalletAddress(prompt) {
+  const s = String(prompt || '');
+  const m = s.match(/\b0x[a-fA-F0-9]{40}\b/);
+  return m ? m[0] : null;
+}
+
+async function alchemyScanRpc(req, rpcBody) {
+  try {
+    const origin = internalApiOrigin(req).replace(/\/$/, '');
+    const r = await fetch(`${origin}/api/scan`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: ALCHEMY_RPC_ENV_URL,
+        method: 'POST',
+        body: rpcBody,
+      }),
+    });
+    if (!r.ok) return null;
+    return await r.json();
+  } catch {
+    return null;
+  }
+}
+
+async function fetchAlchemyWalletContext(req, wallet) {
+  try {
+    const bal = await alchemyScanRpc(req, {
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'alchemy_getTokenBalances',
+      params: [wallet, 'DEFAULT_TOKENS'],
+    });
+    const tokenBalances = Array.isArray(bal?.result?.tokenBalances) ? bal.result.tokenBalances : [];
+    const holdings = tokenBalances
+      .filter((t) => t && t.tokenBalance && t.tokenBalance !== '0x0')
+      .slice(0, 40)
+      .map((t) => ({ contractAddress: t.contractAddress, rawBalance: t.tokenBalance }));
+
+    const allTransfers = [];
+    let pageKey = null;
+    for (let i = 0; i < 4; i++) {
+      const [outRes, inRes] = await Promise.all([
+        alchemyScanRpc(req, {
+          jsonrpc: '2.0',
+          id: 100 + i,
+          method: 'alchemy_getAssetTransfers',
+          params: [{
+            fromBlock: '0x0',
+            toBlock: 'latest',
+            fromAddress: wallet,
+            category: ['external', 'erc20', 'erc721', 'erc1155', 'internal'],
+            withMetadata: true,
+            maxCount: '0x3e8',
+            ...(pageKey ? { pageKey } : {}),
+          }],
+        }),
+        alchemyScanRpc(req, {
+          jsonrpc: '2.0',
+          id: 200 + i,
+          method: 'alchemy_getAssetTransfers',
+          params: [{
+            fromBlock: '0x0',
+            toBlock: 'latest',
+            toAddress: wallet,
+            category: ['external', 'erc20', 'erc721', 'erc1155', 'internal'],
+            withMetadata: true,
+            maxCount: '0x3e8',
+            ...(pageKey ? { pageKey } : {}),
+          }],
+        }),
+      ]);
+      const outs = Array.isArray(outRes?.result?.transfers) ? outRes.result.transfers : [];
+      const ins = Array.isArray(inRes?.result?.transfers) ? inRes.result.transfers : [];
+      allTransfers.push(...outs, ...ins);
+      pageKey = outRes?.result?.pageKey || inRes?.result?.pageKey || null;
+      if (!pageKey) break;
+    }
+
+    const txs = allTransfers
+      .slice(0, 80)
+      .map((t) => ({
+        hash: t.hash || '',
+        from: t.from || '',
+        to: t.to || '',
+        asset: t.asset || '',
+        value: t.value ?? null,
+        category: t.category || '',
+        blockTimestamp: t.metadata?.blockTimestamp || null,
+      }));
+
+    return { wallet, tokenHoldings: holdings, assetTransfers: txs };
+  } catch {
+    return null;
   }
 }
 
@@ -427,6 +533,16 @@ async function buildLiveContextBlock(req, userPrompt) {
     } else {
       parts.push(
         'LUNARCRUSH_SENTIMENT_GAUGE: no token/topic detected in user message (skip). If needed, infer only from other context above.'
+      );
+    }
+
+    const wallet = extractWalletAddress(userPrompt);
+    if (wallet) {
+      let alchemyCtx = null;
+      try { alchemyCtx = await fetchAlchemyWalletContext(req, wallet); } catch { alchemyCtx = null; }
+      parts.push(
+        'ALCHEMY_WALLET_CONTEXT (via /api/scan + ALCHEMY_KEY): ' +
+          (alchemyCtx ? safeStringify(alchemyCtx, 7000) : '(skipped — unavailable or ALCHEMY_KEY missing)')
       );
     }
 

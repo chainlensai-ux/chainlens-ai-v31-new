@@ -11107,6 +11107,22 @@ async function moralisViaScan(url) {
   } catch (e) { return null; }
 }
 
+async function alchemyRpcViaScan(payload) {
+  try {
+    const r = await fetch('/api/scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: 'https://eth-mainnet.g.alchemy.com/v2/ENV',
+        method: 'POST',
+        body: payload
+      })
+    });
+    if (!r.ok) return null;
+    return await r.json();
+  } catch (e) { return null; }
+}
+
 function normalizeMoralisChain(chain) {
   const c = String(chain || '').toLowerCase();
   if (c === 'eth') return 'eth';
@@ -11213,6 +11229,91 @@ async function fetchMoralisWalletScan(address, chainType) {
   return out;
 }
 
+async function fetchAlchemyWalletScan(address, chainType) {
+  const out = { holdings: [], txs: [] };
+  if (chainType !== 'evm') return out;
+  try {
+    const balReq = {
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'alchemy_getTokenBalances',
+      params: [address, 'DEFAULT_TOKENS']
+    };
+    const balRes = await alchemyRpcViaScan(balReq);
+    const tokenBalances = Array.isArray(balRes?.result?.tokenBalances) ? balRes.result.tokenBalances : [];
+    out.holdings = tokenBalances
+      .filter(t => t && t.tokenBalance && t.tokenBalance !== '0x0')
+      .slice(0, 180)
+      .map(t => {
+        const raw = parseInt(t.tokenBalance || '0x0', 16);
+        return {
+          symbol: 'ERC20',
+          name: (t.contractAddress || 'Token').slice(0, 10) + '…',
+          balance: Number.isFinite(raw) ? raw / 1e18 : 0,
+          usdValue: 0,
+          contractAddress: t.contractAddress || '',
+          chain: 'eth'
+        };
+      })
+      .filter(t => t.balance > 0);
+
+    let pageKey = null;
+    const transferRows = [];
+    for (let i = 0; i < 5; i++) {
+      const reqBody = {
+        jsonrpc: '2.0',
+        id: i + 20,
+        method: 'alchemy_getAssetTransfers',
+        params: [{
+          fromBlock: '0x0',
+          toBlock: 'latest',
+          fromAddress: address,
+          category: ['external', 'erc20', 'erc721', 'erc1155', 'internal'],
+          withMetadata: true,
+          maxCount: '0x3e8',
+          ...(pageKey ? { pageKey } : {})
+        }]
+      };
+      const inReqBody = {
+        jsonrpc: '2.0',
+        id: i + 120,
+        method: 'alchemy_getAssetTransfers',
+        params: [{
+          fromBlock: '0x0',
+          toBlock: 'latest',
+          toAddress: address,
+          category: ['external', 'erc20', 'erc721', 'erc1155', 'internal'],
+          withMetadata: true,
+          maxCount: '0x3e8',
+          ...(pageKey ? { pageKey } : {})
+        }]
+      };
+      const [outRes, inRes] = await Promise.all([alchemyRpcViaScan(reqBody), alchemyRpcViaScan(inReqBody)]);
+      const outList = Array.isArray(outRes?.result?.transfers) ? outRes.result.transfers : [];
+      const inList = Array.isArray(inRes?.result?.transfers) ? inRes.result.transfers : [];
+      transferRows.push(...outList, ...inList);
+      pageKey = outRes?.result?.pageKey || inRes?.result?.pageKey || null;
+      if (!pageKey) break;
+    }
+    out.txs = transferRows.map(tx => {
+      const valNum = Number(tx.value || 0);
+      const from = tx.from || '';
+      const to = tx.to || '';
+      const ts = tx.metadata?.blockTimestamp ? Math.floor(new Date(tx.metadata.blockTimestamp).getTime() / 1000) : 0;
+      return {
+        from,
+        to,
+        value: Number.isFinite(valNum) ? String(Math.max(0, valNum * 1e18)) : '0',
+        timeStamp: ts || 0,
+        hash: tx.hash || '',
+        dir: (String(from).toLowerCase() === String(address).toLowerCase()) ? 'out' : 'in',
+        _chain: 'eth'
+      };
+    }).sort((a, b) => (parseInt(b.timeStamp || 0, 10) - parseInt(a.timeStamp || 0, 10)));
+  } catch (e) {}
+  return out;
+}
+
 async function doWS() {
   const address = document.getElementById('wsi').value.trim();
   if (!address) { toast('Enter a wallet address', 'er'); return; }
@@ -11249,6 +11350,7 @@ async function doWS() {
   try {
     let assets = [], allTxs = [], totalUsd = 0, portfolioSummary = '';
     let moralisData = { holdings: [], txs: [], defi: [] };
+    let alchemyData = { holdings: [], txs: [] };
 
     if (chainType === 'evm') {
       document.getElementById('ws-total-sub').textContent = 'Scanning ETH, Base, BNB, Polygon...';
@@ -11351,6 +11453,10 @@ async function doWS() {
     if (chainType === 'evm' || chainType === 'sol') {
       document.getElementById('ws-total-sub').textContent = 'Loading Moralis portfolio context...';
       moralisData = await fetchMoralisWalletScan(address, chainType);
+    }
+    if (chainType === 'evm') {
+      document.getElementById('ws-total-sub').textContent = 'Loading Alchemy transaction context...';
+      alchemyData = await fetchAlchemyWalletScan(address, chainType);
     }
 
     document.getElementById('ws-total-value').textContent = fmtFx(totalUsd);
@@ -11507,8 +11613,14 @@ async function doWS() {
       + `</div>`
     ).join('');
 
-    const assetsForUI = (moralisData.holdings && moralisData.holdings.length) ? moralisData.holdings : assets;
-    const txsForUI = (moralisData.txs && moralisData.txs.length) ? moralisData.txs : allTxs;
+    const assetsForUI = [
+      ...((moralisData.holdings && moralisData.holdings.length) ? moralisData.holdings : assets),
+      ...((alchemyData.holdings && alchemyData.holdings.length) ? alchemyData.holdings : [])
+    ];
+    const txsForUI = [
+      ...((moralisData.txs && moralisData.txs.length) ? moralisData.txs : allTxs),
+      ...((alchemyData.txs && alchemyData.txs.length) ? alchemyData.txs : [])
+    ].sort((a, b) => (parseInt(b.timeStamp || 0, 10) - parseInt(a.timeStamp || 0, 10)));
     document.getElementById('ws-all-assets').innerHTML = renderAllAssets(assetsForUI, txsForUI, address);
     document.getElementById('ws-txs').innerHTML = renderAllTxs(txsForUI, address, chainType === 'evm' ? (selectedEvmChain || 'eth') : chainType);
     document.getElementById('ws-tx-count').textContent = txsForUI.length + ' transactions';

@@ -8,7 +8,9 @@ export default async function handler(req, res) {
   if (!url) return res.status(400).json({ error: 'No URL provided' });
   const ESCAN = process.env.ETHERSCAN_KEY || '';
   const MORALIS = process.env.MORALIS_KEY || '';
+  const ALCHEMY = process.env.ALCHEMY_KEY || '';
   const isEtherscan = typeof url === 'string' && url.includes('api.etherscan.io');
+  const isAlchemy = typeof url === 'string' && url.includes('g.alchemy.com');
   if (isEtherscan && (!ESCAN || !String(ESCAN).trim()) && /apikey=ENV\b/.test(url)) {
     return res.status(503).json({
       status: '0',
@@ -16,7 +18,13 @@ export default async function handler(req, res) {
       result: 'ETHERSCAN_KEY is not set on the server (Vercel env / local .env).'
     });
   }
+  if (isAlchemy && (!ALCHEMY || !String(ALCHEMY).trim()) && /\/v2\/ENV\b/.test(url)) {
+    return res.status(503).json({
+      error: 'ALCHEMY_KEY is not set on the server (Vercel env / local .env).'
+    });
+  }
   if (ESCAN) url = url.replace(/apikey=ENV\b/g, () => `apikey=${encodeURIComponent(String(ESCAN).trim())}`);
+  if (ALCHEMY) url = url.replace(/\/v2\/ENV\b/g, () => `/v2/${encodeURIComponent(String(ALCHEMY).trim())}`);
   const allowed = [
     'api.etherscan.io',
     'api.basescan.org',
@@ -28,6 +36,7 @@ export default async function handler(req, res) {
     'api.blockchair.com',
     'api.mainnet-beta.solana.com',
     'rpc.ankr.com',
+    'g.alchemy.com',
     'solana-mainnet.g.alchemy.com',
     'api.dexscreener.com',
     'api.coingecko.com',
