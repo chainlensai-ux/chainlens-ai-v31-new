@@ -72,6 +72,15 @@ function extractEngagementLike(p) {
   ]);
 }
 
+function extractAltRankLike(p) {
+  return pickNumber(p, [
+    'alt_rank',
+    'altRank',
+    'altrank',
+    'alt_rank_score',
+  ]);
+}
+
 export default async function handler(req, res) {
   // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -168,8 +177,27 @@ export default async function handler(req, res) {
       const v = Math.round(clamp(x.v, 0, 100));
       return { value: v, value_classification: classify(v), time: x.t ?? null };
     });
+    const galaxyScore = pickNumber(overview, ['galaxy_score', 'galaxyScore', 'galaxy_score_avg']) ?? currentVal;
+    const sentimentScore = pickNumber(overview, ['sentiment', 'social_sentiment', 'average_sentiment', 'sentiment_score']) ?? currentVal;
+    const altRank = extractAltRankLike(overview);
+    const socialVolume = pickNumber(overview, [
+      'social_volume',
+      'socialVolume',
+      'social_contributors',
+      'engagements_24h',
+      'interactions_24h',
+      'mentions',
+    ]);
 
-    return res.status(200).json({ data });
+    return res.status(200).json({
+      data,
+      metrics: {
+        galaxy_score: Math.round(clamp(galaxyScore, 0, 100)),
+        sentiment_score: Math.round(clamp(sentimentScore, 0, 100)),
+        alt_rank: altRank != null ? Math.round(altRank) : null,
+        social_volume: socialVolume != null ? Math.round(socialVolume) : null,
+      }
+    });
   } catch (err) {
     return res.status(500).json({ error: 'LunarCrush fetch failed: ' + err.message });
   }

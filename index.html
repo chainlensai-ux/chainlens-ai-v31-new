@@ -5949,26 +5949,39 @@ body::after {
 
     <div class="cl-two-col" style="margin-bottom:14px;">
 
-      <!-- FGI Gauge card -->
+      <!-- Lunar Gauge card -->
       <div class="cl-card cl-fgi sp-fgi-card" id="sp-fgi-card">
-        <div class="cl-label">Fear & Greed Index</div>
+        <div class="cl-label">LunarCrush Signal Gauge</div>
         <div class="sp-fgi-center">
           <div class="cl-fgi__num" id="fgn">--</div>
           <div class="cl-fgi__label" id="fgl" style="color:var(--cl-text-3);">Loading...</div>
         </div>
         <div class="cl-fgi__bar"><div class="cl-fgi__pointer" id="fgp" style="left:50%;"></div></div>
         <div class="cl-fgi__labels">
-          <span>Extreme<br>Fear</span>
-          <span>Fear</span>
+          <span>Bearish</span>
+          <span>Risk-off</span>
           <span>Neutral</span>
-          <span>Greed</span>
-          <span>Extreme<br>Greed</span>
+          <span>Risk-on</span>
+          <span>Bullish</span>
         </div>
         <div class="sp-zones">
-          <div class="sp-zone" style="color:#ef476f;">0–24<br><span>Fear</span></div>
-          <div class="sp-zone" style="color:#f0b429;">25–49<br><span>Caution</span></div>
-          <div class="sp-zone" style="color:#00ffc8;">50–74<br><span>Greed</span></div>
-          <div class="sp-zone" style="color:#7858c0;">75–100<br><span>Extreme</span></div>
+          <div class="sp-zone" style="color:#ef476f;">0–39<br><span>Bearish</span></div>
+          <div class="sp-zone" style="color:#f0b429;">40–60<br><span>Neutral</span></div>
+          <div class="sp-zone" style="color:#00ffc8;">61–100<br><span>Bullish</span></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px;">
+          <div style="border:1px solid rgba(139,92,246,0.24);border-radius:10px;padding:8px;background:rgba(139,92,246,0.06);">
+            <div style="font-size:9px;color:var(--cl-text-3);letter-spacing:1px;text-transform:uppercase;">Galaxy Score</div>
+            <div id="sp-galaxy" style="margin-top:4px;font-size:13px;color:#00ffc8;font-family:'JetBrains Mono',monospace;font-weight:700;">—</div>
+          </div>
+          <div style="border:1px solid rgba(139,92,246,0.24);border-radius:10px;padding:8px;background:rgba(139,92,246,0.06);">
+            <div style="font-size:9px;color:var(--cl-text-3);letter-spacing:1px;text-transform:uppercase;">AltRank</div>
+            <div id="sp-altrank" style="margin-top:4px;font-size:13px;color:#00ffc8;font-family:'JetBrains Mono',monospace;font-weight:700;">—</div>
+          </div>
+          <div style="border:1px solid rgba(139,92,246,0.24);border-radius:10px;padding:8px;background:rgba(139,92,246,0.06);">
+            <div style="font-size:9px;color:var(--cl-text-3);letter-spacing:1px;text-transform:uppercase;">Social Volume</div>
+            <div id="sp-social" style="margin-top:4px;font-size:13px;color:#00ffc8;font-family:'JetBrains Mono',monospace;font-weight:700;">—</div>
+          </div>
         </div>
       </div>
 
@@ -10499,19 +10512,27 @@ async function doSentiment() {
     clearTimeout(_ft);
     const d = await r.json();
     const current = d?.data?.[0] || { value: 50, value_classification: 'Neutral' };
-    let val = parseInt(current.value);
+    const metrics = d?.metrics || {};
+    let val = parseInt(metrics.galaxy_score != null ? metrics.galaxy_score : current.value);
     val = Number.isFinite(val) ? val : 50;
-    const col = val < 25 ? '#ef476f' : val < 50 ? '#f0b429' : val < 75 ? '#00ffc8' : '#7858c0';
-    const moodEmoji = val < 25 ? '😨' : val < 50 ? '😟' : val < 75 ? '😏' : '🤑';
+    const bias = val > 60 ? 'Bullish' : val < 40 ? 'Bearish' : 'Neutral';
+    const col = bias === 'Bullish' ? '#00ffc8' : bias === 'Bearish' ? '#ef476f' : '#f0b429';
+    const moodEmoji = bias === 'Bullish' ? '🟢' : bias === 'Bearish' ? '🔴' : '🟡';
 
     // FGI gauge
     document.getElementById('fgn').textContent = val;
     document.getElementById('fgn').style.background = `linear-gradient(135deg,${col},${col}88)`;
     document.getElementById('fgn').style.webkitBackgroundClip = 'text';
     document.getElementById('fgn').style.webkitTextFillColor = 'transparent';
-    document.getElementById('fgl').textContent = current.value_classification;
+    document.getElementById('fgl').textContent = bias;
     document.getElementById('fgl').style.color = col;
     document.getElementById('fgp').style.left = val + '%';
+    const spGalaxy = document.getElementById('sp-galaxy');
+    const spAlt = document.getElementById('sp-altrank');
+    const spSocial = document.getElementById('sp-social');
+    if (spGalaxy) spGalaxy.textContent = Number.isFinite(Number(metrics.galaxy_score)) ? String(Math.round(Number(metrics.galaxy_score))) : String(val);
+    if (spAlt) spAlt.textContent = Number.isFinite(Number(metrics.alt_rank)) ? ('#' + Math.round(Number(metrics.alt_rank))) : '—';
+    if (spSocial) spSocial.textContent = Number.isFinite(Number(metrics.social_volume)) ? Number(metrics.social_volume).toLocaleString() : '—';
 
     // Live strip
     const strip = document.getElementById('sp-strip');
@@ -10520,7 +10541,7 @@ async function doSentiment() {
       strip.style.borderColor = col + '30';
       document.getElementById('sp-strip-val').textContent = val + '/100';
       document.getElementById('sp-strip-val').style.color = col;
-      document.getElementById('sp-strip-mood').textContent = moodEmoji + ' ' + current.value_classification;
+      document.getElementById('sp-strip-mood').textContent = moodEmoji + ' ' + bias;
     }
 
     drawSentimentChart((d?.data || [current]).slice().reverse());
@@ -10544,7 +10565,8 @@ async function doSentiment() {
       }
     } catch(e) {}
 
-    const txt = await ai(`You are ChainLens AI SentimentPulse™. Fear & Greed Index is ${val} (${current.value_classification}).
+    const txt = await ai(`You are ChainLens AI SentimentPulse™. LunarCrush Galaxy Score is ${val} (${bias}).
+LunarCrush Sentiment Score: ${metrics.sentiment_score != null ? metrics.sentiment_score : 'n/a'}, AltRank: ${metrics.alt_rank != null ? metrics.alt_rank : 'n/a'}, Social Volume: ${metrics.social_volume != null ? metrics.social_volume : 'n/a'}.
 Live prices: ${ctx()}${momentumData}
 Respond ONLY in this format:
 VERDICT: [1 bold sentence about what this score means right now]
