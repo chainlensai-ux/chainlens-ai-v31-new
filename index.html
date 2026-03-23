@@ -3681,6 +3681,142 @@ body::after {
   font-size: 11px;
   color: #2DD4BF;
 }
+.hc-side-panel__footer {
+  border-top: 1px solid rgba(139,92,246,0.22);
+  background: #0d0d0d;
+  padding: 10px 12px 12px;
+  flex-shrink: 0;
+}
+.hc-side-mode-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.hc-side-mode-btn {
+  flex: 1;
+  border: 1px solid rgba(139,92,246,0.28);
+  border-radius: 8px;
+  background: rgba(139,92,246,0.06);
+  color: #9f7aea;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  padding: 6px 8px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+.hc-side-mode-btn:hover { border-color: rgba(139,92,246,0.5); color: #c4b5fd; }
+.hc-side-mode-btn.active {
+  background: rgba(139,92,246,0.16);
+  border-color: rgba(139,92,246,0.62);
+  color: #fff;
+}
+.hc-side-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+.hc-side-input {
+  flex: 1;
+  min-height: 36px;
+  max-height: 92px;
+  resize: none;
+  border: 1px solid rgba(139,92,246,0.3);
+  border-radius: 10px;
+  background: #0a0a0a;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  line-height: 1.45;
+  padding: 9px 10px;
+  outline: none;
+}
+.hc-side-input:focus { border-color: rgba(139,92,246,0.55); }
+.hc-side-input::placeholder { color: #5b4f75; }
+.hc-side-send {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  border: 1px solid rgba(139,92,246,0.5);
+  background: linear-gradient(135deg, #7858c0, #8b5cf6);
+  color: #fff;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.hc-side-analysis {
+  align-self: stretch;
+  background: rgba(139,92,246,0.05);
+  border: 1px solid rgba(139,92,246,0.24);
+  border-radius: 10px;
+  padding: 12px;
+}
+.hc-side-analysis__wallet {
+  display: inline-block;
+  color: #2DD4BF;
+  text-decoration: none;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  margin-bottom: 10px;
+}
+.hc-side-analysis__wallet:hover { text-decoration: underline; }
+.hc-side-analysis__sec {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(139,92,246,0.16);
+}
+.hc-side-analysis__sec:first-of-type {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+.hc-side-analysis__sec-h {
+  color: #8b5cf6;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 7px;
+}
+.hc-side-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.hc-side-tag {
+  border: 1px solid rgba(139,92,246,0.34);
+  background: rgba(139,92,246,0.1);
+  color: #d6ccff;
+  border-radius: 20px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.hc-side-kv {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11px;
+  margin-bottom: 5px;
+}
+.hc-side-kv__k { color: #b7b7c5; font-family: 'Inter', sans-serif; }
+.hc-side-kv__v { color: #2DD4BF; font-family: 'JetBrains Mono', monospace; }
+.hc-side-list { margin: 0; padding-left: 16px; }
+.hc-side-list li {
+  margin-bottom: 5px;
+  color: #d0d0d8;
+  font-size: 11px;
+  line-height: 1.55;
+  font-family: 'Inter', sans-serif;
+}
+.hc-side-risk {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  border: 1px solid rgba(236,72,153,0.5);
+  color: #ec4899;
+  background: rgba(236,72,153,0.12);
+}
 
 /* ════════════════════════════════════════════════
    TERMINAL DASHBOARD — Bloomberg meets Web3
@@ -4457,6 +4593,16 @@ body::after {
       <button class="hc-side-panel__close" type="button" onclick="hcCloseSidePanel()" aria-label="Close Clark side panel">×</button>
     </div>
     <div id="hc-side-body" class="hc-side-panel__body"></div>
+    <div class="hc-side-panel__footer">
+      <div class="hc-side-mode-row">
+        <button id="hc-mode-expert" class="hc-side-mode-btn active" type="button" onclick="hcSetMode('expert')">Expert mode</button>
+        <button id="hc-mode-speed" class="hc-side-mode-btn" type="button" onclick="hcSetMode('speed')">Speed mode</button>
+      </div>
+      <div class="hc-side-input-row">
+        <textarea id="hc-side-input" class="hc-side-input" rows="1" placeholder="Ask Clark..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();heroClarkSendFromSide()}" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,92)+'px'"></textarea>
+        <button class="hc-side-send" type="button" onclick="heroClarkSendFromSide()" aria-label="Send">➤</button>
+      </div>
+    </div>
   </aside>
   <!-- Hero -->
   <section class="cl-hero">
@@ -13797,6 +13943,7 @@ setTimeout(() => { if (!clarkHistory[clarkAgent].length) clarkGreet(); }, 500);
 let hcBusy = false;
 let hcSideThinkingTimer = null;
 let hcSideStreamTimer = null;
+let hcResponseMode = 'expert';
 
 function hcOpenSidePanel() {
   const panel = document.getElementById('hc-side-panel');
@@ -13816,6 +13963,130 @@ function hcCloseSidePanel(silent) {
     const body = document.getElementById('hc-side-body');
     if (body) body.scrollTop = body.scrollHeight;
   }
+}
+
+function hcSetMode(mode) {
+  hcResponseMode = mode === 'speed' ? 'speed' : 'expert';
+  const ex = document.getElementById('hc-mode-expert');
+  const sp = document.getElementById('hc-mode-speed');
+  if (ex) ex.classList.toggle('active', hcResponseMode === 'expert');
+  if (sp) sp.classList.toggle('active', hcResponseMode === 'speed');
+}
+
+function heroClarkSendFromSide() {
+  const sideInp = document.getElementById('hc-side-input');
+  const homeInp = document.getElementById('hc-input');
+  if (!sideInp || !homeInp) return;
+  const val = sideInp.value.trim();
+  if (!val) return;
+  homeInp.value = val;
+  sideInp.value = '';
+  sideInp.style.height = 'auto';
+  heroClarkSend();
+}
+
+function hcEscape(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function hcFirstWalletAddress(text) {
+  const m = String(text || '').match(/0x[a-fA-F0-9]{40}/);
+  return m ? m[0] : '';
+}
+
+function hcIsWalletPrompt(text) {
+  const t = String(text || '').toLowerCase();
+  return !!hcFirstWalletAddress(t) || /wallet|holder|address|portfolio|degen|smart money|tx history|transaction/.test(t);
+}
+
+function hcInferRisk(reply) {
+  const t = String(reply || '').toLowerCase();
+  if (/extreme|critical|rug|drain|wash|high risk|danger/.test(t)) return 'HIGH RISK';
+  if (/moderate|mixed|watch|volatile|caution/.test(t)) return 'MEDIUM RISK';
+  return 'LOW-MODERATE RISK';
+}
+
+function hcInferLabels(reply, prompt) {
+  const txt = (String(reply || '') + ' ' + String(prompt || '')).toLowerCase();
+  const labels = [];
+  if (/whale|large holder|big wallet/.test(txt)) labels.push('WHALE');
+  if (/developer|deployer|dev/.test(txt)) labels.push('DEVELOPER');
+  if (/institution|fund|treasury/.test(txt)) labels.push('INSTITUTION');
+  if (/trader|active|swing|scalp/.test(txt)) labels.push('TRADER');
+  if (/new wallet|fresh/.test(txt)) labels.push('FRESH WALLET');
+  if (!labels.length) labels.push('ACTIVE TRADER');
+  return labels.slice(0, 4);
+}
+
+function hcExtractPortfolioRows(reply) {
+  const lines = String(reply || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  const out = [];
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i];
+    if (!/\$/.test(line)) continue;
+    const sym = (line.match(/\b[A-Z]{2,10}\b/) || [])[0] || 'Asset';
+    const usd = (line.match(/\$[\d,]+(?:\.\d+)?(?:[kKmMbB])?/) || [])[0] || '—';
+    out.push({ sym, usd });
+    if (out.length >= 3) break;
+  }
+  if (!out.length) {
+    out.push({ sym: 'Top holdings', usd: '$—' });
+    out.push({ sym: 'Portfolio value', usd: 'Open WalletScan for live value' });
+  }
+  return out;
+}
+
+function hcExtractActivityRows(reply) {
+  const lines = String(reply || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  const out = [];
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i].replace(/^[-*]\s*/, '');
+    if (line.length < 20) continue;
+    out.push(line);
+    if (out.length >= 3) break;
+  }
+  if (!out.length) out.push('Recent activity feed unavailable in landing preview. Open WalletScan for full transfer timeline.');
+  return out;
+}
+
+function hcExtractEdge(reply) {
+  const t = String(reply || '').trim();
+  if (!t) return 'Run WalletScan in Expert mode and follow the dominant accumulation/distribution signal.';
+  const m = t.split(/[.!?]\s+/)[0] || t;
+  return m.length > 160 ? m.slice(0, 157) + '...' : m;
+}
+
+function hcWalletHeaderLink(wallet) {
+  const w = String(wallet || '');
+  if (!w) return '<a class="hc-side-analysis__wallet" href="#" onclick="go(\'walletscan\');return false;">Wallet: Open in WalletScan</a>';
+  return '<a class="hc-side-analysis__wallet" href="https://etherscan.io/address/' + hcEscape(w) + '" target="_blank" rel="noopener">Wallet: ' + hcEscape(w) + '</a>';
+}
+
+function hcRenderWalletAnalysis(reply, promptText) {
+  const wallet = hcFirstWalletAddress(promptText) || hcFirstWalletAddress(reply);
+  const labels = hcInferLabels(reply, promptText);
+  const portfolio = hcExtractPortfolioRows(reply);
+  const activity = hcExtractActivityRows(reply);
+  const risk = hcInferRisk(reply);
+  const edge = hcExtractEdge(reply);
+  const tagsHtml = labels.map(l => '<span class="hc-side-tag">' + hcEscape(l) + '</span>').join('');
+  const pHtml = portfolio.map(r => '<div class="hc-side-kv"><span class="hc-side-kv__k">' + hcEscape(r.sym) + '</span><span class="hc-side-kv__v">' + hcEscape(r.usd) + '</span></div>').join('');
+  const aHtml = activity.map(v => '<li>' + hcEscape(v) + '</li>').join('');
+  return (
+    '<div class="hc-side-analysis">'
+      + hcWalletHeaderLink(wallet)
+      + '<div class="hc-side-analysis__sec"><div class="hc-side-analysis__sec-h">Key Labels</div><div class="hc-side-tags">' + tagsHtml + '</div></div>'
+      + '<div class="hc-side-analysis__sec"><div class="hc-side-analysis__sec-h">Portfolio Summary</div>' + pHtml + '</div>'
+      + '<div class="hc-side-analysis__sec"><div class="hc-side-analysis__sec-h">Activity</div><ul class="hc-side-list">' + aHtml + '</ul></div>'
+      + '<div class="hc-side-analysis__sec"><div class="hc-side-analysis__sec-h">Risk Level</div><span class="hc-side-risk">' + hcEscape(risk) + '</span></div>'
+      + '<div class="hc-side-analysis__sec"><div class="hc-side-analysis__sec-h">One Actionable Edge</div><div class="hc-side-kv__k">' + hcEscape(edge) + '</div></div>'
+    + '</div>'
+  );
 }
 
 function hcSideAddMsg(role, text, isHtml) {
@@ -13914,11 +14185,19 @@ async function heroClarkSend() {
   const sendBtn = document.getElementById('hc-send');
   if (sendBtn) sendBtn.style.opacity = '0.5';
 
-  const sysPrompt = CLARK_BASE + '\n\nYou are answering a question on the ChainLens AI landing page. Keep responses to 2-3 sharp sentences. If the user asks to scan a specific wallet address, explain that live wallet scanning is available in the app — describe what ChainLens would show them (portfolio breakdown, smart money signals, transaction history) and encourage them to sign up free. Be direct, crypto-native, and compelling.';
+  const modeInstruction = hcResponseMode === 'speed'
+    ? 'You are in SPEED MODE. Return exactly one line verdict only. No bullets, no preamble.'
+    : 'You are in EXPERT MODE. Provide concise but detailed analysis with key evidence and practical edge.';
+  const sysPrompt = CLARK_BASE + '\n\nYou are answering a question on the ChainLens AI landing page. Keep responses to 2-3 sharp sentences. If the user asks to scan a specific wallet address, explain that live wallet scanning is available in the app — describe what ChainLens would show them (portfolio breakdown, smart money signals, transaction history) and encourage them to sign up free. Be direct, crypto-native, and compelling.\n\n' + modeInstruction;
 
   try {
     hcOpenSidePanel();
     hcSideAddMsg('user', text);
+    const sideInp = document.getElementById('hc-side-input');
+    if (sideInp) {
+      sideInp.value = '';
+      sideInp.style.height = 'auto';
+    }
     hcSideShowThinking();
     hcAddMsg('user', text);
     hcShowTyping();
@@ -13971,10 +14250,15 @@ async function heroClarkSend() {
     }
 
     const reply = await ai(sysPrompt + heroLiveData + heroLunarSocialData + '\n\nUser: ' + text + '\nClark:', 400);
+    const cleaned = (reply || '').trim() || 'Got it — connect your wallet inside the app for full live analysis.';
     hcSideHideThinking();
-    hcSideStreamBot((reply || '').trim() || 'Got it — connect your wallet inside the app for full live analysis.');
+    if (hcIsWalletPrompt(text) && hcResponseMode === 'expert') {
+      hcSideAddMsg('bot', hcRenderWalletAnalysis(cleaned, text), true);
+    } else {
+      hcSideStreamBot(cleaned);
+    }
     hcRemoveTyping();
-    hcAddMsg('bot', (reply || '').trim() || 'Got it — connect your wallet inside the app for full live analysis.');
+    hcAddMsg('bot', cleaned);
   } catch(e) {
     console.error('Hero Clark error:', e);
     hcSideHideThinking();
