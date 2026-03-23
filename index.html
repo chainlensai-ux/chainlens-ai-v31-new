@@ -9063,7 +9063,7 @@ async function tdClarkSend() {
     const res = await fetch('/api/claude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [{ role: 'user', content: userContent }], system: systemCtx, max_tokens: 400 })
+      body: JSON.stringify({ prompt: systemCtx + '\n\nUser: ' + userContent, max_tokens: 400 })
     });
     const data = await res.json();
     if (data.error) throw new Error(data.error);
