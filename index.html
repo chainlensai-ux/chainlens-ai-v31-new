@@ -3566,6 +3566,7 @@ body::after {
 /* Landing Clark side panel (opens on submit) */
 #pg-home { transition: width 0.28s ease, margin-right 0.28s ease; }
 #pg-home.hc-side-open { width: 60vw; margin-right: 40vw; }
+#pg-home.hc-side-open #hc-msgs { display: none !important; }
 .hc-side-panel {
   position: fixed; top: 0; right: 0; bottom: 0;
   width: 40vw;
@@ -13950,6 +13951,9 @@ function hcOpenSidePanel() {
   const home = document.getElementById('pg-home');
   if (panel) panel.classList.add('open');
   if (home) home.classList.add('hc-side-open');
+  const msgs = document.getElementById('hc-msgs');
+  if (msgs) msgs.classList.remove('has-msgs');
+  hcRemoveTyping();
 }
 
 function hcCloseSidePanel(silent) {
@@ -14055,10 +14059,22 @@ function hcExtractActivityRows(reply) {
 }
 
 function hcExtractEdge(reply) {
-  const t = String(reply || '').trim();
+  const t = hcStripMarkdown(String(reply || '').trim());
   if (!t) return 'Run WalletScan in Expert mode and follow the dominant accumulation/distribution signal.';
   const m = t.split(/[.!?]\s+/)[0] || t;
   return m.length > 160 ? m.slice(0, 157) + '...' : m;
+}
+
+function hcStripMarkdown(text) {
+  let out = String(text || '');
+  out = out.replace(/```[\s\S]*?```/g, ' ');
+  out = out.replace(/`([^`]+)`/g, '$1');
+  out = out.replace(/!\[.*?\]\(.*?\)/g, ' ');
+  out = out.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1');
+  out = out.replace(/^#{1,6}\s+/gm, '');
+  out = out.replace(/[*_~>#-]+/g, ' ');
+  out = out.replace(/\s+/g, ' ').trim();
+  return out;
 }
 
 function hcWalletHeaderLink(wallet) {
@@ -14199,9 +14215,6 @@ async function heroClarkSend() {
       sideInp.style.height = 'auto';
     }
     hcSideShowThinking();
-    hcAddMsg('user', text);
-    hcShowTyping();
-
     // Inject live CoinGecko data when user asks about token prices or market data
     let heroLiveData = '';
     let heroLunarSocialData = '';
@@ -14257,14 +14270,10 @@ async function heroClarkSend() {
     } else {
       hcSideStreamBot(cleaned);
     }
-    hcRemoveTyping();
-    hcAddMsg('bot', cleaned);
   } catch(e) {
     console.error('Hero Clark error:', e);
     hcSideHideThinking();
     hcSideAddMsg('bot', 'Couldn\'t reach CORTEX right now — try again in a moment or open the full Clark panel below.');
-    hcRemoveTyping();
-    hcAddMsg('bot', 'Couldn\'t reach CORTEX right now — try again in a moment or open the full Clark panel below.');
   } finally {
     hcBusy = false;
     if (sendBtn) sendBtn.style.opacity = '';
