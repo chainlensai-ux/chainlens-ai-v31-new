@@ -7918,6 +7918,7 @@ function tdDrawGauge() {
 /* ── Whale Feed — Etherscan v2: large native ETH transfers > $50K (high-flow watch address) ── */
 const _TD_ETHERSCAN_V2 = 'https://api.etherscan.io/v2/api';
 const _TD_WHALE_WATCH = '0x21a31Ee1afC51d94C2eFcCAa2092aD1028285549';
+const _TD_WHALE_CORTEX_CACHE = {};
 
 function tdShortAddr(addr) {
   if (!addr || typeof addr !== 'string') return '—';
@@ -7943,6 +7944,60 @@ function tdWhaleCortexExplain(tx, watchLower, ethVal) {
     return 'CORTEX: Very large native ETH movement on mainnet — signals deep liquidity shifting between counterparties.';
   }
   return 'CORTEX: Substantial native ETH transfer on Ethereum — indicates serious capital rotation on-chain.';
+}
+
+function tdFormatWhaleBreakdown(raw) {
+  const rows = String(raw || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  const top = [];
+  const bullets = [];
+  rows.forEach(r => {
+    if ((r.startsWith('-') || r.startsWith('•')) && bullets.length < 3) {
+      bullets.push('• ' + r.replace(/^[-•]\s*/, '').trim());
+    } else if (top.length < 4) {
+      top.push(r);
+    }
+  });
+  while (top.length < 4) top.push('Signal context unavailable — monitor closely.');
+  while (bullets.length < 3) bullets.push('• Keep risk size small until follow-through confirms.');
+  return { top: top.slice(0, 4), bullets: bullets.slice(0, 3) };
+}
+
+async function tdWhaleCortexBreakdown(tx, usdNum, ethValNum, watchLower) {
+  try {
+    const h = String(tx.hash || '').toLowerCase();
+    if (h && _TD_WHALE_CORTEX_CACHE[h]) return _TD_WHALE_CORTEX_CACHE[h];
+    const isIn = String(tx.to || '').toLowerCase() === watchLower;
+    const side = isIn ? 'inflow to watch wallet' : 'outflow from watch wallet';
+    const prompt = [
+      'You are CORTEX for ChainLens Whale Alerts.',
+      'Given this on-chain whale transaction, respond in EXACTLY 7 lines:',
+      'WHAT MOVED: <plain English, concise>',
+      'WHY IT MATTERS: <concise>',
+      'COULD LEAD TO: <concise>',
+      'NEXT MOVE: <concise trader lens>',
+      '- <actionable step 1>',
+      '- <actionable step 2>',
+      '- <actionable step 3>',
+      '',
+      `Transaction hash: ${tx.hash || 'unknown'}`,
+      `Direction: ${side}`,
+      `Amount: ${ethValNum.toFixed(4)} ETH (~$${Math.round(usdNum).toLocaleString('en-US')})`,
+      `From: ${tx.from || 'unknown'}`,
+      `To: ${tx.to || 'unknown'}`,
+      `Timestamp: ${tx.timeStamp ? new Date(parseInt(tx.timeStamp, 10) * 1000).toISOString() : 'unknown'}`
+    ].join('\n');
+    const txt = await ai(prompt, 260);
+    const b = tdFormatWhaleBreakdown(txt);
+    const html = b.top.map(l => `<div style="font-size:10px;color:var(--cl-text-2);line-height:1.45;">${tdEscape(l)}</div>`).join('')
+      + `<div style="margin-top:5px;">${b.bullets.map(l => `<div style="font-size:10px;color:var(--cl-text-3);line-height:1.45;">${tdEscape(l)}</div>`).join('')}</div>`;
+    if (h) _TD_WHALE_CORTEX_CACHE[h] = html;
+    return html;
+  } catch (e) {
+    return '<div style="font-size:10px;color:var(--cl-text-3);line-height:1.45;">CORTEX breakdown unavailable — monitor follow-through volume and direction.</div>'
+      + '<div style="margin-top:5px;"><div style="font-size:10px;color:var(--cl-text-3);line-height:1.45;">• Wait for confirmation candle before chasing.</div>'
+      + '<div style="font-size:10px;color:var(--cl-text-3);line-height:1.45;">• Track repeat transfers from the same wallet.</div>'
+      + '<div style="font-size:10px;color:var(--cl-text-3);line-height:1.45;">• Reduce size if volatility spikes.</div></div>';
+  }
 }
 
 async function tdScanEtherscanJson(res, label) {
@@ -8061,7 +8116,7 @@ async function tdLoadWhales() {
       return;
     }
 
-    txs.forEach(tx => {
+    const whaleItems = await Promise.all(txs.map(async tx => {
       const ethValNum = parseFloat(tx.value) / 1e18;
       const usdNum = ethValNum * ethPrice;
       const usdVal = usdNum.toLocaleString('en-US', { maximumFractionDigits: 0 });
@@ -8084,16 +8139,19 @@ async function tdLoadWhales() {
       const fn = (tx.functionName || '').split('(')[0].trim();
       const tokenLine = fn ? ('ETH · ' + fn) : 'ETH · Native transfer';
       const icon = ethValNum >= 200 ? '🐋' : ethValNum >= 80 ? '🦈' : '⚡';
+      const breakdownHtml = await tdWhaleCortexBreakdown(tx, usdNum, ethValNum, watchLower);
 
-      feed.appendChild(tdWhaleEl({
+      return {
         icon,
         tokenLine,
         wallet: walletShort,
         cortex: tdWhaleCortexExplain(tx, watchLower, ethValNum),
+        breakdownHtml,
         usd: usdVal,
         timeStr
-      }));
-    });
+      };
+    }));
+    whaleItems.forEach(d => feed.appendChild(tdWhaleEl(d)));
     tdSetWidgetDebug('td-debug-whale', '');
   } catch (e) {
     const why = (e && e.message) ? e.message : String(e);
@@ -8146,6 +8204,10 @@ function tdWhaleEl(d) {
       <div class="td-feed-item__token">${tdEscape(d.tokenLine)} <span style="color:#333;font-size:10px;">ETH</span></div>
       <div class="td-feed-item__desc">${tdEscape(d.wallet)}</div>
       <div class="td-feed-item__desc">${tdEscape(d.cortex)}</div>
+      <div style="margin-top:6px;padding:8px 10px;border:1px solid rgba(120,88,192,0.25);border-radius:10px;background:rgba(120,88,192,0.05);">
+        <div style="font-size:9px;color:#00ffc8;font-weight:800;letter-spacing:0.8px;margin-bottom:4px;font-family:'JetBrains Mono',monospace;">CORTEX BREAKDOWN</div>
+        ${d.breakdownHtml || ''}
+      </div>
     </div>
     <div class="td-feed-item__right">
       <div class="td-feed-item__amount" style="color:#a78bfa;">$${tdEscape(d.usd)}</div>
