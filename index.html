@@ -11934,6 +11934,90 @@ async function fetchAlchemyWalletScan(address, chainType) {
   return out;
 }
 
+function wsLabelBadgeColor(label) {
+  const k = String(label || '').toUpperCase();
+  if (k === 'WHALE') return '#8b5cf6';
+  if (k === 'SMART MONEY') return '#00ffc8';
+  if (k === 'DEV') return '#ec4899';
+  if (k === 'SNIPER') return '#f5a623';
+  if (k === 'CEX') return '#9ca3af';
+  if (k === 'INSTITUTION') return '#3b82f6';
+  if (k === 'DORMANT') return '#9ca3af';
+  return '#8b5cf6';
+}
+
+function wsInferWalletLabels(address, chainType, totalUsd, assets, txs) {
+  const labels = [];
+  const addr = String(address || '').toLowerCase();
+  const allTxs = Array.isArray(txs) ? txs : [];
+  const nowSec = Math.floor(Date.now() / 1000);
+  const nativeLike = new Set(['ETH', 'WETH', 'BNB', 'WBNB', 'MATIC', 'WMATIC', 'BTC', 'WBTC', 'SOL']);
+
+  if (Number(totalUsd || 0) > 1000000) labels.push('WHALE');
+
+  const ts = allTxs.map(t => parseInt(t.timeStamp || t.time || 0, 10)).filter(v => Number.isFinite(v) && v > 0);
+  const lastTs = ts.length ? Math.max(...ts) : 0;
+  if (lastTs > 0 && (nowSec - lastTs) >= 90 * 86400) labels.push('DORMANT');
+
+  if (chainType === 'evm') {
+    const hasDeployedContract = allTxs.some(t => String(t.from || '').toLowerCase() === addr && String(t.contractAddress || '').startsWith('0x') && String(t.contractAddress).length === 42);
+    if (hasDeployedContract) labels.push('DEV');
+  }
+
+  const outTxs = allTxs.filter(t => String(t.from || '').toLowerCase() === addr);
+  const inTxs = allTxs.filter(t => String(t.to || '').toLowerCase() === addr);
+  const counterpartyFreq = {};
+  outTxs.forEach(t => {
+    const to = String(t.to || '').toLowerCase();
+    if (!to || !to.startsWith('0x')) return;
+    counterpartyFreq[to] = (counterpartyFreq[to] || 0) + 1;
+  });
+  const repeatedCounterparties = Object.values(counterpartyFreq).filter(n => n >= 3).length;
+  if (outTxs.length >= 20 && repeatedCounterparties >= 3) labels.push('CEX');
+
+  const batchedLarge = (() => {
+    const bins = {};
+    for (const t of outTxs) {
+      const v = Number(t.value || 0) / 1e18;
+      if (!Number.isFinite(v) || v <= 10) continue;
+      const tsec = parseInt(t.timeStamp || 0, 10);
+      if (!Number.isFinite(tsec) || tsec <= 0) continue;
+      const bucket = Math.floor(tsec / 600) * 600; // 10-minute buckets
+      bins[bucket] = (bins[bucket] || 0) + 1;
+    }
+    return Object.values(bins).some(n => n >= 3);
+  })();
+  if (batchedLarge) labels.push('INSTITUTION');
+
+  const tokenAssets = (Array.isArray(assets) ? assets : []).filter(a => !nativeLike.has(String(a.symbol || '').toUpperCase()) && Number(a.balance || 0) > 0);
+  const highActivity = allTxs.length >= 80;
+  const hasSize = Number(totalUsd || 0) >= 100000;
+  if (hasSize && highActivity && tokenAssets.length >= 6) labels.push('SMART MONEY');
+
+  const sniperLike = (() => {
+    const inByHour = {};
+    for (const t of inTxs) {
+      const tsec = parseInt(t.timeStamp || 0, 10);
+      if (!Number.isFinite(tsec) || tsec <= 0) continue;
+      const bucket = Math.floor(tsec / 300) * 300; // 5-minute buckets
+      inByHour[bucket] = (inByHour[bucket] || 0) + 1;
+    }
+    return Object.values(inByHour).some(n => n >= 4) && tokenAssets.length >= 4;
+  })();
+  if (sniperLike) labels.push('SNIPER');
+
+  return [...new Set(labels)];
+}
+
+function wsRenderWalletLabels(labels) {
+  const rows = Array.isArray(labels) ? labels : [];
+  if (!rows.length) return '';
+  return `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">${rows.map(lb => {
+    const c = wsLabelBadgeColor(lb);
+    return `<span style="padding:2px 8px;border-radius:8px;border:1px solid ${c}66;background:${c}14;color:${c};font-size:10px;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:.3px;">${lb}</span>`;
+  }).join('')}</div>`;
+}
+
 async function doWS() {
   const address = document.getElementById('wsi').value.trim();
   if (!address) { toast('Enter a wallet address', 'er'); return; }
@@ -12080,7 +12164,8 @@ async function doWS() {
     }
 
     document.getElementById('ws-total-value').textContent = fmtFx(totalUsd);
-    document.getElementById('ws-total-sub').textContent = `${address.slice(0,8)}...${address.slice(-6)} · ${chainType.toUpperCase()}`;
+    const wsLabels = wsInferWalletLabels(address, chainType, totalUsd, assets, allTxs);
+    document.getElementById('ws-total-sub').innerHTML = `${address.slice(0,8)}...${address.slice(-6)} · ${chainType.toUpperCase()}${wsRenderWalletLabels(wsLabels)}`;
 
     // Degen Score — accurate multi-signal scoring
     const degenScore = (() => {
