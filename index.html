@@ -11374,7 +11374,7 @@ function renderPAResults() {
     const sym2 = c.symbol.toUpperCase().slice(0,3);
     const dev = c._devSignal || { pctMoved: 0, moved: false, signal: { label: 'SAFE', color: '#00ffc8' } };
     const devBadge = dev.moved
-      ? `<span style="margin-left:8px;padding:2px 7px;border-radius:8px;background:rgba(255,68,68,0.14);border:1px solid rgba(255,68,68,0.5);color:#ff4444;font-size:9px;font-weight:800;font-family:'JetBrains Mono',monospace;">DEV WALLET MOVED ${dev.pctMoved.toFixed(2)}%</span>`
+      ? `<span style="margin-left:8px;padding:2px 7px;border-radius:8px;background:rgba(255,68,68,0.14);border:1px solid rgba(255,68,68,0.5);color:#ff4444;font-size:9px;font-weight:800;font-family:'JetBrains Mono',monospace;">DEV MOVED ${dev.pctMoved.toFixed(2)}%</span>`
       : '';
     const devSig = `<span style="padding:2px 7px;border-radius:8px;background:${dev.signal.color}14;border:1px solid ${dev.signal.color}66;color:${dev.signal.color};font-size:9px;font-weight:800;font-family:'JetBrains Mono',monospace;">${dev.signal.label}</span>`;
     return `<div class="pa-card" style="--pa-color:${color};background:${bgCol};border-color:${brdCol};"
@@ -11382,7 +11382,7 @@ function renderPAResults() {
       <div class="pa-card__top">
         <div class="pa-card__avatar" style="background:${color}18;color:${color};">${sym2}</div>
         <div class="pa-card__info">
-          <div class="pa-card__name">${c.name}</div>
+          <div class="pa-card__name">${c.name}${devBadge}</div>
           <div class="pa-card__flags">${flags.slice(0,2).join(' · ')}</div>
         </div>
         <div class="pa-card__pct" style="color:${color};">${up?'+':''}${pct.toFixed(1)}%</div>
@@ -11394,7 +11394,7 @@ function renderPAResults() {
         <span class="pa-card__vol-lbl">Vol/MCap ${vr.toFixed(0)}%</span>
       </div>
       <div class="pa-card__footer">
-        <span class="pa-card__vol">${volFmt} 24h vol${c._chain ? ` · <span style="color:#a78bfa;font-size:9px;font-weight:700;">BASE</span>` : ''}${devBadge ? ' · ' + devBadge : ''}</span>
+        <span class="pa-card__vol">${volFmt} 24h vol${c._chain ? ` · <span style="color:#a78bfa;font-size:9px;font-weight:700;">BASE</span>` : ''}</span>
         ${devSig}
         <span class="pa-card__ai">Clark AI →</span>
       </div>
@@ -12638,7 +12638,7 @@ async function doTokenScanner() {
               const chainBadge = p.chainId !== 'base' ? `<span style="font-size:9px;color:var(--cl-text-4);margin-left:4px;">${p.chainId}</span>` : '';
               const dev = p._devSignal || { pctMoved: 0, moved: false, signal: { label: 'SAFE', color: '#00ffc8' } };
               const devBadge = dev.moved
-                ? `<span style="margin-left:6px;padding:2px 6px;border-radius:8px;background:rgba(255,68,68,0.14);border:1px solid rgba(255,68,68,0.45);color:#ff4444;font-size:9px;font-weight:800;font-family:'JetBrains Mono',monospace;">DEV WALLET MOVED ${dev.pctMoved.toFixed(2)}%</span>`
+                ? `<span style="margin-left:6px;padding:2px 6px;border-radius:8px;background:rgba(255,68,68,0.14);border:1px solid rgba(255,68,68,0.45);color:#ff4444;font-size:9px;font-weight:800;font-family:'JetBrains Mono',monospace;">DEV MOVED ${dev.pctMoved.toFixed(2)}%</span>`
                 : '';
               const devSignal = `<span style="margin-left:6px;padding:2px 6px;border-radius:8px;background:${dev.signal.color}14;border:1px solid ${dev.signal.color}66;color:${dev.signal.color};font-size:9px;font-weight:800;font-family:'JetBrains Mono',monospace;">${dev.signal.label}</span>`;
               return `<tr style="border-bottom:1px solid rgba(255,255,255,0.03);">
