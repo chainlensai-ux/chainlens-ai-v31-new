@@ -12188,7 +12188,7 @@ function wsEligibleTokenUsdForTotal(assets) {
     if (!Number.isFinite(usd) || usd < 1) continue; // Exclude dust by USD value
 
     const price = Number.isFinite(Number(a?.price)) ? Number(a.price) : (bal > 0 ? usd / bal : NaN);
-    if (!Number.isFinite(price) || price <= 1) continue; // Confirmed unit price must be > $1
+    if (!Number.isFinite(price)) continue;
 
     const tsMs = wsPriceTimestampMs(a);
     if (tsMs && (now - tsMs) > staleCutoffMs) continue; // Exclude stale priced tokens
