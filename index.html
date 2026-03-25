@@ -8364,71 +8364,52 @@ async function tdLoadWhales() {
     const nowSec = Math.floor(Date.now() / 1000);
     const sinceSec = nowSec - 7200;
 
-    const latestBlockUrl =
-      `${_TD_ETHERSCAN_V2}?chainid=1&module=proxy&action=eth_blockNumber&apikey=ENV`;
-    const sinceBlockUrl =
-      `${_TD_ETHERSCAN_V2}?chainid=1&module=block&action=getblocknobytime&timestamp=${sinceSec}&closest=before&apikey=ENV`;
-
-    const [latestR, sinceR] = await Promise.all([pfetch(latestBlockUrl), pfetch(sinceBlockUrl)]);
-
-    const latestData = await tdScanEtherscanJson(latestR, 'eth_blockNumber');
-    const sinceData = await tdScanEtherscanJson(sinceR, 'getblocknobytime');
-
-    if (latestData && latestData.error) {
-      throw new Error('eth_blockNumber: ' + (latestData.error.message || JSON.stringify(latestData.error)));
-    }
-    const latestRaw = latestData && latestData.result != null ? String(latestData.result) : '';
-    const latestBlock = latestRaw.startsWith('0x') ? parseInt(latestRaw, 16) : parseInt(latestRaw, 10);
-    if (!Number.isFinite(latestBlock) || latestBlock <= 0) {
-      throw new Error('eth_blockNumber: bad result ' + JSON.stringify(latestData.result));
-    }
-
-    if (sinceData.status === '0') {
-      throw new Error('getblocknobytime: ' + (sinceData.message || sinceData.result || 'NOTOK'));
-    }
-    let sinceBlock = parseInt(String(sinceData.result != null ? sinceData.result : ''), 10);
-    if (!Number.isFinite(sinceBlock) || sinceBlock < 0) {
-      throw new Error('getblocknobytime: invalid block ' + JSON.stringify(sinceData.result));
-    }
-
-    let startBlock = sinceBlock;
-    const endBlock = latestBlock;
-    if (startBlock > endBlock) {
-      startBlock = Math.max(0, endBlock - 3000);
-    }
-
     const watch = _TD_WHALE_WATCH;
-    const txUrl =
-      `${_TD_ETHERSCAN_V2}?chainid=1&module=account&action=txlist&address=${watch}` +
-      `&startblock=${startBlock}&endblock=${endBlock}&page=1&offset=1000&sort=desc&apikey=ENV`;
-
-    const r = await pfetch(txUrl);
-    const data = await tdScanEtherscanJson(r, 'txlist');
-
-    if (data.status === '0' && typeof data.result === 'string') {
-      const errText = (data.result + ' ' + (data.message || '')).toLowerCase();
-      if (errText.includes('invalid api key')) {
-        throw new Error('Etherscan: invalid API key — check ETHERSCAN_KEY on the server.');
-      }
-      throw new Error('Etherscan txlist: ' + data.result);
-    }
-
-    const rawList = data.result;
-    if (!Array.isArray(rawList)) {
-      throw new Error('txlist: expected transaction array, got ' + typeof rawList);
-    }
+    const [outRes, inRes] = await Promise.all([
+      alchemyRpcViaScan({
+        jsonrpc: '2.0',
+        id: 901,
+        method: 'alchemy_getAssetTransfers',
+        params: [{
+          fromBlock: '0x0',
+          toBlock: 'latest',
+          fromAddress: watch,
+          category: ['external', 'internal'],
+          withMetadata: true,
+          maxCount: '0x3e8',
+          order: 'desc'
+        }]
+      }),
+      alchemyRpcViaScan({
+        jsonrpc: '2.0',
+        id: 902,
+        method: 'alchemy_getAssetTransfers',
+        params: [{
+          fromBlock: '0x0',
+          toBlock: 'latest',
+          toAddress: watch,
+          category: ['external', 'internal'],
+          withMetadata: true,
+          maxCount: '0x3e8',
+          order: 'desc'
+        }]
+      })
+    ]);
+    const rawList = [
+      ...(Array.isArray(outRes?.result?.transfers) ? outRes.result.transfers : []),
+      ...(Array.isArray(inRes?.result?.transfers) ? inRes.result.transfers : [])
+    ];
 
     const watchLower = watch.toLowerCase();
     const txs = rawList
       .filter(tx => {
-        if (!tx || tx.isError === '1') return false;
-        if (tx.txreceipt_status === '0') return false;
-        const txTs = parseInt(tx.timeStamp, 10) || 0;
+        if (!tx) return false;
+        const txTs = tx.metadata?.blockTimestamp ? Math.floor(new Date(tx.metadata.blockTimestamp).getTime() / 1000) : 0;
         if (txTs < sinceSec) return false;
-        const ethVal = parseFloat(tx.value) / 1e18;
+        const ethVal = Number(tx.value || 0);
         return ethVal >= minEth;
       })
-      .sort((a, b) => (parseFloat(b.value) || 0) - (parseFloat(a.value) || 0))
+      .sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0))
       .slice(0, 4);
 
     feed.innerHTML = '';
@@ -8438,13 +8419,13 @@ async function tdLoadWhales() {
     }
 
     const whaleItems = await Promise.all(txs.map(async tx => {
-      const ethValNum = parseFloat(tx.value) / 1e18;
+      const ethValNum = Number(tx.value || 0);
       const usdNum = ethValNum * ethPrice;
       const usdVal = usdNum.toLocaleString('en-US', { maximumFractionDigits: 0 });
-      const fromL = (tx.from || '').toLowerCase();
+      const fromL = String(tx.from || '').toLowerCase();
       const counterparty = fromL === watchLower ? tx.to : tx.from;
       const walletShort = tdShortAddr(counterparty);
-      const tsec = parseInt(tx.timeStamp, 10) || 0;
+      const tsec = tx.metadata?.blockTimestamp ? Math.floor(new Date(tx.metadata.blockTimestamp).getTime() / 1000) : 0;
       const timeStr = tsec
         ? (new Date(tsec * 1000).toLocaleString('en-US', {
             month: 'short',
@@ -8457,7 +8438,7 @@ async function tdLoadWhales() {
           }) + ' UTC')
         : '—';
 
-      const fn = (tx.functionName || '').split('(')[0].trim();
+      const fn = '';
       const tokenLine = fn ? ('ETH · ' + fn) : 'ETH · Native transfer';
       const icon = ethValNum >= 200 ? '🐋' : ethValNum >= 80 ? '🦈' : '⚡';
       const breakdownHtml = await tdWhaleCortexBreakdown(tx, usdNum, ethValNum, watchLower);
@@ -10089,26 +10070,7 @@ async function fetchEVM(address, chain) {
 }
 
 async function fetchAllTxsEVM(address, chain) {
-  const cfg = EVM_CHAINS[chain] || EVM_CHAINS.eth;
-  const addr = String(address || '').toLowerCase();
-  if (_wsActiveScanId > 0) {
-    if (chain !== 'base') return [];
-    if (_wsTxlistCache.scanId === _wsActiveScanId && _wsTxlistCache.address === addr && Array.isArray(_wsTxlistCache.rows)) {
-      return _wsTxlistCache.rows;
-    }
-  }
-  try {
-    const r = await pfetch(`https://api.etherscan.io/v2/api?chainid=${cfg.chainId}&module=account&action=txlist&address=${address}&sort=desc&page=1&offset=50&apikey=${ESCAN}`);
-    const d = await r.json();
-    if (d.result && Array.isArray(d.result)) {
-      const rows = d.result.map(t => ({ ...t, _chain: chain }));
-      if (_wsActiveScanId > 0 && chain === 'base') {
-        _wsTxlistCache = { scanId: _wsActiveScanId, address: addr, rows };
-      }
-      return rows;
-    }
-    return [];
-  } catch(e) { return []; }
+  return [];
 }
 
 async function fetchBTC(address) {
@@ -12033,6 +11995,46 @@ async function fetchAlchemyWalletScan(address, chainType) {
   return out;
 }
 
+async function fetchAlchemyBaseTxStats(address) {
+  const out = { txCount: 0, walletAgeDays: null };
+  if (!address || !String(address).startsWith('0x')) return out;
+  try {
+    const r = await fetch('/api/scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: 'https://base-mainnet.g.alchemy.com/v2/ENV',
+        method: 'POST',
+        body: {
+          jsonrpc: '2.0',
+          method: 'alchemy_getAssetTransfers',
+          params: [{
+            fromAddress: address,
+            category: ['external', 'erc20', 'erc721'],
+            withMetadata: true,
+            maxCount: '0x3e8'
+          }],
+          id: 1
+        }
+      })
+    });
+    if (!r.ok) return out;
+    const json = await r.json();
+    const rows = Array.isArray(json?.result?.transfers) ? json.result.transfers : [];
+    out.txCount = rows.length;
+    const tsVals = rows
+      .map(t => t?.metadata?.blockTimestamp ? Math.floor(new Date(t.metadata.blockTimestamp).getTime() / 1000) : 0)
+      .filter(v => Number.isFinite(v) && v > 0);
+    if (tsVals.length) {
+      const earliest = Math.min(...tsVals);
+      out.walletAgeDays = Math.max(0, Math.floor((Date.now() / 1000 - earliest) / 86400));
+    }
+    return out;
+  } catch (e) {
+    return out;
+  }
+}
+
 function wsLabelBadgeColor(label) {
   const k = String(label || '').toUpperCase();
   if (k === 'WHALE') return '#8b5cf6';
@@ -12123,25 +12125,15 @@ async function wsDetectBaseDevWallet(address) {
     if (!/^0x[a-fA-F0-9]{40}$/.test(addr)) return false;
 
     const creatorUrl = `https://api.etherscan.io/v2/api?chainid=8453&module=contract&action=getcontractcreation&contractaddresses=${addr}&apikey=ENV`;
-    const txlistUrl = `https://api.etherscan.io/v2/api?chainid=8453&module=account&action=txlist&address=${addr}&sort=desc&page=1&offset=200&apikey=ENV`;
-
-    const [creatorR, txlistR] = await Promise.all([pfetch(creatorUrl), pfetch(txlistUrl)]);
+    const creatorR = await pfetch(creatorUrl);
 
     const creatorD = creatorR.ok ? await creatorR.json() : null;
-    const txlistD = txlistR.ok ? await txlistR.json() : null;
 
     const creatorRows = Array.isArray(creatorD?.result) ? creatorD.result : [];
     const hasCreatorHit = creatorRows.some(r =>
       String(r?.contractCreator || '').toLowerCase() === addr.toLowerCase() || !!r?.contractAddress
     );
-
-    const txRows = Array.isArray(txlistD?.result) ? txlistD.result : [];
-    const hasCreationTx = txRows.some(tx => {
-      const to = String(tx?.to || '').trim();
-      return !to || to === '0x' || to === '0X';
-    });
-
-    return hasCreatorHit || hasCreationTx;
+    return hasCreatorHit;
   } catch (e) {
     return false;
   }
@@ -12226,10 +12218,7 @@ async function doWS() {
     if (chainType === 'evm') {
       document.getElementById('ws-total-sub').textContent = 'Scanning ETH, Base, BNB, Polygon...';
       const chainKeys = Object.keys(EVM_CHAINS);
-      const [allEvmData, allEvmTxs] = await Promise.all([
-        Promise.allSettled(chainKeys.map(c => fetchEVM(address, c))),
-        Promise.allSettled(chainKeys.map(c => fetchAllTxsEVM(address, c)))
-      ]);
+      const allEvmData = await Promise.allSettled(chainKeys.map(c => fetchEVM(address, c)));
       chainKeys.forEach((evmChain, i) => {
         const cfg = EVM_CHAINS[evmChain];
         const nativePrice = evmChain === 'bnb' ? bnbPrice : evmChain === 'polygon' ? maticPrice : ethPrice;
@@ -12238,19 +12227,8 @@ async function doWS() {
           if (d.nativeBal > 0.00001) assets.push({ symbol: cfg.symbol, name: cfg.name + ' (' + evmChain.toUpperCase() + ')', balance: d.nativeBal, usdValue: d.nativeBal * nativePrice, chain: evmChain });
           d.tokens.forEach(t => assets.push({ ...t, usdValue: 0, chain: evmChain }));
         }
-        if (allEvmTxs[i].status === 'fulfilled') allTxs = allTxs.concat(allEvmTxs[i].value);
       });
       allTxs = allTxs.sort((a, b) => parseInt(b.timeStamp || 0) - parseInt(a.timeStamp || 0)).slice(0, 100);
-
-      // Base txlist source-of-truth for tx count + wallet age (single txlist call per scan)
-      const baseTxRows = Array.isArray(_wsTxlistCache.rows) ? _wsTxlistCache.rows : [];
-      baseTxCount = baseTxRows.length;
-      if (baseTxRows.length) {
-        const earliestTs = Math.min(...baseTxRows.map(t => parseInt(t.timeStamp || '0', 10)).filter(v => Number.isFinite(v) && v > 0));
-        if (Number.isFinite(earliestTs) && earliestTs > 0) {
-          baseWalletAgeDays = Math.max(0, Math.floor((Date.now() / 1000 - earliestTs) / 86400));
-        }
-      }
 
       // Fetch Covalent multi-chain token balances (with USD values) in parallel with DexScreener prices
       document.getElementById('ws-total-sub').textContent = 'Fetching token balances via Covalent...';
@@ -12345,6 +12323,12 @@ async function doWS() {
     if (chainType === 'evm') {
       document.getElementById('ws-total-sub').textContent = 'Loading Alchemy transaction context...';
       alchemyData = await fetchAlchemyWalletScan(address, chainType);
+      const baseStats = await fetchAlchemyBaseTxStats(address);
+      baseTxCount = Number(baseStats.txCount || 0);
+      baseWalletAgeDays = Number.isFinite(baseStats.walletAgeDays) ? Number(baseStats.walletAgeDays) : null;
+      if (Array.isArray(alchemyData.txs) && alchemyData.txs.length) {
+        allTxs = alchemyData.txs.slice().sort((a, b) => parseInt(b.timeStamp || 0, 10) - parseInt(a.timeStamp || 0, 10));
+      }
     }
 
     const isDevWalletBase = chainType === 'evm' ? await wsDetectBaseDevWallet(address) : false;
