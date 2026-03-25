@@ -12203,6 +12203,52 @@ function wsEligibleTokenUsdForTotal(assets) {
   return total;
 }
 
+function wsApplyCriticalHoldingFilters(assets) {
+  const rows = Array.isArray(assets) ? assets : [];
+  if (!rows.length) return [];
+
+  // 1) Deduplicate by symbol+chain, keep highest USD value
+  const bySymChain = new Map();
+  rows.forEach(a => {
+    const key = `${String(a?.symbol || '').toUpperCase()}|${String(a?.chain || '').toLowerCase()}`;
+    const prev = bySymChain.get(key);
+    if (!prev || Number(a?.usdValue || 0) > Number(prev?.usdValue || 0)) bySymChain.set(key, a);
+  });
+  let out = [...bySymChain.values()];
+
+  // Baseline ETH value used to detect fake oversized airdrops
+  const ethRefValue = out
+    .filter(a => String(a?.symbol || '').toUpperCase() === 'ETH')
+    .reduce((s, a) => s + (Number(a?.usdValue || 0) || 0), 0);
+
+  // 2) Remove obvious scam airdrops where implied value is >10x ETH value
+  if (ethRefValue > 0) {
+    out = out.filter(a => {
+      const bal = Number(a?.balance || 0);
+      const price = Number(a?.price || 0);
+      if (!Number.isFinite(bal) || !Number.isFinite(price) || bal <= 0 || price <= 0) return true;
+      const implied = bal * price;
+      return implied <= (ethRefValue * 10);
+    });
+  }
+
+  // 3) On BSC, only keep official USDT/USDC contracts
+  const BSC_USDT = '0x55d398326f99059ff775485246999027b3197955';
+  const BSC_USDC = '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d';
+  out = out.filter(a => {
+    const chain = String(a?.chain || '').toLowerCase();
+    const sym = String(a?.symbol || '').toUpperCase();
+    if (chain !== 'bnb' && chain !== 'bsc') return true;
+    if (sym !== 'USDT' && sym !== 'USDC') return true;
+    const ca = String(a?.contractAddress || '').toLowerCase();
+    if (sym === 'USDT') return ca === BSC_USDT;
+    if (sym === 'USDC') return ca === BSC_USDC;
+    return true;
+  });
+
+  return out;
+}
+
 async function doWS() {
   const address = document.getElementById('wsi').value.trim();
   if (!address) { toast('Enter a wallet address', 'er'); return; }
@@ -12312,6 +12358,7 @@ async function doWS() {
         }
       });
 
+      assets = wsApplyCriticalHoldingFilters(assets);
       totalUsd = wsEligibleTokenUsdForTotal(assets);
       const activeChains = [...new Set(assets.map(a => a.chain))].join(', ');
       portfolioSummary = 'Multi-chain: ' + (activeChains || 'none') + ', Assets: ' + assets.length + ', Txs: ' + allTxs.length;
