@@ -9900,10 +9900,79 @@ ACTION: [one specific actionable step]`, 400);
 // WALLETSCAN — Real blockchain data
 // ══════════════════════════════════════════════
 const ESCAN = 'ENV'; // Proxied via /api/scan — key stored in Vercel env
+let _escanQueue = [];
+let _escanQueueBusy = false;
+let _escanLastCallAt = 0;
+let _wsScanSeq = 0;
+let _wsActiveScanId = 0;
+let _wsTxlistCache = { scanId: 0, address: '', rows: null };
+
+function _sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+function _isEtherscanUrl(url) { return /https:\/\/api\.etherscan\.io\/v2\/api/i.test(String(url || '')); }
+function _isRateLimitPayload(parsed, text) {
+  const msg = String(parsed?.result || parsed?.message || parsed?.error || text || '');
+  return /Max calls per sec rate limit reached/i.test(msg);
+}
+
+async function _pfetchViaScan(payload) {
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 15000);
+    const r = await fetch('/api/scan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), signal: ctrl.signal });
+    clearTimeout(timer);
+    const text = await r.text();
+    let parsed; try { parsed = JSON.parse(text); } catch (e) { parsed = {}; }
+    return { ok: r.ok, status: r.status, parsed, text };
+  } catch (e) {
+    return { ok: false, status: 500, parsed: {}, text: '' };
+  }
+}
+
+function _enqueueEtherscan(url) {
+  return new Promise((resolve) => {
+    _escanQueue.push({ url, resolve });
+    _drainEtherscanQueue();
+  });
+}
+
+async function _drainEtherscanQueue() {
+  if (_escanQueueBusy) return;
+  _escanQueueBusy = true;
+  try {
+    while (_escanQueue.length) {
+      const job = _escanQueue.shift();
+      const waitMs = Math.max(0, 400 - (Date.now() - _escanLastCallAt));
+      if (waitMs > 0) await _sleep(waitMs);
+
+      let first = await _pfetchViaScan({ url: job.url });
+      _escanLastCallAt = Date.now();
+
+      if (_isRateLimitPayload(first.parsed, first.text)) {
+        await _sleep(1000);
+        const retryGap = Math.max(0, 400 - (Date.now() - _escanLastCallAt));
+        if (retryGap > 0) await _sleep(retryGap);
+        first = await _pfetchViaScan({ url: job.url });
+        _escanLastCallAt = Date.now();
+      }
+
+      job.resolve({
+        ok: first.ok,
+        status: first.status,
+        json: async () => first.parsed,
+        text: async () => first.text
+      });
+    }
+  } finally {
+    _escanQueueBusy = false;
+  }
+}
 
 async function pfetch(url, options = {}) {
   const payload = { url };
   if (options.method === 'POST') { payload.method = 'POST'; payload.body = options.body; }
+  if (!options.method && _isEtherscanUrl(url)) {
+    return _enqueueEtherscan(url);
+  }
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 15000);
@@ -10032,10 +10101,23 @@ async function fetchEVM(address, chain) {
 
 async function fetchAllTxsEVM(address, chain) {
   const cfg = EVM_CHAINS[chain] || EVM_CHAINS.eth;
+  const addr = String(address || '').toLowerCase();
+  if (_wsActiveScanId > 0) {
+    if (chain !== 'base') return [];
+    if (_wsTxlistCache.scanId === _wsActiveScanId && _wsTxlistCache.address === addr && Array.isArray(_wsTxlistCache.rows)) {
+      return _wsTxlistCache.rows;
+    }
+  }
   try {
     const r = await pfetch(`https://api.etherscan.io/v2/api?chainid=${cfg.chainId}&module=account&action=txlist&address=${address}&sort=desc&page=1&offset=50&apikey=${ESCAN}`);
     const d = await r.json();
-    if (d.result && Array.isArray(d.result)) return d.result.map(t => ({ ...t, _chain: chain }));
+    if (d.result && Array.isArray(d.result)) {
+      const rows = d.result.map(t => ({ ...t, _chain: chain }));
+      if (_wsActiveScanId > 0 && chain === 'base') {
+        _wsTxlistCache = { scanId: _wsActiveScanId, address: addr, rows };
+      }
+      return rows;
+    }
     return [];
   } catch(e) { return []; }
 }
@@ -12124,6 +12206,8 @@ function wsCalcCortexScore(ctx) {
 }
 
 async function doWS() {
+  _wsActiveScanId = ++_wsScanSeq;
+  _wsTxlistCache = { scanId: _wsActiveScanId, address: String(document.getElementById('wsi').value.trim() || '').toLowerCase(), rows: null };
   const address = document.getElementById('wsi').value.trim();
   if (!address) { toast('Enter a wallet address', 'er'); return; }
   const chainType = detectChain(address);
@@ -12182,20 +12266,15 @@ async function doWS() {
       });
       allTxs = allTxs.sort((a, b) => parseInt(b.timeStamp || 0) - parseInt(a.timeStamp || 0)).slice(0, 100);
 
-      // Base txlist source-of-truth for tx count + wallet age
-      try {
-        const baseTxUrl = `https://api.etherscan.io/v2/api?chainid=8453&module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${ESCAN}`;
-        const baseTxRes = await pfetch(baseTxUrl);
-        const baseTxJson = await baseTxRes.json();
-        const baseTxRows = Array.isArray(baseTxJson?.result) ? baseTxJson.result : [];
-        baseTxCount = baseTxRows.length;
-        if (baseTxRows.length) {
-          const earliestTs = Math.min(...baseTxRows.map(t => parseInt(t.timeStamp || '0', 10)).filter(v => Number.isFinite(v) && v > 0));
-          if (Number.isFinite(earliestTs) && earliestTs > 0) {
-            baseWalletAgeDays = Math.max(0, Math.floor((Date.now() / 1000 - earliestTs) / 86400));
-          }
+      // Base txlist source-of-truth for tx count + wallet age (single txlist call per scan)
+      const baseTxRows = Array.isArray(_wsTxlistCache.rows) ? _wsTxlistCache.rows : [];
+      baseTxCount = baseTxRows.length;
+      if (baseTxRows.length) {
+        const earliestTs = Math.min(...baseTxRows.map(t => parseInt(t.timeStamp || '0', 10)).filter(v => Number.isFinite(v) && v > 0));
+        if (Number.isFinite(earliestTs) && earliestTs > 0) {
+          baseWalletAgeDays = Math.max(0, Math.floor((Date.now() / 1000 - earliestTs) / 86400));
         }
-      } catch (e) {}
+      }
 
       // Fetch Covalent multi-chain token balances (with USD values) in parallel with DexScreener prices
       document.getElementById('ws-total-sub').textContent = 'Fetching token balances via Covalent...';
@@ -13636,6 +13715,7 @@ async function gtRefreshPrices() {
   } finally {
     _gtRefreshing = false;
   }
+  _wsActiveScanId = 0;
 }
 setInterval(gtRefreshPrices, 1000);
 renderLB();
