@@ -12018,6 +12018,47 @@ function wsRenderWalletLabels(labels) {
   }).join('')}</div>`;
 }
 
+async function wsDetectBaseDevWallet(address) {
+  try {
+    const addr = String(address || '').trim();
+    if (!/^0x[a-fA-F0-9]{40}$/.test(addr)) return false;
+
+    const creatorUrl = `https://api.etherscan.io/v2/api?chainid=8453&module=contract&action=getcontractcreation&contractaddresses=${addr}&apikey=ENV`;
+    const txlistUrl = `https://api.etherscan.io/v2/api?chainid=8453&module=account&action=txlist&address=${addr}&sort=desc&page=1&offset=200&apikey=ENV`;
+
+    const [creatorR, txlistR] = await Promise.all([
+      fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: creatorUrl })
+      }),
+      fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: txlistUrl })
+      })
+    ]);
+
+    const creatorD = creatorR.ok ? await creatorR.json() : null;
+    const txlistD = txlistR.ok ? await txlistR.json() : null;
+
+    const creatorRows = Array.isArray(creatorD?.result) ? creatorD.result : [];
+    const hasCreatorHit = creatorRows.some(r =>
+      String(r?.contractCreator || '').toLowerCase() === addr.toLowerCase() || !!r?.contractAddress
+    );
+
+    const txRows = Array.isArray(txlistD?.result) ? txlistD.result : [];
+    const hasCreationTx = txRows.some(tx => {
+      const to = String(tx?.to || '').trim();
+      return !to || to === '0x' || to === '0X';
+    });
+
+    return hasCreatorHit || hasCreationTx;
+  } catch (e) {
+    return false;
+  }
+}
+
 function wsCalcCortexScore(ctx) {
   const ageDays = Number(ctx?.ageDays || 0);
   const txCount = Number(ctx?.txCount || 0);
@@ -12197,9 +12238,14 @@ async function doWS() {
       alchemyData = await fetchAlchemyWalletScan(address, chainType);
     }
 
+    const isDevWalletBase = chainType === 'evm' ? await wsDetectBaseDevWallet(address) : false;
     document.getElementById('ws-total-value').textContent = fmtFx(totalUsd);
     const wsLabels = wsInferWalletLabels(address, chainType, totalUsd, assets, allTxs);
-    document.getElementById('ws-total-sub').innerHTML = `${address.slice(0,8)}...${address.slice(-6)} · ${chainType.toUpperCase()}${wsRenderWalletLabels(wsLabels)}`;
+    if (isDevWalletBase && !wsLabels.includes('DEV')) wsLabels.push('DEV');
+    const devWalletBadge = isDevWalletBase
+      ? `<span style="margin-left:8px;padding:2px 8px;border-radius:8px;border:1px solid rgba(255,68,68,0.55);background:rgba(255,68,68,0.14);color:#ff4444;font-size:10px;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:.3px;">DEV WALLET</span>`
+      : '';
+    document.getElementById('ws-total-sub').innerHTML = `${address.slice(0,8)}...${address.slice(-6)} · ${chainType.toUpperCase()}${devWalletBadge}${wsRenderWalletLabels(wsLabels)}`;
 
     // Degen Score — accurate multi-signal scoring
     const degenScore = (() => {
@@ -12268,6 +12314,7 @@ async function doWS() {
 
     // Wallet type classification
     const walletType = (() => {
+      if (isDevWalletBase) return { label: 'Dev Wallet', icon: '🧪', color: '#ff4444' };
       const nativeSyms = ['ETH','BNB','MATIC','BTC','SOL'];
       const tokenCount = assets.filter(a => !nativeSyms.includes(a.symbol)).length;
       const totalVal = assets.reduce((s,a) => s+(a.usdValue||0),0);
@@ -12363,11 +12410,14 @@ async function doWS() {
     if (copySignal.show) intelItems.push({ label: 'Copy Signal', value: copySignal.text, color: copySignal.color, wide: true });
     if (flags.length) flags.forEach(f => intelItems.push({ label: 'Flag', value: f.text, color: f.color }));
 
+    const cortexVerdict = isDevWalletBase
+      ? 'This wallet has deployed contracts. High risk for copy trading — dev wallets often dump on holders.'
+      : cortex.verdict;
     const cortexCard = `<div style="grid-column:1/-1;padding:16px;border:1px solid rgba(139,92,246,0.28);border-radius:12px;background:rgba(139,92,246,0.06);">
       <div style="font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--cl-text-3);margin-bottom:8px;font-family:'Inter',sans-serif;">CORTEX Wallet Score</div>
       <div style="font-size:44px;line-height:1;font-weight:900;color:${cortex.color};font-family:'JetBrains Mono',monospace;">${cortex.score}</div>
       <div style="margin-top:6px;font-size:12px;font-weight:800;color:${cortex.color};font-family:'JetBrains Mono',monospace;">${cortex.tier}</div>
-      <div style="margin-top:8px;font-size:11px;color:var(--cl-text-2);font-family:'Inter',sans-serif;">${cortex.verdict}</div>
+      <div style="margin-top:8px;font-size:11px;color:var(--cl-text-2);font-family:'Inter',sans-serif;">${cortexVerdict}</div>
     </div>`;
     document.getElementById('ws-intel-grid').innerHTML = cortexCard + intelItems.map(item =>
       `<div style="padding:12px;background:rgba(${item.color==='#00ffc8'?'0,255,200':item.color==='#ef476f'?'239,71,111':item.color==='#f0b429'?'240,180,41':'120,88,192'},0.06);border:1px solid rgba(${item.color==='#00ffc8'?'0,255,200':item.color==='#ef476f'?'239,71,111':item.color==='#f0b429'?'240,180,41':'120,88,192'},0.15);border-radius:12px;${item.wide?'grid-column:1/-1;':''}">`
