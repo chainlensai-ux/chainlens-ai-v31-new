@@ -11829,19 +11829,22 @@ async function fetchMoralisWalletScan(address, chainType) {
   try {
     if (chainType === 'evm') {
       const chains = ['eth', 'base', 'bsc', 'polygon'];
+      const ZERION_CHAIN = { eth: 'eth', base: 'base', bsc: 'bnb', polygon: 'polygon' };
+      const zerionRaw = await fetch('/api/zerion?address=' + encodeURIComponent(address)).then(r => r.ok ? r.json() : null).catch(() => null);
+      const zerionData = zerionRaw ? parseZerionPositions(zerionRaw) : null;
       for (const chain of chains) {
-        const [tok, txs, defi] = await Promise.all([
-          moralisViaScan(`${base}/wallets/${address}/tokens?chain=${chain}`),
+        const [txs, defi] = await Promise.all([
           moralisViaScan(`${base}/wallets/${address}/history?chain=${chain}&order=DESC`),
           moralisViaScan(`${base}/wallets/${address}/defi/positions?chain=${chain}`)
         ]);
-        const tokRows = Array.isArray(tok?.result) ? tok.result : [];
+        const tokRows = zerionData ? (zerionData[ZERION_CHAIN[chain]]?.tokens || []) : [];
         const txRows = Array.isArray(txs?.result) ? txs.result : [];
         const defiRows = Array.isArray(defi?.result) ? defi.result : [];
-        out.holdings = out.holdings.concat(tokRows.map(t => mapMoralisToken(t, chain)));
+        out.holdings = out.holdings.concat(tokRows);
         out.txs = out.txs.concat(txRows.map(t => mapMoralisTx(t, address, chain)));
         out.defi = out.defi.concat(defiRows.map(d => ({ ...d, chain })));
       }
+      if (zerionData?.totalUsd) out.totalUsd = zerionData.totalUsd;
       out.holdings = out.holdings.filter(a => (a.balance || 0) > 0).sort((a, b) => (b.usdValue || 0) - (a.usdValue || 0));
       out.txs = out.txs.sort((a, b) => (parseInt(b.timeStamp || 0, 10) - parseInt(a.timeStamp || 0, 10)));
       return out;
@@ -11868,29 +11871,10 @@ async function fetchAlchemyWalletScan(address, chainType) {
   const out = { holdings: [], txs: [] };
   if (chainType !== 'evm') return out;
   try {
-    const balReq = {
-      jsonrpc: '2.0',
-      id: 1,
-      method: 'alchemy_getTokenBalances',
-      params: [address, 'DEFAULT_TOKENS']
-    };
-    const balRes = await alchemyRpcViaScan(balReq);
-    const tokenBalances = Array.isArray(balRes?.result?.tokenBalances) ? balRes.result.tokenBalances : [];
-    out.holdings = tokenBalances
-      .filter(t => t && t.tokenBalance && t.tokenBalance !== '0x0')
-      .slice(0, 180)
-      .map(t => {
-        const raw = parseInt(t.tokenBalance || '0x0', 16);
-        return {
-          symbol: 'ERC20',
-          name: (t.contractAddress || 'Token').slice(0, 10) + '…',
-          balance: Number.isFinite(raw) ? raw / 1e18 : 0,
-          usdValue: 0,
-          contractAddress: t.contractAddress || '',
-          chain: 'eth'
-        };
-      })
-      .filter(t => t.balance > 0);
+    const zerionRaw = await fetch('/api/zerion?address=' + encodeURIComponent(address)).then(r => r.ok ? r.json() : null).catch(() => null);
+    const zerionData = zerionRaw ? parseZerionPositions(zerionRaw) : null;
+    out.holdings = zerionData ? (zerionData.eth?.tokens || []) : [];
+    if (zerionData?.totalUsd) out.totalUsd = zerionData.totalUsd;
 
     let pageKey = null;
     const transferRows = [];
