@@ -12554,11 +12554,8 @@ async function doWS() {
       (alchemyData.holdings || []).forEach(pushRow);
       return merged;
     })();
-    // BUG 2 FIX: recalculate total from the fully merged asset set (includes Moralis holdings)
-    if (chainType === 'evm' || chainType === 'sol') {
-      totalUsd = wsEligibleTokenUsdForTotal(assetsForUI);
-      document.getElementById('ws-total-value').textContent = fmtFx(totalUsd);
-    }
+    // Use Zerion portfolio total as-is (already includes all chains); do not re-sum from merged assets.
+    document.getElementById('ws-total-value').textContent = fmtFx(totalUsd);
     const txsForUI = [
       ...((moralisData.txs && moralisData.txs.length) ? moralisData.txs : allTxs),
       ...((alchemyData.txs && alchemyData.txs.length) ? alchemyData.txs : [])
