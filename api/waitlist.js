@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid email address.' });
   }
 
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/waitlist`, {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/WAITLIST`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
