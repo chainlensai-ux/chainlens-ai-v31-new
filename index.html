@@ -7996,7 +7996,7 @@ function tdRenderPortfolio() {
       tdSetWidgetDebug('td-debug-portfolio', '');
     } catch (e) {
       const why = (e && e.message) ? e.message : String(e);
-      tdSetWidgetDebug('td-debug-portfolio', 'DEBUG: Portfolio Value — ' + why + (String(why).indexOf('404') >= 0 ? ' (this repo has no api/zerion handler).' : ''));
+      tdSetWidgetDebug('td-debug-portfolio', '');
       if (subEl) subEl.textContent = 'Failed to load portfolio data';
       if (valEl) valEl.textContent = '$—';
       if (chgVal) chgVal.textContent = '—';
@@ -8089,7 +8089,7 @@ function tdDrawGauge() {
     const missing = [];
     if (!btcOk) missing.push('bitcoin.usd_24h_change');
     if (!ethOk) missing.push('ethereum.usd_24h_change');
-    tdSetWidgetDebug('td-debug-bearproof', 'DEBUG: BearProof Score — score uses 0% fallback for missing CoinGecko `px` fields: ' + missing.join(', ') + ' (initTerminal often runs before loadPrices(); gauge is not from a dedicated API).');
+    tdSetWidgetDebug('td-debug-bearproof', 'Loading market data...');
   } else {
     tdSetWidgetDebug('td-debug-bearproof', '');
   }
@@ -8322,7 +8322,7 @@ async function tdLoadWhales() {
     tdSetWidgetDebug('td-debug-whale', '');
   } catch (e) {
     const why = (e && e.message) ? e.message : String(e);
-    tdSetWidgetDebug('td-debug-whale', 'DEBUG: Whale Moves — ' + why);
+    tdSetWidgetDebug('td-debug-whale', '');
     feed.innerHTML = '<div style="padding:14px 0;text-align:center;color:#2a2a2a;font-size:11px;font-family:\'Inter\',sans-serif;">Failed to load whale moves</div>';
   }
 }
@@ -8563,7 +8563,7 @@ function tdRenderPositions() {
     const eth = px['ethereum']?.usd || 0;
     const sol = px['solana']?.usd || 0;
     if (btc === 0) {
-      tdSetWidgetDebug('td-debug-ghost', 'DEBUG: GhostTrade — sample paper rows need CoinGecko `px` (bitcoin.usd etc.); got btc=' + btc + ' (loadPrices() not finished or fetch failed). No API call in this widget.');
+      tdSetWidgetDebug('td-debug-ghost', '');
       container.innerHTML = '<div style="padding:14px 0;text-align:center;color:#2a2a2a;font-size:11px;font-family:Inter,sans-serif;">No open positions — start paper trading</div>';
       return;
     }
@@ -8786,12 +8786,12 @@ async function tdRenderMarket() {
     tdMktClearLeftoverLoading();
 
     if (issues.length) {
-      tdSetWidgetDebug('td-debug-market', 'DEBUG: Market Snapshot — ' + issues.join(' | ') + ' (CoinGecko via POST /api/scan; Fear & Greed direct from Alternative.me).');
+      tdSetWidgetDebug('td-debug-market', '');
     }
   } catch (e) {
     const why = (e && e.message) ? e.message : String(e);
     tdMktClearLeftoverLoading();
-    tdSetWidgetDebug('td-debug-market', 'DEBUG: Market Snapshot — exception: ' + why);
+    tdSetWidgetDebug('td-debug-market', '');
   }
 }
 
