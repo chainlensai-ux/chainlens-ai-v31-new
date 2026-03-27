@@ -7565,6 +7565,11 @@ body::after {
   JAVASCRIPT
 ═════════════════════════════════════ -->
 <script>
+if (window.location.pathname === '/app') {
+  document.addEventListener('DOMContentLoaded', function() {
+    go('terminal');
+  });
+}
 
 // ══════════════════════════════════════════════
 // CONSTANTS & DATA
