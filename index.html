@@ -7288,13 +7288,21 @@ body::after {
           <span class="td-nav-item__name">Portfolio Tracker</span>
           <span class="td-nav-item__badge">Pro</span>
         </div>
-        <div class="td-nav-item" onclick="tdNavGo('smartwallets',this)">
+        <div class="td-nav-item" onclick="tdNavWhaleAlerts(this)">
           <span class="td-nav-item__icon">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path d="M3 14c1.5-2 3-2 4.5 0s3 2 4.5 0 3-2 4.5 0 3 2 4.5 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
             </svg>
           </span>
           <span class="td-nav-item__name">Whale Alerts</span>
+        </div>
+        <div class="td-nav-item" onclick="tdNavGo('smartwallets',this)">
+          <span class="td-nav-item__icon">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm12 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="td-nav-item__name">Smart Wallets</span>
           <span class="td-nav-item__badge">Elite</span>
         </div>
         <div class="td-nav-item" onclick="tdNavGo('exchangeflow',this)">
@@ -7798,6 +7806,20 @@ function tdExitTerminal() { go('home'); }
 function tdNavGo(pageId, el) {
   if (el) tdNavHighlight(el);
   go(pageId);
+}
+
+function tdNavWhaleAlerts(el) {
+  if (el) tdNavHighlight(el);
+  go('terminal');
+  const focusWhale = () => {
+    const feed = document.getElementById('td-whale-feed');
+    if (feed) {
+      feed.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      tdLoadWhales();
+    }
+  };
+  if (typeof requestAnimationFrame === 'function') requestAnimationFrame(() => setTimeout(focusWhale, 50));
+  else setTimeout(focusWhale, 100);
 }
 
 function tdNavHighlight(el) {
