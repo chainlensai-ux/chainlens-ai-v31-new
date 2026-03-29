@@ -7062,6 +7062,14 @@ w3m-modal, w3m-router, appkit-modal { z-index: 100050 !important; }
       </div>
     </div>
 
+    <!-- GoPlus contract security (Base 8453) -->
+    <div class="cl-card" style="margin-top:14px;">
+      <div class="cl-label">GoPlus — Contract Security (Base)</div>
+      <div id="ts-security" style="min-height:48px;color:var(--cl-text-3);font-size:12px;">
+        Scan a Base token to load GoPlus security checks.
+      </div>
+    </div>
+
     <!-- LunarCrush Social Signal -->
     <div class="cl-card" style="margin-top:14px;">
       <div class="cl-label">Social Signal — LunarCrush</div>
@@ -13120,6 +13128,92 @@ CONTEXT: [2 sentences on what this volume pattern means for price direction]`, 3
 // ══════════════════════════════════════════════
 // TOKEN SCANNER
 // ══════════════════════════════════════════════
+function tsParseGoPlusRow(gpJson, contractAddress) {
+  const addr = (contractAddress || '').toLowerCase();
+  if (!gpJson || gpJson.code !== 1 || !gpJson.result || !addr) return null;
+  const r = gpJson.result;
+  const row = r[addr];
+  return row && typeof row === 'object' ? row : null;
+}
+
+function tsGoPlusBool01(v) {
+  if (v === '1' || v === 1 || v === true) return true;
+  if (v === '0' || v === 0 || v === false) return false;
+  return null;
+}
+
+function tsGoPlusTaxPct(v) {
+  const n = parseFloat(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function tsGoPlusSummaryForAi(gpJson, contractAddress) {
+  const row = tsParseGoPlusRow(gpJson, contractAddress);
+  if (!row) {
+    if (!gpJson) return 'Request failed — no JSON.';
+    if (gpJson.code !== 1) return `API message: ${gpJson.message || 'error'} (code ${gpJson.code})`;
+    return 'No GoPlus row for this contract address.';
+  }
+  return [
+    'is_honeypot=' + row.is_honeypot,
+    'buy_tax=' + row.buy_tax,
+    'sell_tax=' + row.sell_tax,
+    'is_mintable=' + row.is_mintable,
+    'owner_address=' + (row.owner_address || ''),
+    'can_take_back_ownership=' + row.can_take_back_ownership
+  ].join(', ');
+}
+
+function tsRenderGoPlusCard(gpJson, contractAddress) {
+  if (!contractAddress) {
+    return '<div style="color:var(--cl-text-3);font-size:12px;">No Base contract resolved — use a 0x address or a token name that returns a Base pair.</div>';
+  }
+  if (!gpJson) {
+    return '<div style="color:#ef476f;font-size:12px;font-weight:700;">GoPlus security request failed.</div>';
+  }
+  if (gpJson.code !== 1) {
+    return '<div style="color:var(--cl-text-3);font-size:12px;">GoPlus: ' + String(gpJson.message || 'Error') + ' (code ' + String(gpJson.code) + ')</div>';
+  }
+  const row = tsParseGoPlusRow(gpJson, contractAddress);
+  if (!row) {
+    return '<div style="color:var(--cl-text-3);font-size:12px;">No GoPlus security data for this contract on Base.</div>';
+  }
+  const hp = tsGoPlusBool01(row.is_honeypot);
+  const buyT = tsGoPlusTaxPct(row.buy_tax);
+  const sellT = tsGoPlusTaxPct(row.sell_tax);
+  const mint = tsGoPlusBool01(row.is_mintable);
+  const takeBack = tsGoPlusBool01(row.can_take_back_ownership);
+  const owner = String(row.owner_address || '').trim();
+  const ownerShort = owner && owner.startsWith('0x') && owner.length > 12 ? owner.slice(0, 6) + '…' + owner.slice(-4) : (owner || '—');
+
+  const flags = [];
+  if (hp === true) flags.push('Possible honeypot (GoPlus)');
+  if (buyT != null && buyT > 5) flags.push('High buy tax: ' + buyT + '%');
+  if (sellT != null && sellT > 5) flags.push('High sell tax: ' + sellT + '%');
+  if (mint === true) flags.push('Token is mintable');
+  if (takeBack === true) flags.push('Ownership takeover risk (can_take_back_ownership)');
+
+  const rowStyle = (danger) => 'display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:12px;' + (danger ? 'background:rgba(239,71,111,0.06);margin:0 -8px;padding-left:8px;padding-right:8px;border-radius:6px;border-bottom:none;margin-bottom:4px;' : '');
+  const valColor = (danger) => danger ? '#ef476f' : 'var(--cl-text-2)';
+  const labelHtml = (k, v, danger) => '<div style="' + rowStyle(danger) + '"><span style="color:var(--cl-text-4);font-size:10px;text-transform:uppercase;letter-spacing:0.4px;font-weight:700;">' + k + '</span><span style="color:' + valColor(danger) + ';font-weight:700;text-align:right;font-family:\'JetBrains Mono\',monospace;word-break:break-all;">' + v + '</span></div>';
+
+  let body = '';
+  body += labelHtml('Honeypot', hp === true ? 'YES' : hp === false ? 'No' : String(row.is_honeypot ?? '—'), hp === true);
+  body += labelHtml('Buy tax', buyT != null ? buyT + '%' : String(row.buy_tax ?? '—'), buyT != null && buyT > 5);
+  body += labelHtml('Sell tax', sellT != null ? sellT + '%' : String(row.sell_tax ?? '—'), sellT != null && sellT > 5);
+  body += labelHtml('Mintable', mint === true ? 'YES' : mint === false ? 'No' : String(row.is_mintable ?? '—'), mint === true);
+  body += labelHtml('Owner', owner ? '<a href="https://basescan.org/address/' + owner + '" target="_blank" style="color:var(--cl-violet);">' + ownerShort + '</a>' : '—', false);
+  body += labelHtml('Can take back ownership', takeBack === true ? 'YES' : takeBack === false ? 'No' : String(row.can_take_back_ownership ?? '—'), takeBack === true);
+
+  const flagsHtml = flags.length
+    ? '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">' + flags.map(function (t) {
+      return '<span style="padding:4px 10px;border-radius:8px;background:rgba(239,71,111,0.12);border:1px solid rgba(239,71,111,0.45);color:#ef476f;font-size:10px;font-weight:800;font-family:\'JetBrains Mono\',monospace;">⚠ ' + t + '</span>';
+    }).join('') + '</div>'
+    : '<div style="font-size:11px;color:#64ffda;margin-bottom:12px;font-weight:700;">No critical flags from these GoPlus fields.</div>';
+
+  return flagsHtml + '<div style="max-width:720px;">' + body + '</div><div class="cl-ai-disclaimer" style="margin-top:12px;">GoPlus data. Not exhaustive. DYOR.</div>';
+}
+
 async function doTokenScanner() {
   const btn = document.getElementById('tsb');
   const btn2 = document.getElementById('tsb2');
@@ -13127,6 +13221,7 @@ async function doTokenScanner() {
   const deployerEl = document.getElementById('ts-deployer');
   const aiEl = document.getElementById('ts-ai');
   const socialEl = document.getElementById('ts-social');
+  const securityEl = document.getElementById('ts-security');
   const query = (document.getElementById('ts-input')?.value || '').trim();
 
   if (!query) {
@@ -13138,6 +13233,7 @@ async function doTokenScanner() {
   if (btn2) { btn2.disabled = true; btn2.innerHTML = '<span class="cl-spinner"></span>Scanning...'; }
   pairsEl.innerHTML = '<div style="text-align:center;padding:32px;color:var(--cl-text-3);font-size:12px;"><span class="cl-spinner"></span> Fetching DexScreener data...</div>';
   deployerEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--cl-text-3);font-size:12px;"><span class="cl-spinner"></span> Fetching Basescan data...</div>';
+  if (securityEl) securityEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--cl-text-3);font-size:12px;"><span class="cl-spinner"></span> Fetching GoPlus security...</div>';
   aiEl.innerHTML = '<span class="cl-spinner"></span> Analysing token...';
   if (socialEl) socialEl.innerHTML = '<span class="cl-spinner"></span> Fetching LunarCrush social signal...';
 
@@ -13240,16 +13336,26 @@ async function doTokenScanner() {
 
     const contractAddress = isAddress ? query : (bestPair?.baseToken?.address || null);
 
+    let gpJson = null;
     if (contractAddress) {
-      // Get contract deployer (creation tx)
       const creatorUrl = `https://api.basescan.org/api?module=contract&action=getcontractcreation&contractaddresses=${contractAddress}&apikey=ENV`;
-      const creatorR = await fetch('/api/scan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: creatorUrl })
-      });
+      const goplusUrl = 'https://api.gopluslabs.io/api/v1/token_security/8453?contract_addresses=' + encodeURIComponent(contractAddress);
+      const [creatorR, gpR] = await Promise.all([
+        fetch('/api/scan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: creatorUrl })
+        }),
+        fetch('/api/scan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: goplusUrl })
+        })
+      ]);
       const creatorData = creatorR.ok ? await creatorR.json() : null;
+      gpJson = gpR.ok ? await gpR.json() : null;
       deployerAddress = creatorData?.result?.[0]?.contractCreator || null;
+      if (securityEl) securityEl.innerHTML = tsRenderGoPlusCard(gpJson, contractAddress);
 
       if (deployerAddress) {
         // Get dev wallet token transfers for this token
@@ -13319,6 +13425,10 @@ async function doTokenScanner() {
       deployerEl.innerHTML = '<div style="color:var(--cl-text-3);font-size:12px;padding:16px;">No Base contract address found. Try scanning with a 0x address for full deployer data.</div>';
     }
 
+    if (!contractAddress && securityEl) {
+      securityEl.innerHTML = tsRenderGoPlusCard(null, null);
+    }
+
     // ── CORTEX AI Analysis ──
     const tokenName = bestPair?.baseToken?.name || bestPair?.baseToken?.symbol || query;
     const tokenSym = bestPair?.baseToken?.symbol || query.toUpperCase();
@@ -13331,22 +13441,39 @@ async function doTokenScanner() {
 
     const fmtN = v => v >= 1e9 ? '$'+(v/1e9).toFixed(2)+'B' : v >= 1e6 ? '$'+(v/1e6).toFixed(1)+'M' : v >= 1e3 ? '$'+(v/1e3).toFixed(0)+'K' : v ? '$'+v.toFixed(0) : '?';
     const devSellNote = deployerAddress ? `Dev wallet: ${deployerAddress.slice(0,6)}… | Dev transfers: ${devTransfers.length} txs` : 'Deployer data unavailable';
+    const goplusAiLine = tsGoPlusSummaryForAi(gpJson, contractAddress);
 
     const aiTxt = await ai(`You are ChainLens AI Token Scanner™ CORTEX analyst on Base chain.
 Token: ${tokenName} (${tokenSym}) | Contract: ${contractAddress || 'unknown'}
 Price: $${priceUsd} | 24h Change: ${chg24}% | Liquidity: ${fmtN(liqUsd)} | 24h Vol: ${fmtN(volUsd)} | FDV: ${fmtN(fdvUsd)}
 Active pairs on Base: ${pairCount} | ${devSellNote}
+GoPlus contract security (chain 8453): ${goplusAiLine}
 Live market: ${ctx()}
 Reply ONLY in this format:
 SAFETY: [SAFE / RISKY / RED FLAG — based on liquidity, FDV, dev activity]
 SIGNAL: [BULLISH / BEARISH / NEUTRAL — based on price action and volume]
-ANALYSIS: [2-3 sentences on token health, dev wallet risk, and liquidity depth]`, 350);
+GOPLUS_RISK: [exactly one sentence — smart-contract risk from the GoPlus line only; if GoPlus data is missing say so plainly]
+ANALYSIS: [2-3 sentences on token health, dev wallet risk, and liquidity depth]`, 420);
 
     const safetyMatch = aiTxt.match(/SAFETY:\s*(.+)/i);
     const signalMatch = aiTxt.match(/SIGNAL:\s*(\w+)/i);
+    const goplusRiskMatch = aiTxt.match(/GOPLUS_RISK:\s*(.+)/i);
     const analysisMatch = aiTxt.match(/ANALYSIS:\s*([\s\S]+)/i);
     const safety = (safetyMatch?.[1] || '').trim();
     const signal = (signalMatch?.[1] || 'NEUTRAL').toUpperCase().trim();
+    const goplusRiskLine = (goplusRiskMatch?.[1] || '').trim().replace(/GOPLUS_RISK:\s*/i, '').split(/\n/)[0].trim();
+    const rowGp = tsParseGoPlusRow(gpJson, contractAddress);
+    const goplusRiskColor = (() => {
+      if (!rowGp) return goplusRiskLine ? '#f0b429' : 'var(--cl-text-3)';
+      if (tsGoPlusBool01(rowGp.is_honeypot) === true) return '#ef476f';
+      if (tsGoPlusBool01(rowGp.is_mintable) === true) return '#ef476f';
+      if (tsGoPlusBool01(rowGp.can_take_back_ownership) === true) return '#ef476f';
+      const b = tsGoPlusTaxPct(rowGp.buy_tax);
+      const s = tsGoPlusTaxPct(rowGp.sell_tax);
+      if (b != null && b > 5) return '#ef476f';
+      if (s != null && s > 5) return '#ef476f';
+      return '#64ffda';
+    })();
     const safetyColor = safety.includes('RED') ? '#ef476f' : safety.includes('RISKY') ? '#f0b429' : '#64ffda';
     const sigColor = signal === 'BULLISH' ? '#64ffda' : signal === 'BEARISH' ? '#ef476f' : '#f0b429';
 
@@ -13421,12 +13548,15 @@ ANALYSIS: [2-3 sentences on token health, dev wallet risk, and liquidity depth]`
         <span style="background:${safetyColor}15;border:1px solid ${safetyColor}40;color:${safetyColor};border-radius:12px;padding:3px 10px;font-size:10px;font-weight:800;">🛡 ${safety || 'SCANNING'}</span>
         <span style="background:${sigColor}15;border:1px solid ${sigColor}40;color:${sigColor};border-radius:12px;padding:3px 10px;font-size:10px;font-weight:800;">⬡ ${signal}</span>
       </div>
+      ${goplusRiskLine ? `<div style="margin-bottom:12px;padding:10px 12px;border-radius:10px;border:1px solid rgba(239,71,111,0.22);background:rgba(139,92,246,0.06);"><span style="font-size:9px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;color:var(--cl-text-4);display:block;margin-bottom:4px;">CORTEX · GoPlus risk</span><span style="font-size:12px;font-weight:700;color:${goplusRiskColor};line-height:1.5;">${goplusRiskLine.replace(/</g, '&lt;')}</span></div>` : ''}
       ${analysisMatch ? `<div style="font-size:12px;color:var(--cl-text);line-height:1.6;">${analysisMatch[1].trim()}</div>` : ''}
       <div class="cl-ai-disclaimer" style="margin-top:10px;">Not financial advice. Always DYOR.</div>`;
 
   } catch(e) {
     pairsEl.innerHTML = `<div style="color:var(--cl-red);font-size:12px;padding:16px;">Error: ${e.message}</div>`;
     aiEl.innerHTML = '<div style="color:var(--cl-red);font-size:12px;">Analysis failed.</div>';
+    const secErr = document.getElementById('ts-security');
+    if (secErr) secErr.innerHTML = '<div style="color:var(--cl-red);font-size:12px;">GoPlus security unavailable (scan error).</div>';
   }
   if (btn) { btn.disabled = false; btn.textContent = 'Scan Token →'; }
   if (btn2) { btn2.disabled = false; btn2.textContent = 'Scan Token →'; }
