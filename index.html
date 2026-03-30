@@ -8,6 +8,8 @@
 <meta name="theme-color" content="#030206">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="description" content="AI-powered crypto intelligence — wallet scanner, bear market scoring, paper trading and more.">
+<!-- Set your Reown (WalletConnect) Cloud project id for production: https://dashboard.reown.com -->
+<meta name="reown-project-id" content="">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%237858c0'/%3E%3Cstop offset='1' stop-color='%2300ffc8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='%23050407'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='18' fill='url(%23g)'%3E⬡%3C/text%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
@@ -3967,7 +3969,7 @@ body::after {
   color: #a78bfa; cursor: pointer; transition: all 0.2s; white-space: nowrap;
 }
 .td-topbar__wallet-btn:hover { background: rgba(139,92,246,0.2); border-color: rgba(139,92,246,0.5); }
-.td-topbar__actions w3m-button { display: inline-flex; align-items: center; --w3m-accent: #8b5cf6; }
+w3m-modal, w3m-router, appkit-modal { z-index: 100050 !important; }
 .td-topbar__exit-btn {
   padding: 5px 10px; background: none; border: 1px solid #222; border-radius: 8px;
   font-family: 'Inter', sans-serif; font-size: 10px; color: #444;
@@ -3982,6 +3984,18 @@ body::after {
 .td-sidebar {
   width: 240px; flex-shrink: 0; background: #0a0a0a; border-right: 1px solid #1a1a1a;
   display: flex; flex-direction: column; overflow-y: auto; padding: 12px 0; height: 100%;
+}
+.td-sidebar__back {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 0 10px 10px 18px; flex-shrink: 0;
+  font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500; color: #666;
+  text-decoration: none; border-radius: 6px; width: max-content; transition: color 0.15s;
+}
+.td-sidebar__back:hover { color: #999; }
+.td-sidebar__back:focus-visible { outline: 1px solid rgba(139,92,246,0.45); outline-offset: 2px; }
+.td-sidebar__back svg {
+  width: 14px; height: 14px; flex-shrink: 0; display: block;
+  stroke: currentColor; fill: none;
 }
 .td-sidebar::-webkit-scrollbar { width: 2px; }
 .td-sidebar::-webkit-scrollbar-thumb { background: #1a1a1a; }
@@ -4244,25 +4258,37 @@ body::after {
 
 /* Right Clark AI Panel */
 .td-right {
-  width: 320px; flex-shrink: 0; background: #0a0a0a; border-left: 1px solid #1a1a1a;
-  display: flex; flex-direction: column;
+  width: 380px; flex-shrink: 0; background: #0a0a0a; border-left: none;
+  display: flex; flex-direction: column; position: relative;
   transition: width 0.25s ease, opacity 0.25s ease, min-width 0.25s ease;
-  min-width: 320px;
+  min-width: 380px;
+}
+.td-right::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; z-index: 1;
+  background: linear-gradient(180deg, #8b5cf6 0%, #2DD4BF 100%);
+  pointer-events: none;
 }
 .td-right.td-collapsed { width: 0; min-width: 0; opacity: 0; overflow: hidden; pointer-events: none; }
+.td-right.td-collapsed::before { opacity: 0; }
 .td-right__header {
   height: 52px; padding: 0 12px; border-bottom: 1px solid rgba(45,212,191,0.3);
   display: flex; align-items: center; gap: 10px; flex-shrink: 0;
   box-shadow: 0 1px 8px rgba(45,212,191,0.08);
 }
 .td-right__clark-logo {
-  width: 36px; height: 36px;
+  width: 40px; height: 40px; position: relative;
   border-radius: 50%;
   background: linear-gradient(135deg, #ec4899, #8b5cf6, #64ffda);
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
-.td-right__clark-logo svg { display: block; width: 36px; height: 36px; }
+.td-right__clark-logo svg { display: block; width: 40px; height: 40px; }
+.td-right__clark-logo::after {
+  content: ''; position: absolute; right: 0; bottom: 0; width: 10px; height: 10px;
+  border-radius: 50%; background: #22c55e; border: 2px solid #0a0a0a;
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.45);
+  animation: td-pulse-online 1.6s ease-in-out infinite;
+}
 .td-right__name {
   font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800; color: #fff; flex: 1;
 }
@@ -4271,7 +4297,7 @@ body::after {
   font-family: 'Inter', sans-serif; font-size: 9px; color: #2DD4BF;
 }
 .td-right__online-dot {
-  width: 5px; height: 5px; border-radius: 50%; background: #2DD4BF; animation: td-pulse 2s infinite;
+  display: none;
 }
 .td-right__collapse-btn {
   background: none; border: none; cursor: pointer; color: #2a2a2a; font-size: 16px;
@@ -4282,7 +4308,22 @@ body::after {
 .td-chat::-webkit-scrollbar { width: 2px; }
 .td-chat::-webkit-scrollbar-thumb { background: #161616; }
 .td-chat-msg { max-width: 92%; padding: 8px 11px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 12px; line-height: 1.6; }
-.td-chat-msg--ai { background: #0d0d0d; border: 1px solid #1a1a1a; color: #aaa; align-self: flex-start; }
+.td-chat-msg--ai {
+  background: #0d0d0d; border: 1px solid rgba(139,92,246,0.2); color: #aaa; align-self: flex-start;
+  padding: 12px 14px;
+}
+.td-chat-msg__section {
+  font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.04em; text-transform: uppercase; color: #64ffda;
+  margin: 10px 0 6px;
+}
+.td-chat-msg__section:first-of-type { margin-top: 0; }
+.td-chat-msg__verdict {
+  margin-top: 12px; padding: 9px 11px; border-radius: 8px;
+  background: rgba(139,92,246,0.18); border: 1px solid rgba(139,92,246,0.45);
+  font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; color: #ddd;
+  line-height: 1.5;
+}
 .td-chat-msg--user { background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.2); color: #fff; align-self: flex-end; }
 .td-chat-msg__name { font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 3px; }
 .td-chat-msg--ai .td-chat-msg__name { color: #8b5cf6; }
@@ -4297,7 +4338,10 @@ body::after {
   outline: none; resize: none; transition: border-color 0.2s; max-height: 80px; min-height: 34px;
 }
 .td-chat-input::placeholder { color: #2a2a2a; }
-.td-chat-input:focus { border-color: rgba(139,92,246,0.35); }
+.td-chat-input:focus {
+  border-color: #2DD4BF;
+  box-shadow: 0 0 0 1px rgba(45,212,191,0.35), 0 0 14px rgba(45,212,191,0.22);
+}
 .td-chat-send {
   width: 34px; height: 34px; border-radius: 8px; background: #8b5cf6; border: none;
   cursor: pointer; display: flex; align-items: center; justify-content: center;
@@ -4315,11 +4359,11 @@ body::after {
 .td-chat-thinking { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
 .td-chat-thinking__dots { display: flex; gap: 3px; }
 .td-chat-thinking__dots span {
-  width: 5px; height: 5px; border-radius: 50%; background: #2DD4BF;
-  animation: td-think-dot 1.1s infinite ease-in-out;
+  width: 6px; height: 6px; border-radius: 50%; background: #2DD4BF;
+  animation: td-think-dot 1.05s infinite ease-in-out;
 }
-.td-chat-thinking__dots span:nth-child(2) { animation-delay: 0.18s; }
-.td-chat-thinking__dots span:nth-child(3) { animation-delay: 0.36s; }
+.td-chat-thinking__dots span:nth-child(2) { animation-delay: 0.2s; }
+.td-chat-thinking__dots span:nth-child(3) { animation-delay: 0.4s; }
 .td-chat-thinking__status {
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
@@ -4329,7 +4373,7 @@ body::after {
 
 /* Collapse toggle on edge */
 .td-panel-toggle {
-  position: absolute; right: 320px; top: 50%; transform: translateY(-50%);
+  position: absolute; right: 380px; top: 50%; transform: translateY(-50%);
   width: 14px; height: 36px; background: #0d0d0d; border: 1px solid #1a1a1a;
   border-right: none; border-radius: 6px 0 0 6px;
   cursor: pointer; display: flex; align-items: center; justify-content: center;
@@ -4344,8 +4388,15 @@ body::after {
 @keyframes td-slide-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes td-stagger-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes td-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+@keyframes td-pulse-online {
+  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+  50% { opacity: 0.85; transform: scale(1.15); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+}
 @keyframes td-typing { 0%, 60%, 100% { opacity: 0.2; transform: scale(0.8); } 30% { opacity: 1; transform: scale(1); } }
-@keyframes td-think-dot { 0%, 70%, 100% { opacity: 0.25; transform: scale(0.8); } 35% { opacity: 1; transform: scale(1); } }
+@keyframes td-think-dot {
+  0%, 100% { opacity: 0.35; transform: scale(0.75); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
 @keyframes td-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
 .td-widget:nth-child(1) { animation: td-stagger-in 0.4s ease 0.05s both; }
@@ -4357,8 +4408,8 @@ body::after {
 
 /* Responsive */
 @media (max-width: 1100px) {
-  .td-right { width: 280px; min-width: 280px; }
-  .td-panel-toggle { right: 280px; }
+  .td-right { width: 300px; min-width: 300px; }
+  .td-panel-toggle { right: 300px; }
 }
 @media (max-width: 900px) {
   .td-sidebar { width: 200px; }
@@ -6733,6 +6784,31 @@ body::after {
 </div>
 
 <!-- ═════════════════════════════════════
+  PAGE: WHALE ALERTS (live feed)
+═════════════════════════════════════ -->
+<div class="cl-page" id="pg-whalealerts">
+  <div class="cl-container"><div class="cl-page-inner">
+    <div class="pg-header">
+      <button class="cl-page-back" onclick="go('terminal')" style="margin-bottom:10px;">← Back</button>
+      <div class="pg-header__row">
+        <div class="pg-header__icon">🐋</div>
+        <div class="pg-header__text">
+          <div class="pg-header__title">Whale Alerts</div>
+          <div class="pg-header__sub">Large on-chain transfers ingested from Alchemy Notify ($50K+ notional on ETH and Base).</div>
+        </div>
+        <div class="pg-header__tags">
+          <span class="pg-tag" style="color:#64ffda;border-color:rgba(100,255,218,0.2);">Live feed</span>
+          <span class="pg-tag" style="color:#8b5cf6;border-color:rgba(139,92,246,0.2);">CORTEX</span>
+        </div>
+      </div>
+    </div>
+    <div id="wa-alerts-list">
+      <div class="cl-card" style="text-align:center;padding:28px;color:var(--cl-text-3);font-size:13px;">Loading…</div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ═════════════════════════════════════
   PAGE: PUMPALERT
 ═════════════════════════════════════ -->
 <div class="cl-page" id="pg-pumpalert">
@@ -6964,6 +7040,14 @@ body::after {
       <div class="cl-stat-pill">Top Asset: <strong id="pt-stat-top">—</strong></div>
     </div>
 
+    <div class="cl-card" style="margin-bottom:14px;display:none;" id="pt-pnl-card">
+      <div class="cl-label" style="margin-bottom:8px;">Total PnL over time</div>
+      <div id="pt-pnl-headline" style="font-size:15px;font-weight:800;margin-bottom:4px;line-height:1.3;">—</div>
+      <div id="pt-pnl-sub" style="font-size:11px;color:var(--cl-text-3);margin-bottom:12px;line-height:1.5;">—</div>
+      <div style="font-size:9px;color:var(--cl-text-4);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:6px;">Portfolio value (USD) · Zerion</div>
+      <canvas id="pt-chart-canvas" width="800" height="140" style="width:100%;max-width:100%;height:140px;display:block;border-radius:8px;background:rgba(0,0,0,0.18);"></canvas>
+    </div>
+
     <!-- Chain tabs -->
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;" id="pt-chain-tabs"></div>
 
@@ -7036,6 +7120,14 @@ body::after {
       <div class="cl-label">DexScreener — Base Chain Pairs</div>
       <div id="ts-pairs" style="overflow-x:auto;">
         <div style="text-align:center;padding:32px;color:var(--cl-text-3);font-size:12px;">Enter a token to scan Base chain pairs.</div>
+      </div>
+    </div>
+
+    <!-- GoPlus contract security (Base 8453) -->
+    <div class="cl-card" style="margin-top:14px;">
+      <div class="cl-label">GoPlus — Contract Security (Base)</div>
+      <div id="ts-security" style="min-height:48px;color:var(--cl-text-3);font-size:12px;">
+        Scan a Base token to load GoPlus security checks.
       </div>
     </div>
 
@@ -7212,7 +7304,7 @@ body::after {
         🔔
         <span class="td-topbar__bell-dot"></span>
       </button>
-      <w3m-button id="td-wallet-display" size="sm"></w3m-button>
+      <button type="button" class="td-topbar__wallet-btn" id="td-wallet-display">Connect Wallet</button>
     </div>
   </div>
 
@@ -7221,6 +7313,12 @@ body::after {
 
     <!-- Left Sidebar -->
     <aside class="td-sidebar">
+      <a class="td-sidebar__back" href="https://chainlens-vthirty.vercel.app/" aria-label="Back to landing page">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Back</span>
+      </a>
       <div class="td-sidebar__section">
         <span class="td-sidebar__label">Dashboard</span>
         <div class="td-nav-item td-active" onclick="tdNavHighlight(this)">
@@ -7295,13 +7393,21 @@ body::after {
           <span class="td-nav-item__name">Portfolio Tracker</span>
           <span class="td-nav-item__badge">Pro</span>
         </div>
-        <div class="td-nav-item" onclick="tdNavGo('smartwallets',this)">
+        <div class="td-nav-item" onclick="tdNavWhaleAlerts(this)">
           <span class="td-nav-item__icon">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path d="M3 14c1.5-2 3-2 4.5 0s3 2 4.5 0 3-2 4.5 0 3 2 4.5 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
             </svg>
           </span>
           <span class="td-nav-item__name">Whale Alerts</span>
+        </div>
+        <div class="td-nav-item" onclick="tdNavGo('smartwallets',this)">
+          <span class="td-nav-item__icon">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm12 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="td-nav-item__name">Smart Wallets</span>
           <span class="td-nav-item__badge">Elite</span>
         </div>
         <div class="td-nav-item" onclick="tdNavGo('exchangeflow',this)">
@@ -7759,6 +7865,10 @@ function launchTerminal() {
 }
 
 function go(id) {
+  if (id !== 'whalealerts' && _waPageTimer) {
+    clearInterval(_waPageTimer);
+    _waPageTimer = null;
+  }
   if (id !== 'home') hcCloseSidePanel(true);
   document.querySelectorAll('.cl-page').forEach(p => p.classList.remove('active'));
   const pg = document.getElementById('pg-' + id);
@@ -7782,7 +7892,7 @@ function go(id) {
   }
 
   // Auto-init pages
-  const inits = { sentiment: doSentiment, narrative: doNarrative, signals: doSignals, pumpalert: doPumpAlert, digradar: scanDips, tokenunlocks: loadTokenUnlocks, smartwallets: loadSmartWallets, walletscan: () => renderSavedWallets(), ghosttrade: () => { updateGT(true); renderTrades(); _paintStreak(); gtUpdateLeaderboard(); }, exchangeflow: doExchangeFlow, tokenscanner: doTokenScanner, portfoliotracker: doPortfolioTracker };
+  const inits = { sentiment: doSentiment, narrative: doNarrative, signals: doSignals, pumpalert: doPumpAlert, digradar: scanDips, tokenunlocks: loadTokenUnlocks, smartwallets: loadSmartWallets, whalealerts: loadWhaleAlertsPage, walletscan: () => renderSavedWallets(), ghosttrade: () => { updateGT(true); renderTrades(); _paintStreak(); gtUpdateLeaderboard(); }, exchangeflow: doExchangeFlow, tokenscanner: doTokenScanner, portfoliotracker: doPortfolioTracker };
   if (inits[id]) inits[id]();
   if (id === 'alerts') { renderAlerts(); startAlertChecker(); }
   if (id === 'leaderboard') renderLB();
@@ -7798,12 +7908,18 @@ let _tdInitDone = false;
 let _tdWhaleTimer = null;
 let _tdPumpTimer = null;
 let _tdMarketTimer = null;
+let _waPageTimer = null;
 
 function tdExitTerminal() { go('home'); }
 
 function tdNavGo(pageId, el) {
   if (el) tdNavHighlight(el);
   go(pageId);
+}
+
+function tdNavWhaleAlerts(el) {
+  if (el) tdNavHighlight(el);
+  go('whalealerts');
 }
 
 function tdNavHighlight(el) {
@@ -7904,7 +8020,7 @@ function initTerminal() {
   if (_tdWhaleTimer) clearInterval(_tdWhaleTimer);
   if (_tdPumpTimer) clearInterval(_tdPumpTimer);
   if (_tdMarketTimer) clearInterval(_tdMarketTimer);
-  _tdWhaleTimer = setInterval(tdAddWhaleItem, 60000);
+  _tdWhaleTimer = setInterval(tdAddWhaleItem, 30000);
   _tdPumpTimer = setInterval(tdAddPumpItem, 30000);
   _tdMarketTimer = setInterval(tdRenderMarket, 60000);
 }
@@ -7914,10 +8030,28 @@ function tdSetWidgetDebug(elId, text) {
   if (el) el.textContent = text || '';
 }
 
-/* ── Zerion response parser: converts raw { portfolio, positions } to per-chain token map ── */
+/* ── Zerion response parser: converts raw { portfolio, positions, pnlWallet, pnlByFungible, chart } to per-chain token map ── */
 function parseZerionPositions(raw) {
   const CHAIN_MAP = { ethereum: 'eth', 'binance-smart-chain': 'bnb', base: 'base', polygon: 'polygon' };
+  const CHAIN_ID_FOR_IMPL = { ethereum: 'ethereum', bnb: 'binance-smart-chain', base: 'base', polygon: 'polygon' };
   const out = { eth: { tokens: [] }, bnb: { tokens: [] }, base: { tokens: [] }, polygon: { tokens: [] } };
+  const pnlById = raw?.pnlByFungible?.data?.attributes?.breakdown?.by_id || null;
+  const pnlByImpl = raw?.pnlByFungible?.data?.attributes?.breakdown?.by_implementation || null;
+  const pnlAttrs = raw?.pnlWallet?.data?.attributes || null;
+  if (pnlAttrs && typeof pnlAttrs === 'object') {
+    out.pnlWallet = {
+      total_gain: Number(pnlAttrs.total_gain),
+      realized_gain: Number(pnlAttrs.realized_gain),
+      unrealized_gain: Number(pnlAttrs.unrealized_gain),
+      relative_total_gain_percentage: Number(pnlAttrs.relative_total_gain_percentage),
+      relative_realized_gain_percentage: Number(pnlAttrs.relative_realized_gain_percentage),
+      relative_unrealized_gain_percentage: Number(pnlAttrs.relative_unrealized_gain_percentage)
+    };
+  }
+  const chartPts = raw?.chart?.data?.attributes?.points;
+  if (Array.isArray(chartPts) && chartPts.length >= 2) {
+    out.chartPoints = chartPts.map(pt => (Array.isArray(pt) && pt.length >= 2 ? [pt[0], Number(pt[1])] : null)).filter(Boolean);
+  }
   const positions = Array.isArray(raw?.positions?.data) ? raw.positions.data : [];
   positions.forEach(pos => {
     const attrs = pos?.attributes || {};
@@ -7933,14 +8067,96 @@ function parseZerionPositions(raw) {
     const price = balance > 0 ? usdValue / balance : 0;
     const impls = Array.isArray(fi.implementations) ? fi.implementations : [];
     const impl = impls.find(im => CHAIN_MAP[im?.chain_id] === chainKey);
+    const contractAddress = impl?.address || '';
+    const fungibleId = pos?.relationships?.fungible?.data?.id || fi.id || '';
+    const ch = attrs.changes || {};
+    const changeAbs1d = typeof ch.absolute_1d === 'number' ? ch.absolute_1d : parseFloat(ch.absolute_1d);
+    const changePct1d = typeof ch.percent_1d === 'number' ? ch.percent_1d : parseFloat(ch.percent_1d);
+    let stats = null;
+    if (pnlById && fungibleId && pnlById[fungibleId]) stats = pnlById[fungibleId];
+    if (!stats && pnlByImpl && contractAddress) {
+      const zChain = CHAIN_ID_FOR_IMPL[chainKey];
+      if (zChain) {
+        const implKey = `${zChain}:${contractAddress.toLowerCase()}`;
+        stats = pnlByImpl[implKey] || pnlByImpl[`${zChain}:${contractAddress}`];
+      }
+    }
+    const realizedPnlUsd = stats && Number.isFinite(Number(stats.realized_gain)) ? Number(stats.realized_gain) : null;
+    const unrealizedPnlUsd = stats && Number.isFinite(Number(stats.unrealized_gain)) ? Number(stats.unrealized_gain) : null;
+    const realizedPnlPct = stats && Number.isFinite(Number(stats.relative_realized_gain_percentage)) ? Number(stats.relative_realized_gain_percentage) : null;
+    const unrealizedPnlPct = stats && Number.isFinite(Number(stats.relative_unrealized_gain_percentage)) ? Number(stats.relative_unrealized_gain_percentage) : null;
     out[chainKey].tokens.push({
-      contractTicker: symbol, symbol, contractAddress: impl?.address || '', name,
-      contractDecimals: parseFloat((attrs.quantity || {}).decimals) || 18, balance, usdValue, price, chain: chainKey
+      contractTicker: symbol, symbol, contractAddress, name, fungibleId,
+      contractDecimals: parseFloat((attrs.quantity || {}).decimals) || 18, balance, usdValue, price, chain: chainKey,
+      realizedPnlUsd, unrealizedPnlUsd, realizedPnlPct, unrealizedPnlPct,
+      changeAbs1d: Number.isFinite(changeAbs1d) ? changeAbs1d : null,
+      changePct1d: Number.isFinite(changePct1d) ? changePct1d : null
     });
   });
-  Object.values(out).forEach(cd => cd.tokens.sort((a, b) => (b.usdValue || 0) - (a.usdValue || 0)));
+  Object.values(out).forEach(cd => {
+    if (cd && Array.isArray(cd.tokens)) cd.tokens.sort((a, b) => (b.usdValue || 0) - (a.usdValue || 0));
+  });
   out.totalUsd = Number(raw?.portfolio?.data?.attributes?.total?.positions) || 0;
   return out;
+}
+
+function fmtSignedUsd(v, digits) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return '—';
+  const d = digits == null ? 2 : digits;
+  const abs = Math.abs(n);
+  const body = abs >= 1e6 ? (abs / 1e6).toFixed(2) + 'M' : abs >= 1e3 ? (abs / 1e3).toFixed(2) + 'K' : abs.toFixed(d);
+  return (n >= 0 ? '+$' : '-$') + body;
+}
+
+function fmtSignedPct(v, digits) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return '—';
+  const d = digits == null ? 1 : digits;
+  return (n >= 0 ? '+' : '') + n.toFixed(d) + '%';
+}
+
+function pnlColor(v) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return 'var(--cl-text-3)';
+  return n >= 0 ? '#64ffda' : '#ef476f';
+}
+
+function ptDrawPortfolioChart(canvasId, points) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas || !Array.isArray(points) || points.length < 2) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.parentElement ? canvas.parentElement.clientWidth || 600 : 600;
+  const H = 140;
+  canvas.width = W; canvas.height = H;
+  ctx.clearRect(0, 0, W, H);
+  const vals = points.map(([, v]) => v).filter(v => typeof v === 'number' && Number.isFinite(v));
+  if (vals.length < 2) return;
+  const min = Math.min(...vals);
+  const max = Math.max(...vals);
+  const range = max - min || 1;
+  const isUp = vals[vals.length - 1] >= vals[0];
+  const color = isUp ? '#64ffda' : '#ef476f';
+  const pad = 8;
+  const pts = vals.length;
+  ctx.beginPath();
+  vals.forEach((d, i) => {
+    const x = pad + (i / (pts - 1)) * (W - pad * 2);
+    const y = H - pad - ((d - min) / range) * (H - pad * 2);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.lineTo(W - pad, H); ctx.lineTo(pad, H); ctx.closePath();
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, isUp ? 'rgba(100,255,218,0.15)' : 'rgba(239,71,111,0.15)');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grad; ctx.fill();
+  ctx.beginPath();
+  vals.forEach((d, i) => {
+    const x = pad + (i / (pts - 1)) * (W - pad * 2);
+    const y = H - pad - ((d - min) / range) * (H - pad * 2);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.stroke();
 }
 
 /* ── Portfolio Widget ── */
@@ -8277,11 +8493,45 @@ async function tdScanEtherscanJson(res, label) {
   return data;
 }
 
-async function tdLoadWhales() {
+function tdWhaleFromAlertRow(row, ethPrice) {
+  const amt = Number(row.amount_usd);
+  const usdVal = Number.isFinite(amt) ? Math.round(amt).toLocaleString('en-US') : '—';
+  const token = row.token || '—';
+  const chain = row.chain || '—';
+  let insight = String(row.cortex_insight || '').trim();
+  if (!insight) insight = 'Large on-chain transfer — watch follow-up flow.';
+  if (!/^cortex:/i.test(insight)) insight = 'CORTEX: ' + insight;
+  const wallet = tdShortAddr(row.wallet_from) + ' → ' + tdShortAddr(row.wallet_to);
+  const ethEquiv = Number.isFinite(amt) && ethPrice ? amt / ethPrice : 0;
+  const icon = ethEquiv >= 200 ? '🐋' : ethEquiv >= 80 ? '🦈' : '⚡';
+  const tsec = row.timestamp ? Math.floor(new Date(row.timestamp).getTime() / 1000) : 0;
+  const timeStr = tsec
+    ? (new Date(tsec * 1000).toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true,
+        timeZone: 'UTC'
+      }) + ' UTC')
+    : '—';
+  const label = String(row.entity_label || '').trim();
+  const tokenLine = label ? (token + ' · ' + chain + ' · ' + label) : (token + ' · ' + chain);
+  return {
+    icon,
+    tokenLine,
+    wallet,
+    cortex: insight,
+    breakdownHtml: '',
+    usd: usdVal,
+    timeStr
+  };
+}
+
+async function tdLoadWhalesWatchFallback() {
   const feed = document.getElementById('td-whale-feed');
   if (!feed) return;
-  tdSetWidgetDebug('td-debug-whale', '');
-  feed.innerHTML = '<div style="padding:16px 0;text-align:center;color:#2a2a2a;font-size:11px;font-family:\'Inter\',sans-serif;">Loading whale data...</div>';
   try {
     const ethPrice = px['ethereum']?.usd || 3000;
     const minUsd = 50000;
@@ -8388,6 +8638,30 @@ async function tdLoadWhales() {
   }
 }
 
+async function tdLoadWhales() {
+  const feed = document.getElementById('td-whale-feed');
+  if (!feed) return;
+  tdSetWidgetDebug('td-debug-whale', '');
+  feed.innerHTML = '<div style="padding:16px 0;text-align:center;color:#2a2a2a;font-size:11px;font-family:\'Inter\',sans-serif;">Loading whale data...</div>';
+  try {
+    const res = await fetch('/api/whale-alerts');
+    if (res.ok) {
+      const data = await res.json();
+      const alerts = Array.isArray(data.alerts) ? data.alerts : [];
+      if (alerts.length > 0) {
+        const ethPrice = px['ethereum']?.usd || 3000;
+        feed.innerHTML = '';
+        for (let i = 0; i < alerts.length; i++) {
+          feed.appendChild(tdWhaleEl(tdWhaleFromAlertRow(alerts[i], ethPrice)));
+        }
+        tdSetWidgetDebug('td-debug-whale', '');
+        return;
+      }
+    }
+  } catch (e) { /* use watch fallback */ }
+  await tdLoadWhalesWatchFallback();
+}
+
 function tdMakeWhaleItem() {
   const ethPrice = px['ethereum']?.usd || 3000;
   const amount = (Math.random() * 20 + 15).toFixed(2);
@@ -8426,16 +8700,19 @@ function tdRenderWhales() {
 function tdWhaleEl(d) {
   const el = document.createElement('div');
   el.className = 'td-feed-item';
+  const bd = d.breakdownHtml
+    ? `<div style="margin-top:6px;padding:8px 10px;border:1px solid rgba(139,92,246,0.25);border-radius:10px;background:rgba(139,92,246,0.05);">
+        <div style="font-size:9px;color:#64ffda;font-weight:800;letter-spacing:0.8px;margin-bottom:4px;font-family:'JetBrains Mono',monospace;">CORTEX BREAKDOWN</div>
+        ${d.breakdownHtml}
+      </div>`
+    : '';
   el.innerHTML = `
     <div class="td-feed-item__icon">${d.icon}</div>
     <div class="td-feed-item__info">
-      <div class="td-feed-item__token">${tdEscape(d.tokenLine)} <span style="color:#333;font-size:10px;">ETH</span></div>
+      <div class="td-feed-item__token">${tdEscape(d.tokenLine)} <span style="color:#333;font-size:10px;">whale</span></div>
       <div class="td-feed-item__desc">${tdEscape(d.wallet)}</div>
       <div class="td-feed-item__desc">${tdEscape(d.cortex)}</div>
-      <div style="margin-top:6px;padding:8px 10px;border:1px solid rgba(139,92,246,0.25);border-radius:10px;background:rgba(139,92,246,0.05);">
-        <div style="font-size:9px;color:#ec4899;font-weight:800;letter-spacing:0.8px;margin-bottom:4px;font-family:'JetBrains Mono',monospace;">CORTEX BREAKDOWN</div>
-        ${d.breakdownHtml || ''}
-      </div>
+      ${bd}
     </div>
     <div class="td-feed-item__right">
       <div class="td-feed-item__amount" style="color:#a78bfa;">$${tdEscape(d.usd)}</div>
@@ -8961,7 +9238,7 @@ async function tdClarkSend() {
     if (data.error) throw new Error(data.error);
     const reply = data.text || 'Unable to get response right now.';
     clearInterval(thinkTimer);
-    typing.innerHTML = '<div class="td-chat-msg__name">Clark</div>' + tdEscape(reply).replace(/\n/g, '<br>');
+    typing.innerHTML = '<div class="td-chat-msg__name">Clark</div>' + tdFormatClarkReply(reply);
   } catch (e) {
     clearInterval(thinkTimer);
     typing.innerHTML = '<div class="td-chat-msg__name">Clark</div>Connection error. Please try again.';
@@ -8973,6 +9250,41 @@ async function tdClarkSend() {
 
 function tdEscape(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function tdFormatClarkReply(raw) {
+  const safe = tdEscape(String(raw || ''));
+  const lines = safe.split('\n');
+  let vi = lines.length - 1;
+  while (vi >= 0 && !lines[vi].trim()) vi--;
+  let verdictHtml = '';
+  if (vi >= 0) {
+    const L = lines[vi].trim();
+    const vm = L.match(/^(\*{0,2})?verdict(\*{0,2})?\s*[:.]?\s*(.*)$/i);
+    if (vm) {
+      const vcontent = (vm[3] || '').trim();
+      if (vcontent) {
+        verdictHtml = '<div class="td-chat-msg__verdict">' + vcontent + '</div>';
+        lines.splice(vi, 1);
+      }
+    }
+  }
+  const parts = [];
+  for (let li = 0; li < lines.length; li++) {
+    const trimmed = lines[li].trim();
+    let mm = trimmed.match(/^\*\*(.+?)\*\*$/);
+    if (mm) {
+      parts.push('<div class="td-chat-msg__section">' + mm[1] + '</div>');
+      continue;
+    }
+    mm = trimmed.match(/^#{1,3}\s+(.+)$/);
+    if (mm) {
+      parts.push('<div class="td-chat-msg__section">' + mm[1] + '</div>');
+      continue;
+    }
+    parts.push(lines[li]);
+  }
+  return parts.join('<br>') + verdictHtml;
 }
 
 // ══════════════════════════════════════════════
@@ -9200,6 +9512,26 @@ function renderTrades() {
     const priceLabel = price < 0.001 ? price.toExponential(2) : price.toFixed(4);
     const coach = t.coach || '';
     const canReplay = !!(t.pairAddress || t.address);
+    let pnlHtml = '';
+    if (side === 'sell') {
+      const pu = t.pnlUsd;
+      const pp = t.pnlPct;
+      if (typeof pu === 'number' && Number.isFinite(pu)) {
+        const col = pu >= 0 ? '#64ffda' : '#ef476f';
+        pnlHtml = '<div style="font-size:11px;font-weight:800;color:' + col + ';margin-top:6px;">Realised PnL ' + fmtSignedUsd(pu) + (typeof pp === 'number' && Number.isFinite(pp) ? ' · ' + fmtSignedPct(pp, 1) : '') + '</div>';
+      }
+    } else {
+      const taddr = (t.address || '').toLowerCase();
+      const pos = taddr && gt.h[taddr] ? gt.h[taddr] : null;
+      const units = t.units || (price > 0 ? amt / price : 0);
+      if (pos && pos.qty > 0.000001 && typeof pos.price === 'number' && Number.isFinite(pos.price) && price > 0 && units > 0) {
+        const pnlUsd = (pos.price - price) * units;
+        const cost = price * units;
+        const pnlPct = cost > 0 ? (pnlUsd / cost) * 100 : 0;
+        const col = pnlUsd >= 0 ? '#64ffda' : '#ef476f';
+        pnlHtml = '<div style="font-size:11px;font-weight:800;color:' + col + ';margin-top:6px;">Live PnL ' + fmtSignedUsd(pnlUsd) + ' · ' + fmtSignedPct(pnlPct, 1) + '</div>';
+      }
+    }
     return '<div style="padding:12px 14px;border-radius:10px;margin-bottom:8px;background:' + (side === 'buy' ? 'rgba(100,255,218,0.06);border:1px solid rgba(100,255,218,0.15)' : 'rgba(239,71,111,0.06);border:1px solid rgba(239,71,111,0.15)') + ';">'
       + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">'
       + '<span style="color:' + (side === 'buy' ? '#64ffda' : '#ef476f') + ';font-weight:700;font-size:12px;">' + side.toUpperCase() + ' ' + symbol + '</span>'
@@ -9207,7 +9539,8 @@ function renderTrades() {
       + '<span style="color:var(--cl-text-3);font-size:10px;">$' + parseFloat(amt).toFixed(2) + ' @ $' + priceLabel + '</span>'
       + (canReplay ? '<button data-idx="' + i + '" onclick="gtReplay(+this.dataset.idx)" style="padding:2px 7px;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.25);border-radius:5px;font-size:9px;font-weight:700;color:var(--cl-violet);cursor:pointer;">▶ Replay</button>' : '')
       + '</div></div>'
-      + '<div style="font-size:10px;color:var(--cl-text-3);margin-bottom:' + (coach ? '6px' : '0') + ';">' + chain.toUpperCase() + (timeStr ? ' · ' + timeStr : '') + '</div>'
+      + '<div style="font-size:10px;color:var(--cl-text-3);margin-bottom:' + (pnlHtml || coach ? '6px' : '0') + ';">' + chain.toUpperCase() + (timeStr ? ' · ' + timeStr : '') + '</div>'
+      + pnlHtml
       + (coach ? '<div style="font-size:11px;color:var(--cl-text-3);line-height:1.5;">🤖 ' + clarkMd(coach) + '</div>' : '')
       + '</div>';
   }).join('');
@@ -9239,6 +9572,7 @@ async function initAuth() {
     const savedWallet = localStorage.getItem('cl_wallet');
     if (savedWallet && !localStorage.getItem('cl_session')) {
       user = { wallet: savedWallet, plan: 'free', name: savedWallet.slice(0,6)+'...'+savedWallet.slice(-4) };
+      window._connectedWallet = savedWallet;
       updateNav();
     }
     const cached = localStorage.getItem('cl_session');
@@ -9373,6 +9707,50 @@ function closeAuth() {
   resetAuthModalViews();
 }
 
+window.chainlensApplyConnectedEvmAddress = function(addr) {
+  if (!addr || typeof addr !== 'string') return;
+  const a = addr.trim();
+  if (!/^0x[a-fA-F0-9]{40}$/.test(a)) return;
+  window._connectedWallet = a;
+  localStorage.setItem('cl_wallet', a);
+  const short = a.slice(0, 6) + '...' + a.slice(-4);
+  const wb = document.getElementById('td-wallet-display');
+  if (wb) { wb.textContent = short; wb.title = a; }
+  const wsi = document.getElementById('wsi');
+  if (wsi) wsi.value = a;
+  const pt = document.getElementById('pt-address');
+  if (pt) pt.value = a;
+  if (!localStorage.getItem('cl_session')) {
+    user = { wallet: a, plan: 'free', name: short };
+    updateNav();
+  } else if (user) {
+    user.wallet = a;
+    updateNav();
+  }
+  if (document.getElementById('pg-terminal')?.classList.contains('active') && typeof tdRenderPortfolio === 'function') tdRenderPortfolio();
+  setTimeout(function() {
+    try { if (typeof doWS === 'function') doWS(); } catch (e) {}
+    try { if (typeof doPortfolioTracker === 'function') doPortfolioTracker(); } catch (e) {}
+  }, 450);
+};
+
+window.chainlensClearConnectedWallet = function() {
+  window._connectedWallet = null;
+  localStorage.removeItem('cl_wallet');
+  const wb = document.getElementById('td-wallet-display');
+  if (wb) { wb.textContent = 'Connect Wallet'; wb.title = ''; }
+  const wsi = document.getElementById('wsi');
+  if (wsi) wsi.value = '';
+  const pt = document.getElementById('pt-address');
+  if (pt) pt.value = '';
+  if (user) {
+    if (user.email || user.accessToken) delete user.wallet;
+    else user = null;
+    updateNav();
+  }
+  if (document.getElementById('pg-terminal')?.classList.contains('active') && typeof tdRenderPortfolio === 'function') tdRenderPortfolio();
+};
+
 function connectWallet() {
   if (window.appKit) { window.appKit.open(); return; }
   const modal = document.getElementById('wallet-modal');
@@ -9408,11 +9786,15 @@ async function wmConnectMetaMask() {
     const address = accounts[0];
     const short = address.slice(0, 6) + '...' + address.slice(-4);
     localStorage.setItem('cl_wallet', address);
+    window._connectedWallet = address;
     document.getElementById('wallet-modal').classList.remove('open');
     if (!user) {
       user = { wallet: address, plan: 'free', name: short };
       updateNav();
     }
+    const _tdW = document.getElementById('td-wallet-display');
+    if (_tdW) { _tdW.textContent = short; _tdW.title = address; }
+    if (document.getElementById('pg-terminal')?.classList.contains('active') && typeof tdRenderPortfolio === 'function') tdRenderPortfolio();
     toast('Wallet connected: ' + short, 'ok');
     window.ethereum.on('accountsChanged', accs => {
       if (!accs.length) {
@@ -10306,6 +10688,21 @@ function renderAllAssets(assets, allTxs, address) {
       const pct = totalDisplayUsd > 0 && shownUsdNum > 0
         ? ((shownUsdNum / totalDisplayUsd) * 100).toFixed(1) : null;
       const chainLabel = a.chain ? a.chain.toUpperCase() : '';
+      const rlz = a.realizedPnlUsd;
+      const urlz = a.unrealizedPnlUsd;
+      const hasFifo = (typeof rlz === 'number' && Number.isFinite(rlz)) || (typeof urlz === 'number' && Number.isFinite(urlz));
+      const rlzPct = a.realizedPnlPct;
+      const urlzPct = a.unrealizedPnlPct;
+      const pnlBlock = hasFifo
+        ? `<div style="text-align:right;flex-shrink:0;min-width:100px;">`
+        + `<div style="font-size:8px;font-weight:700;letter-spacing:0.4px;color:var(--cl-text-4);text-transform:uppercase;margin-bottom:2px;">Realised</div>`
+        + `<div style="font-size:11px;font-weight:800;color:${pnlColor(rlz)};line-height:1.2;">${typeof rlz === 'number' && Number.isFinite(rlz) ? fmtSignedUsd(rlz) : '—'}${typeof rlzPct === 'number' && Number.isFinite(rlzPct) ? ' <span style="font-size:9px;font-weight:700;">(' + fmtSignedPct(rlzPct, 1) + ')</span>' : ''}</div>`
+        + `<div style="font-size:8px;font-weight:700;letter-spacing:0.4px;color:var(--cl-text-4);text-transform:uppercase;margin-top:6px;margin-bottom:2px;">Unrealised</div>`
+        + `<div style="font-size:11px;font-weight:800;color:${pnlColor(urlz)};line-height:1.2;">${typeof urlz === 'number' && Number.isFinite(urlz) ? fmtSignedUsd(urlz) : '—'}${typeof urlzPct === 'number' && Number.isFinite(urlzPct) ? ' <span style="font-size:9px;font-weight:700;">(' + fmtSignedPct(urlzPct, 1) + ')</span>' : ''}</div>`
+        + `</div>`
+        : (typeof a.changeAbs1d === 'number' && Number.isFinite(a.changeAbs1d)
+          ? `<div style="text-align:right;flex-shrink:0;min-width:72px;"><div style="font-size:8px;font-weight:700;color:var(--cl-text-4);text-transform:uppercase;margin-bottom:2px;">24h Δ</div><div style="font-size:11px;font-weight:800;color:${pnlColor(a.changeAbs1d)};">${fmtSignedUsd(a.changeAbs1d)}</div>${typeof a.changePct1d === 'number' && Number.isFinite(a.changePct1d) ? '<div style="font-size:9px;font-weight:700;color:' + pnlColor(a.changePct1d) + ';">' + fmtSignedPct(a.changePct1d, 2) + '</div>' : ''}</div>`
+          : `<div style="text-align:right;flex-shrink:0;min-width:72px;"><div style="font-size:8px;color:var(--cl-text-4);text-transform:uppercase;margin-bottom:2px;">PnL</div><div style="font-size:10px;color:var(--cl-text-4);">—</div></div>`);
       return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(139,92,246,0.08);">`
         + `<div style="width:36px;height:36px;border-radius:10px;background:${c}18;border:1px solid ${c}30;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:${c};font-family:'Syne',sans-serif;flex-shrink:0;">${a.symbol.slice(0,3)}</div>`
         + `<div style="flex:1;min-width:0;">`
@@ -10320,6 +10717,7 @@ function renderAllAssets(assets, allTxs, address) {
         + `<div style="font-size:13px;font-weight:800;color:${shownUsdNum > 0 ? 'var(--cl-text)' : 'var(--cl-text-3)'};">${usdVal}</div>`
         + (pct ? `<div style="font-size:10px;color:var(--cl-text-3);">${pct}%</div>` : '')
         + `</div>`
+        + pnlBlock
         + `</div>`;
     }).join('') + '</div>';
 }
@@ -10626,6 +11024,7 @@ async function updateGT(silent = false) {
     // Re-render with live prices
     _paintGT(holdings, ghd);
   }
+  renderTrades();
 }
 
 function gtSellAll(addr) {
@@ -10670,6 +11069,8 @@ async function _executeGTrade(amt) {
   if (!price) { toast('Could not get live price', 'er'); return; }
   const addr = gtToken.address;
   let streakWin = null;
+  let tradePnlUsd = null;
+  let tradePnlPct = null;
   if (gtSide === 'buy') {
     if (amt > gt.cash) { toast('Not enough cash', 'er'); return; }
     gt.cash -= amt;
@@ -10689,6 +11090,9 @@ async function _executeGTrade(amt) {
     if (qty > pos.qty + 0.000001) { toast('Insufficient holdings', 'er'); return; }
     // Calculate P&L for streak
     const sellPnl = (price - pos.avg) * Math.min(qty, pos.qty);
+    const sellCost = pos.avg * Math.min(qty, pos.qty);
+    tradePnlUsd = sellPnl;
+    tradePnlPct = sellCost > 0 ? (sellPnl / sellCost) * 100 : 0;
     streakWin = sellPnl > 0;
     gt.cash += Math.min(qty, pos.qty) * price;
     pos.qty = Math.max(0, pos.qty - qty);
@@ -10702,7 +11106,7 @@ async function _executeGTrade(amt) {
     _paintStreak();
   }
   const tradeUnits = amt / price;
-  const trade = { dir: gtSide, symbol: gtToken.symbol, name: gtToken.name, amt, price, units: tradeUnits, chain: gtToken.chain, time: Date.now(), address: addr, pairAddress: gtToken.pairAddress || '' };
+  const trade = { dir: gtSide, symbol: gtToken.symbol, name: gtToken.name, amt, price, units: tradeUnits, chain: gtToken.chain, time: Date.now(), address: addr, pairAddress: gtToken.pairAddress || '', pnlUsd: tradePnlUsd, pnlPct: tradePnlPct };
   gt.trades.unshift(trade);
   saveGT(); updateGT(); gtUpdateLeaderboard();
   if (user) sbData('append', 'ghost_trades', { payload: { type: gtSide.toUpperCase(), symbol: gtToken.symbol, amount: amt, price, units: tradeUnits } });
@@ -12203,6 +12607,12 @@ async function doWS() {
             if (existingIdx >= 0) {
               if (ct.usdValue > 0) assets[existingIdx].usdValue = ct.usdValue;
               if (ct.price > 0) assets[existingIdx].price = ct.price;
+              if (ct.realizedPnlUsd != null) assets[existingIdx].realizedPnlUsd = ct.realizedPnlUsd;
+              if (ct.unrealizedPnlUsd != null) assets[existingIdx].unrealizedPnlUsd = ct.unrealizedPnlUsd;
+              if (ct.realizedPnlPct != null) assets[existingIdx].realizedPnlPct = ct.realizedPnlPct;
+              if (ct.unrealizedPnlPct != null) assets[existingIdx].unrealizedPnlPct = ct.unrealizedPnlPct;
+              if (ct.changeAbs1d != null) assets[existingIdx].changeAbs1d = ct.changeAbs1d;
+              if (ct.changePct1d != null) assets[existingIdx].changePct1d = ct.changePct1d;
             } else if (!existingContracts.has(dedupeKey) && ct.balance > 0 && ct.usdValue >= 10) {
               assets.push({ ...ct, chain: chainKey });
               existingContracts.add(dedupeKey);
@@ -12587,6 +12997,66 @@ const SMART_WALLETS_DATA = [
   { name: 'DeFi OG',          addr: '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B', chain: 'eth', label: 'Early DeFi Liquidity Provider', pnl: '+$95K',  pnlSub: '60d PnL', tags: ['USDC','AAVE','UNI'],   icon: '⚗️', type: 'DeFi' },
 ];
 
+const WA_EMPTY_MSG = 'No whale alerts yet — monitoring $50K+ transactions on ETH and Base';
+
+function waRenderAlertCard(row) {
+  const from = tdEscape(String(row.wallet_from || '—'));
+  const to = tdEscape(String(row.wallet_to || '—'));
+  const amt = Number(row.amount_usd);
+  const usd = Number.isFinite(amt) ? ('$' + Math.round(amt).toLocaleString('en-US')) : '—';
+  const token = tdEscape(String(row.token || '—'));
+  const chain = tdEscape(String(row.chain || '—'));
+  const tsRaw = row.timestamp ? new Date(row.timestamp) : null;
+  const ts = tsRaw && !isNaN(tsRaw.getTime())
+    ? tdEscape(tsRaw.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }))
+    : '—';
+  let cortex = String(row.cortex_insight || '').trim();
+  if (!cortex) cortex = '—';
+  cortex = tdEscape(cortex);
+  return `<div class="cl-card" style="margin-bottom:14px;padding:16px 18px;">
+    <div style="display:grid;gap:12px;font-size:13px;color:var(--cl-text-2);line-height:1.5;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div><span style="color:var(--cl-text-4);font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">wallet_from</span><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cl-text);word-break:break-all;margin-top:4px;">${from}</div></div>
+        <div><span style="color:var(--cl-text-4);font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">wallet_to</span><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cl-text);word-break:break-all;margin-top:4px;">${to}</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+        <div><span style="color:var(--cl-text-4);font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">amount_usd</span><div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#a78bfa;margin-top:4px;">${tdEscape(usd)}</div></div>
+        <div><span style="color:var(--cl-text-4);font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">token</span><div style="margin-top:4px;color:var(--cl-text);">${token}</div></div>
+        <div><span style="color:var(--cl-text-4);font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">chain</span><div style="margin-top:4px;color:var(--cl-text);">${chain}</div></div>
+      </div>
+      <div><span style="color:var(--cl-text-4);font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">timestamp</span><div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--cl-text);margin-top:4px;">${ts}</div></div>
+      <div style="padding:10px 12px;border-radius:8px;border:1px solid rgba(139,92,246,0.25);background:rgba(139,92,246,0.06);">
+        <span style="color:var(--cl-text-4);font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">cortex_insight</span>
+        <div style="margin-top:6px;font-size:12px;color:var(--cl-text-2);line-height:1.55;">${cortex}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function fetchAndRenderWhaleAlertsPage() {
+  const root = document.getElementById('wa-alerts-list');
+  if (!root) return;
+  const emptyHtml = `<div class="cl-card" style="text-align:center;padding:36px 20px;color:var(--cl-text-3);font-size:14px;line-height:1.65;max-width:520px;margin:0 auto;">${tdEscape(WA_EMPTY_MSG)}</div>`;
+  try {
+    const res = await fetch('/api/whale-alerts?limit=30');
+    const data = res.ok ? await res.json() : {};
+    const alerts = Array.isArray(data.alerts) ? data.alerts : [];
+    if (!alerts.length) {
+      root.innerHTML = emptyHtml;
+      return;
+    }
+    root.innerHTML = alerts.map((row) => waRenderAlertCard(row)).join('');
+  } catch (e) {
+    root.innerHTML = emptyHtml;
+  }
+}
+
+function loadWhaleAlertsPage() {
+  fetchAndRenderWhaleAlertsPage();
+  if (_waPageTimer) clearInterval(_waPageTimer);
+  _waPageTimer = setInterval(fetchAndRenderWhaleAlertsPage, 30000);
+}
+
 function loadSmartWallets() {
   const el = document.getElementById('sw-list');
   const chainColors = { eth: '#8b5cf6', bnb: '#f0b429', base: '#ec4899', btc: '#f7931a', sol: '#64ffda', polygon: '#8247e5', trx: '#ef476f' };
@@ -12733,6 +13203,92 @@ CONTEXT: [2 sentences on what this volume pattern means for price direction]`, 3
 // ══════════════════════════════════════════════
 // TOKEN SCANNER
 // ══════════════════════════════════════════════
+function tsParseGoPlusRow(gpJson, contractAddress) {
+  const addr = (contractAddress || '').toLowerCase();
+  if (!gpJson || gpJson.code !== 1 || !gpJson.result || !addr) return null;
+  const r = gpJson.result;
+  const row = r[addr];
+  return row && typeof row === 'object' ? row : null;
+}
+
+function tsGoPlusBool01(v) {
+  if (v === '1' || v === 1 || v === true) return true;
+  if (v === '0' || v === 0 || v === false) return false;
+  return null;
+}
+
+function tsGoPlusTaxPct(v) {
+  const n = parseFloat(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function tsGoPlusSummaryForAi(gpJson, contractAddress) {
+  const row = tsParseGoPlusRow(gpJson, contractAddress);
+  if (!row) {
+    if (!gpJson) return 'Request failed — no JSON.';
+    if (gpJson.code !== 1) return `API message: ${gpJson.message || 'error'} (code ${gpJson.code})`;
+    return 'No GoPlus row for this contract address.';
+  }
+  return [
+    'is_honeypot=' + row.is_honeypot,
+    'buy_tax=' + row.buy_tax,
+    'sell_tax=' + row.sell_tax,
+    'is_mintable=' + row.is_mintable,
+    'owner_address=' + (row.owner_address || ''),
+    'can_take_back_ownership=' + row.can_take_back_ownership
+  ].join(', ');
+}
+
+function tsRenderGoPlusCard(gpJson, contractAddress) {
+  if (!contractAddress) {
+    return '<div style="color:var(--cl-text-3);font-size:12px;">No Base contract resolved — use a 0x address or a token name that returns a Base pair.</div>';
+  }
+  if (!gpJson) {
+    return '<div style="color:#ef476f;font-size:12px;font-weight:700;">GoPlus security request failed.</div>';
+  }
+  if (gpJson.code !== 1) {
+    return '<div style="color:var(--cl-text-3);font-size:12px;">GoPlus: ' + String(gpJson.message || 'Error') + ' (code ' + String(gpJson.code) + ')</div>';
+  }
+  const row = tsParseGoPlusRow(gpJson, contractAddress);
+  if (!row) {
+    return '<div style="color:var(--cl-text-3);font-size:12px;">No GoPlus security data for this contract on Base.</div>';
+  }
+  const hp = tsGoPlusBool01(row.is_honeypot);
+  const buyT = tsGoPlusTaxPct(row.buy_tax);
+  const sellT = tsGoPlusTaxPct(row.sell_tax);
+  const mint = tsGoPlusBool01(row.is_mintable);
+  const takeBack = tsGoPlusBool01(row.can_take_back_ownership);
+  const owner = String(row.owner_address || '').trim();
+  const ownerShort = owner && owner.startsWith('0x') && owner.length > 12 ? owner.slice(0, 6) + '…' + owner.slice(-4) : (owner || '—');
+
+  const flags = [];
+  if (hp === true) flags.push('Possible honeypot (GoPlus)');
+  if (buyT != null && buyT > 5) flags.push('High buy tax: ' + buyT + '%');
+  if (sellT != null && sellT > 5) flags.push('High sell tax: ' + sellT + '%');
+  if (mint === true) flags.push('Token is mintable');
+  if (takeBack === true) flags.push('Ownership takeover risk (can_take_back_ownership)');
+
+  const rowStyle = (danger) => 'display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:12px;' + (danger ? 'background:rgba(239,71,111,0.06);margin:0 -8px;padding-left:8px;padding-right:8px;border-radius:6px;border-bottom:none;margin-bottom:4px;' : '');
+  const valColor = (danger) => danger ? '#ef476f' : 'var(--cl-text-2)';
+  const labelHtml = (k, v, danger) => '<div style="' + rowStyle(danger) + '"><span style="color:var(--cl-text-4);font-size:10px;text-transform:uppercase;letter-spacing:0.4px;font-weight:700;">' + k + '</span><span style="color:' + valColor(danger) + ';font-weight:700;text-align:right;font-family:\'JetBrains Mono\',monospace;word-break:break-all;">' + v + '</span></div>';
+
+  let body = '';
+  body += labelHtml('Honeypot', hp === true ? 'YES' : hp === false ? 'No' : String(row.is_honeypot ?? '—'), hp === true);
+  body += labelHtml('Buy tax', buyT != null ? buyT + '%' : String(row.buy_tax ?? '—'), buyT != null && buyT > 5);
+  body += labelHtml('Sell tax', sellT != null ? sellT + '%' : String(row.sell_tax ?? '—'), sellT != null && sellT > 5);
+  body += labelHtml('Mintable', mint === true ? 'YES' : mint === false ? 'No' : String(row.is_mintable ?? '—'), mint === true);
+  body += labelHtml('Owner', owner ? '<a href="https://basescan.org/address/' + owner + '" target="_blank" style="color:var(--cl-violet);">' + ownerShort + '</a>' : '—', false);
+  body += labelHtml('Can take back ownership', takeBack === true ? 'YES' : takeBack === false ? 'No' : String(row.can_take_back_ownership ?? '—'), takeBack === true);
+
+  const flagsHtml = flags.length
+    ? '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">' + flags.map(function (t) {
+      return '<span style="padding:4px 10px;border-radius:8px;background:rgba(239,71,111,0.12);border:1px solid rgba(239,71,111,0.45);color:#ef476f;font-size:10px;font-weight:800;font-family:\'JetBrains Mono\',monospace;">⚠ ' + t + '</span>';
+    }).join('') + '</div>'
+    : '<div style="font-size:11px;color:#64ffda;margin-bottom:12px;font-weight:700;">No critical flags from these GoPlus fields.</div>';
+
+  return flagsHtml + '<div style="max-width:720px;">' + body + '</div><div class="cl-ai-disclaimer" style="margin-top:12px;">GoPlus data. Not exhaustive. DYOR.</div>';
+}
+
 async function doTokenScanner() {
   const btn = document.getElementById('tsb');
   const btn2 = document.getElementById('tsb2');
@@ -12740,6 +13296,7 @@ async function doTokenScanner() {
   const deployerEl = document.getElementById('ts-deployer');
   const aiEl = document.getElementById('ts-ai');
   const socialEl = document.getElementById('ts-social');
+  const securityEl = document.getElementById('ts-security');
   const query = (document.getElementById('ts-input')?.value || '').trim();
 
   if (!query) {
@@ -12751,6 +13308,7 @@ async function doTokenScanner() {
   if (btn2) { btn2.disabled = true; btn2.innerHTML = '<span class="cl-spinner"></span>Scanning...'; }
   pairsEl.innerHTML = '<div style="text-align:center;padding:32px;color:var(--cl-text-3);font-size:12px;"><span class="cl-spinner"></span> Fetching DexScreener data...</div>';
   deployerEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--cl-text-3);font-size:12px;"><span class="cl-spinner"></span> Fetching Basescan data...</div>';
+  if (securityEl) securityEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--cl-text-3);font-size:12px;"><span class="cl-spinner"></span> Fetching GoPlus security...</div>';
   aiEl.innerHTML = '<span class="cl-spinner"></span> Analysing token...';
   if (socialEl) socialEl.innerHTML = '<span class="cl-spinner"></span> Fetching LunarCrush social signal...';
 
@@ -12853,16 +13411,26 @@ async function doTokenScanner() {
 
     const contractAddress = isAddress ? query : (bestPair?.baseToken?.address || null);
 
+    let gpJson = null;
     if (contractAddress) {
-      // Get contract deployer (creation tx)
       const creatorUrl = `https://api.basescan.org/api?module=contract&action=getcontractcreation&contractaddresses=${contractAddress}&apikey=ENV`;
-      const creatorR = await fetch('/api/scan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: creatorUrl })
-      });
+      const goplusUrl = 'https://api.gopluslabs.io/api/v1/token_security/8453?contract_addresses=' + encodeURIComponent(contractAddress);
+      const [creatorR, gpR] = await Promise.all([
+        fetch('/api/scan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: creatorUrl })
+        }),
+        fetch('/api/scan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: goplusUrl })
+        })
+      ]);
       const creatorData = creatorR.ok ? await creatorR.json() : null;
+      gpJson = gpR.ok ? await gpR.json() : null;
       deployerAddress = creatorData?.result?.[0]?.contractCreator || null;
+      if (securityEl) securityEl.innerHTML = tsRenderGoPlusCard(gpJson, contractAddress);
 
       if (deployerAddress) {
         // Get dev wallet token transfers for this token
@@ -12932,6 +13500,10 @@ async function doTokenScanner() {
       deployerEl.innerHTML = '<div style="color:var(--cl-text-3);font-size:12px;padding:16px;">No Base contract address found. Try scanning with a 0x address for full deployer data.</div>';
     }
 
+    if (!contractAddress && securityEl) {
+      securityEl.innerHTML = tsRenderGoPlusCard(null, null);
+    }
+
     // ── CORTEX AI Analysis ──
     const tokenName = bestPair?.baseToken?.name || bestPair?.baseToken?.symbol || query;
     const tokenSym = bestPair?.baseToken?.symbol || query.toUpperCase();
@@ -12944,22 +13516,39 @@ async function doTokenScanner() {
 
     const fmtN = v => v >= 1e9 ? '$'+(v/1e9).toFixed(2)+'B' : v >= 1e6 ? '$'+(v/1e6).toFixed(1)+'M' : v >= 1e3 ? '$'+(v/1e3).toFixed(0)+'K' : v ? '$'+v.toFixed(0) : '?';
     const devSellNote = deployerAddress ? `Dev wallet: ${deployerAddress.slice(0,6)}… | Dev transfers: ${devTransfers.length} txs` : 'Deployer data unavailable';
+    const goplusAiLine = tsGoPlusSummaryForAi(gpJson, contractAddress);
 
     const aiTxt = await ai(`You are ChainLens AI Token Scanner™ CORTEX analyst on Base chain.
 Token: ${tokenName} (${tokenSym}) | Contract: ${contractAddress || 'unknown'}
 Price: $${priceUsd} | 24h Change: ${chg24}% | Liquidity: ${fmtN(liqUsd)} | 24h Vol: ${fmtN(volUsd)} | FDV: ${fmtN(fdvUsd)}
 Active pairs on Base: ${pairCount} | ${devSellNote}
+GoPlus contract security (chain 8453): ${goplusAiLine}
 Live market: ${ctx()}
 Reply ONLY in this format:
 SAFETY: [SAFE / RISKY / RED FLAG — based on liquidity, FDV, dev activity]
 SIGNAL: [BULLISH / BEARISH / NEUTRAL — based on price action and volume]
-ANALYSIS: [2-3 sentences on token health, dev wallet risk, and liquidity depth]`, 350);
+GOPLUS_RISK: [exactly one sentence — smart-contract risk from the GoPlus line only; if GoPlus data is missing say so plainly]
+ANALYSIS: [2-3 sentences on token health, dev wallet risk, and liquidity depth]`, 420);
 
     const safetyMatch = aiTxt.match(/SAFETY:\s*(.+)/i);
     const signalMatch = aiTxt.match(/SIGNAL:\s*(\w+)/i);
+    const goplusRiskMatch = aiTxt.match(/GOPLUS_RISK:\s*(.+)/i);
     const analysisMatch = aiTxt.match(/ANALYSIS:\s*([\s\S]+)/i);
     const safety = (safetyMatch?.[1] || '').trim();
     const signal = (signalMatch?.[1] || 'NEUTRAL').toUpperCase().trim();
+    const goplusRiskLine = (goplusRiskMatch?.[1] || '').trim().replace(/GOPLUS_RISK:\s*/i, '').split(/\n/)[0].trim();
+    const rowGp = tsParseGoPlusRow(gpJson, contractAddress);
+    const goplusRiskColor = (() => {
+      if (!rowGp) return goplusRiskLine ? '#f0b429' : 'var(--cl-text-3)';
+      if (tsGoPlusBool01(rowGp.is_honeypot) === true) return '#ef476f';
+      if (tsGoPlusBool01(rowGp.is_mintable) === true) return '#ef476f';
+      if (tsGoPlusBool01(rowGp.can_take_back_ownership) === true) return '#ef476f';
+      const b = tsGoPlusTaxPct(rowGp.buy_tax);
+      const s = tsGoPlusTaxPct(rowGp.sell_tax);
+      if (b != null && b > 5) return '#ef476f';
+      if (s != null && s > 5) return '#ef476f';
+      return '#64ffda';
+    })();
     const safetyColor = safety.includes('RED') ? '#ef476f' : safety.includes('RISKY') ? '#f0b429' : '#64ffda';
     const sigColor = signal === 'BULLISH' ? '#64ffda' : signal === 'BEARISH' ? '#ef476f' : '#f0b429';
 
@@ -13034,12 +13623,15 @@ ANALYSIS: [2-3 sentences on token health, dev wallet risk, and liquidity depth]`
         <span style="background:${safetyColor}15;border:1px solid ${safetyColor}40;color:${safetyColor};border-radius:12px;padding:3px 10px;font-size:10px;font-weight:800;">🛡 ${safety || 'SCANNING'}</span>
         <span style="background:${sigColor}15;border:1px solid ${sigColor}40;color:${sigColor};border-radius:12px;padding:3px 10px;font-size:10px;font-weight:800;">⬡ ${signal}</span>
       </div>
+      ${goplusRiskLine ? `<div style="margin-bottom:12px;padding:10px 12px;border-radius:10px;border:1px solid rgba(239,71,111,0.22);background:rgba(139,92,246,0.06);"><span style="font-size:9px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;color:var(--cl-text-4);display:block;margin-bottom:4px;">CORTEX · GoPlus risk</span><span style="font-size:12px;font-weight:700;color:${goplusRiskColor};line-height:1.5;">${goplusRiskLine.replace(/</g, '&lt;')}</span></div>` : ''}
       ${analysisMatch ? `<div style="font-size:12px;color:var(--cl-text);line-height:1.6;">${analysisMatch[1].trim()}</div>` : ''}
       <div class="cl-ai-disclaimer" style="margin-top:10px;">Not financial advice. Always DYOR.</div>`;
 
   } catch(e) {
     pairsEl.innerHTML = `<div style="color:var(--cl-red);font-size:12px;padding:16px;">Error: ${e.message}</div>`;
     aiEl.innerHTML = '<div style="color:var(--cl-red);font-size:12px;">Analysis failed.</div>';
+    const secErr = document.getElementById('ts-security');
+    if (secErr) secErr.innerHTML = '<div style="color:var(--cl-red);font-size:12px;">GoPlus security unavailable (scan error).</div>';
   }
   if (btn) { btn.disabled = false; btn.textContent = 'Scan Token →'; }
   if (btn2) { btn2.disabled = false; btn2.textContent = 'Scan Token →'; }
@@ -13050,6 +13642,7 @@ ANALYSIS: [2-3 sentences on token health, dev wallet risk, and liquidity depth]`
 // ══════════════════════════════════════════════
 let _ptAllData = {}; // chain => tokens[]
 let _ptActiveChain = 'all';
+const _PT_CHAIN_KEYS = ['eth', 'bnb', 'base', 'polygon'];
 
 async function doPortfolioTracker() {
   const address = (document.getElementById('pt-address')?.value || '').trim();
@@ -13073,6 +13666,8 @@ async function doPortfolioTracker() {
 
     if (!r.ok) {
       const errData = await r.json().catch(() => ({}));
+      const pnlHide = document.getElementById('pt-pnl-card');
+      if (pnlHide) pnlHide.style.display = 'none';
       if (errData.code === 'MISSING_KEY' || errData.error?.includes('ZERION_KEY')) {
         holdingsEl.innerHTML = '<div style="color:var(--cl-red);font-size:12px;padding:16px;">Zerion API key not configured. Add ZERION_KEY to Vercel environment variables.</div>';
         aiEl.innerHTML = '<div style="color:var(--cl-red);font-size:12px;">API key missing.</div>';
@@ -13093,11 +13688,47 @@ async function doPortfolioTracker() {
     const chainCounts = {};
     let totalUsd = 0;
 
-    Object.entries(data).forEach(([chainKey, chainData]) => {
+    _PT_CHAIN_KEYS.forEach(chainKey => {
+      const chainData = data[chainKey];
       const tokens = (chainData?.tokens || []).filter(t => t.usdValue > 0.01);
       chainCounts[chainKey] = tokens.length;
       tokens.forEach(t => { allTokens.push({ ...t, chain: chainKey }); totalUsd += t.usdValue || 0; });
     });
+
+    const pnlCard = document.getElementById('pt-pnl-card');
+    const pnlHead = document.getElementById('pt-pnl-headline');
+    const pnlSub = document.getElementById('pt-pnl-sub');
+    const pw = data.pnlWallet;
+    const cpts = data.chartPoints;
+    const showChart = Array.isArray(cpts) && cpts.length >= 2;
+    const showPnlHead = pw && (Number.isFinite(pw.total_gain) || Number.isFinite(pw.unrealized_gain) || Number.isFinite(pw.realized_gain));
+    if (pnlCard && (showChart || showPnlHead)) {
+      pnlCard.style.display = 'block';
+      if (showPnlHead && pnlHead) {
+        const tg = pw.total_gain;
+        pnlHead.style.color = Number.isFinite(tg) ? pnlColor(tg) : 'var(--cl-text-3)';
+        const pct = pw.relative_total_gain_percentage;
+        pnlHead.textContent = (Number.isFinite(tg) ? fmtSignedUsd(tg) : '—') + (Number.isFinite(pct) ? ' · ' + fmtSignedPct(pct, 2) : '');
+      } else if (pnlHead && showChart) {
+        const vals = cpts.map(([, v]) => v).filter(v => typeof v === 'number' && Number.isFinite(v));
+        if (vals.length >= 2) {
+          const d = vals[vals.length - 1] - vals[0];
+          const p = vals[0] ? (d / vals[0]) * 100 : 0;
+          pnlHead.style.color = pnlColor(d);
+          pnlHead.textContent = fmtSignedUsd(d) + ' · ' + fmtSignedPct(p, 2) + ' (period vs start)';
+        }
+      }
+      if (pnlSub) {
+        if (showPnlHead) {
+          pnlSub.innerHTML = '<span style="color:' + pnlColor(pw.realized_gain) + ';font-weight:700;">Realised ' + fmtSignedUsd(pw.realized_gain) + (Number.isFinite(pw.relative_realized_gain_percentage) ? ' (' + fmtSignedPct(pw.relative_realized_gain_percentage, 1) + ')' : '') + '</span> · <span style="color:' + pnlColor(pw.unrealized_gain) + ';font-weight:700;">Unrealised ' + fmtSignedUsd(pw.unrealized_gain) + (Number.isFinite(pw.relative_unrealized_gain_percentage) ? ' (' + fmtSignedPct(pw.relative_unrealized_gain_percentage, 1) + ')' : '') + '</span>';
+        } else {
+          pnlSub.textContent = 'FIFO PnL from Zerion when available. Chart shows portfolio balance over the last month.';
+        }
+      }
+      if (showChart) requestAnimationFrame(() => ptDrawPortfolioChart('pt-chart-canvas', cpts));
+    } else if (pnlCard) {
+      pnlCard.style.display = 'none';
+    }
 
     allTokens.sort((a, b) => (b.usdValue || 0) - (a.usdValue || 0));
 
@@ -13156,6 +13787,8 @@ INSIGHT: [2 sentences on portfolio health, concentration risk, and any red flags
       <div class="cl-ai-disclaimer" style="margin-top:10px;">Not financial advice. Balances from Covalent API.</div>`;
 
   } catch(e) {
+    const pnlHide = document.getElementById('pt-pnl-card');
+    if (pnlHide) pnlHide.style.display = 'none';
     holdingsEl.innerHTML = `<div style="color:var(--cl-red);font-size:12px;padding:16px;">Error: ${e.message}</div>`;
     aiEl.innerHTML = '<div style="color:var(--cl-red);font-size:12px;">Analysis failed.</div>';
   }
@@ -13180,7 +13813,11 @@ function ptSetChain(chainKey, el) {
 
   let tokens = [];
   if (chainKey === 'all') {
-    Object.values(_ptAllData).forEach(cd => { (cd?.tokens || []).forEach(t => { if ((t.usdValue || 0) > 0.01) tokens.push(t); }); });
+    _PT_CHAIN_KEYS.forEach(ck => {
+      (_ptAllData[ck]?.tokens || []).forEach(t => {
+        if ((t.usdValue || 0) > 0.01) tokens.push({ ...t, chain: t.chain || ck });
+      });
+    });
   } else {
     tokens = (_ptAllData[chainKey]?.tokens || []).filter(t => (t.usdValue || 0) > 0.01);
   }
@@ -13208,6 +13845,8 @@ function ptRenderHoldings(tokens) {
           <th style="text-align:right;padding:6px 8px;">Balance</th>
           <th style="text-align:right;padding:6px 8px;">Price</th>
           <th style="text-align:right;padding:6px 8px;">Value</th>
+          <th style="text-align:right;padding:6px 8px;">Realised</th>
+          <th style="text-align:right;padding:6px 8px;">Unrealised</th>
           <th style="text-align:right;padding:6px 8px;">% of Portfolio</th>
         </tr>
       </thead>
@@ -13218,6 +13857,16 @@ function ptRenderHoldings(tokens) {
           const chainLabel = chainLabels[t.chain] || (t.chain || '?').toUpperCase();
           const priceFmt = t.price >= 1000 ? '$'+t.price.toLocaleString('en-US',{maximumFractionDigits:0}) : t.price >= 1 ? '$'+t.price.toFixed(4) : t.price > 0 ? '$'+t.price.toFixed(8) : '—';
           const barWidth = Math.max(1, Math.min(100, parseFloat(pct)));
+          const rlz = t.realizedPnlUsd;
+          const urlz = t.unrealizedPnlUsd;
+          const rlzP = t.realizedPnlPct;
+          const urlzP = t.unrealizedPnlPct;
+          const rlzCell = (typeof rlz === 'number' && Number.isFinite(rlz))
+            ? `<span style="color:${pnlColor(rlz)};font-weight:700;">${fmtSignedUsd(rlz)}</span>${typeof rlzP === 'number' && Number.isFinite(rlzP) ? '<div style="font-size:9px;color:' + pnlColor(rlzP) + ';font-weight:700;">' + fmtSignedPct(rlzP, 1) + '</div>' : ''}`
+            : (typeof t.changeAbs1d === 'number' && Number.isFinite(t.changeAbs1d) ? `<span style="color:${pnlColor(t.changeAbs1d)};font-size:10px;">24h ${fmtSignedUsd(t.changeAbs1d)}</span>` : '—');
+          const urlzCell = (typeof urlz === 'number' && Number.isFinite(urlz))
+            ? `<span style="color:${pnlColor(urlz)};font-weight:700;">${fmtSignedUsd(urlz)}</span>${typeof urlzP === 'number' && Number.isFinite(urlzP) ? '<div style="font-size:9px;color:' + pnlColor(urlzP) + ';font-weight:700;">' + fmtSignedPct(urlzP, 1) + '</div>' : ''}`
+            : (typeof t.changePct1d === 'number' && Number.isFinite(t.changePct1d) && !(typeof urlz === 'number' && Number.isFinite(urlz)) ? `<span style="color:${pnlColor(t.changePct1d)};font-size:10px;">${fmtSignedPct(t.changePct1d, 2)} 24h</span>` : '—');
           return `<tr style="border-bottom:1px solid rgba(255,255,255,0.03);">
             <td style="padding:7px 8px;">
               <div style="font-weight:600;color:var(--cl-text);">${t.symbol}</div>
@@ -13227,6 +13876,8 @@ function ptRenderHoldings(tokens) {
             <td style="padding:7px 8px;text-align:right;color:var(--cl-text-2);">${fmtBal(t.balance)}</td>
             <td style="padding:7px 8px;text-align:right;color:var(--cl-text-3);">${priceFmt}</td>
             <td style="padding:7px 8px;text-align:right;color:#64ffda;font-weight:700;">${fmtUsd(t.usdValue||0)}</td>
+            <td style="padding:7px 8px;text-align:right;vertical-align:top;">${rlzCell}</td>
+            <td style="padding:7px 8px;text-align:right;vertical-align:top;">${urlzCell}</td>
             <td style="padding:7px 8px;text-align:right;">
               <div style="display:flex;align-items:center;gap:6px;justify-content:flex-end;">
                 <div style="width:40px;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;"><div style="width:${barWidth}%;height:3px;background:#64ffda;border-radius:2px;"></div></div>
@@ -15117,6 +15768,63 @@ updateHeroTierLabel();
     initTrustCounters();
   }
 
+})();
+</script>
+
+<script type="module">
+(async () => {
+  const btn = document.getElementById('td-wallet-display');
+  try {
+    const { createAppKit } = await import('https://esm.sh/@reown/appkit@1.7.8');
+    const { EthersAdapter } = await import('https://esm.sh/@reown/appkit-adapter-ethers@1.7.8');
+    const n = await import('https://esm.sh/@reown/appkit@1.7.8/networks');
+    const networks = [n.mainnet, n.base, n.bsc, n.polygon].filter(Boolean);
+    const pidMeta = document.querySelector('meta[name="reown-project-id"]');
+    const projectId = (pidMeta && pidMeta.getAttribute('content') || '').trim() || 'b56e18d47c72ab683b10814fe9495694';
+    const origin = window.location.origin || '';
+    const modal = createAppKit({
+      adapters: [new EthersAdapter()],
+      networks,
+      metadata: {
+        name: 'ChainLens AI',
+        description: 'Onchain intelligence terminal',
+        url: origin || 'https://chainlens-vthirty.vercel.app',
+        icons: origin ? [origin + '/cl-logo.png'] : ['https://chainlens-vthirty.vercel.app/cl-logo.png'],
+      },
+      projectId,
+      featuredWalletIds: [
+        '171c86bb4ff1f6f1c5e8bad036a03513fe60501e40fffbf2a5221f7bf7b27c1a',
+        'fd20dc426fb37566d3032059fc2290c147a596c0',
+        '1ae92b26df02f0abca6304df07debccd18262fdf5fe82daa81593582dac9a369',
+        'b173189b098d05ecbe9aec5934653389362e8780346c3b57ebc131ef69013de2',
+      ],
+      features: {
+        analytics: false,
+        email: false,
+        socials: [],
+        swaps: false,
+        onramp: false,
+      },
+    });
+    window.__chainlensAppKit = modal;
+    if (btn) {
+      btn.addEventListener('click', () => modal.open({ view: 'Connect', namespace: 'eip155' }));
+    }
+    modal.subscribeProvider((state) => {
+      const addr = state && state.address;
+      const ok = state && state.isConnected && addr && /^0x[a-fA-F0-9]{40}$/i.test(String(addr));
+      if (ok && window.chainlensApplyConnectedEvmAddress) window.chainlensApplyConnectedEvmAddress(String(addr));
+    });
+    try {
+      const a = modal.getAddress && modal.getAddress();
+      if (a && /^0x[a-fA-F0-9]{40}$/i.test(String(a)) && window.chainlensApplyConnectedEvmAddress) {
+        window.chainlensApplyConnectedEvmAddress(String(a));
+      }
+    } catch (e) {}
+  } catch (e) {
+    console.error('[ChainLens AppKit]', e);
+    if (btn) btn.addEventListener('click', () => { if (typeof connectWallet === 'function') connectWallet(); });
+  }
 })();
 </script>
 

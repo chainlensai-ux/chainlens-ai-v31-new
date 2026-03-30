@@ -44,7 +44,8 @@ export default async function handler(req, res) {
     'deep-index.moralis.io',
     'token.jup.ag',
     'tokens.jup.ag',
-    'api.alternative.me'
+    'api.alternative.me',
+    'api.gopluslabs.io'
   ];
   if (!allowed.some(d => url.includes(d))) {
     return res.status(403).json({ error: 'Domain not allowed: ' + url });
