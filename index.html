@@ -7972,7 +7972,11 @@ function initTerminal() {
   _tdPumpTimer = setInterval(tdAddPumpItem, 30000);
   setTimeout(function() {
     if (!user && !window._connectedWallet && !localStorage.getItem('cl_wallet')) {
-      connectWallet();
+      if (typeof window.ethereum !== 'undefined') {
+        wmConnectMetaMask();
+      } else {
+        connectWallet();
+      }
     }
   }, 800);
 }
