@@ -7970,6 +7970,11 @@ function initTerminal() {
   // Live feed refresh timers
   if (_tdPumpTimer) clearInterval(_tdPumpTimer);
   _tdPumpTimer = setInterval(tdAddPumpItem, 30000);
+  setTimeout(function() {
+    if (!user && !window._connectedWallet && !localStorage.getItem('cl_wallet')) {
+      connectWallet();
+    }
+  }, 800);
 }
 
 function tdSetWidgetDebug(elId, text) {
