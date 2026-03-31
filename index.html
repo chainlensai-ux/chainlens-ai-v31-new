@@ -7441,6 +7441,7 @@ body::after {
         <div class="td-widget td-widget--wide">
           <div class="td-widget__header">
             <div class="td-widget__title"><span class="td-widget__title-dot"></span>Whale Moves</div>
+            <button class="td-widget__action" onclick="tdRenderWhales()">Refresh</button>
             <button class="td-widget__action" onclick="tdNavGo('smartwallets',null)">View All →</button>
           </div>
           <div class="td-widget__body">
@@ -7505,6 +7506,7 @@ body::after {
         <div class="td-widget">
           <div class="td-widget__header">
             <div class="td-widget__title"><span class="td-widget__title-dot"></span>Market Snapshot</div>
+            <button class="td-widget__action" onclick="tdRenderMarket()">Refresh</button>
             <button class="td-widget__action" onclick="tdNavGo('sentiment',null)">Sentiment →</button>
           </div>
           <div class="td-widget__body">
@@ -7958,18 +7960,12 @@ function initTerminal() {
 
   tdRenderPortfolio();
   tdDrawGauge();
-  tdRenderWhales();
   tdRenderPumps();
   tdRenderPositions();
-  tdRenderMarket();
 
   // Live feed refresh timers
-  if (_tdWhaleTimer) clearInterval(_tdWhaleTimer);
   if (_tdPumpTimer) clearInterval(_tdPumpTimer);
-  if (_tdMarketTimer) clearInterval(_tdMarketTimer);
-  _tdWhaleTimer = setInterval(tdAddWhaleItem, 30000);
   _tdPumpTimer = setInterval(tdAddPumpItem, 30000);
-  _tdMarketTimer = setInterval(tdRenderMarket, 60000);
 }
 
 function tdSetWidgetDebug(elId, text) {
