@@ -9852,7 +9852,7 @@ async function doAuth() {
     toast(`Welcome back, ${(user.name || 'Trader').split(' ')[0]}`);
     updateNav();
     syncAllDataDown();
-    showAuthAccountView(false);
+    closeAuth();
   }
   btn.disabled = false;
   btn.textContent = tab === 'signup' ? 'Create Account →' : 'Log In →';
