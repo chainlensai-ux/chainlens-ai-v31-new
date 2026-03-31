@@ -4366,7 +4366,7 @@ body::after {
 }
 </style>
 
-<script src="https://unpkg.com/@web3modal/standalone@2.4.1/dist/index.umd.js"></script>
+<script src="https://unpkg.com/@walletconnect/ethereum-provider@2.10.6/dist/index.umd.js"></script>
 </head>
 <body>
 
@@ -9754,28 +9754,28 @@ async function wmConnectMetaMask() {
 
 async function wmConnectWalletConnect() {
   try {
-    const modal = new window.Web3Modal.Web3Modal({
-      projectId: 'd30f54a5344f3be2e68e0c302e5c4a5b',
+    const WC_PROJECT_ID = 'd30f54a5344f3be2e68e0c302e5c4a5b';
+    const { EthereumProvider } = window.EthereumProvider || {};
+
+    const provider = await window.EthereumProvider.init({
+      projectId: WC_PROJECT_ID,
       chains: [1],
-      enableExplorer: true
+      showQrModal: true,
+      qrModalOptions: { themeMode: 'dark' }
     });
-    modal.openModal();
-    modal.subscribeModal(async (state) => {
-      if (!state.open) {
-        const provider = await modal.getWalletProvider();
-        if (provider) {
-          const accounts = await provider.request({ method: 'eth_requestAccounts' });
-          const address = accounts[0];
-          localStorage.setItem('cl_wallet', address);
-          window._connectedWallet = address;
-          document.getElementById('wallet-modal').classList.remove('open');
-          toast('Wallet connected: ' + address.slice(0,6) + '...' + address.slice(-4), 'ok');
-          updateNav();
-        }
-      }
-    });
+
+    await provider.enable();
+    const accounts = provider.accounts;
+    if (accounts && accounts[0]) {
+      const address = accounts[0];
+      localStorage.setItem('cl_wallet', address);
+      window._connectedWallet = address;
+      document.getElementById('wallet-modal').classList.remove('open');
+      toast('Wallet connected: ' + address.slice(0,6) + '...' + address.slice(-4), 'ok');
+      updateNav();
+    }
   } catch(e) {
-    toast('WalletConnect unavailable. Try MetaMask instead.', 'er');
+    toast('WalletConnect failed: ' + (e.message || 'Try MetaMask instead.'), 'er');
   }
 }
 
