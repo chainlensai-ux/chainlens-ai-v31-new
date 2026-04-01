@@ -56,5 +56,9 @@ export default async function handler(req, res) {
 
   const portfolioTotal = merged.reduce((sum, t) => t.source === 'merged' ? sum + (t.usdValue || 0) : sum, 0);
 
+  merged.forEach(token => {
+    console.log(`[walletscan] symbol=${token.symbol} usdValue=${token.usdValue} source=${token.source}`);
+  });
+
   return res.status(200).json({ success: true, tokens: merged, totalTokens: merged.length, portfolioTotal });
 }
