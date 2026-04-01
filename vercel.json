@@ -27,6 +27,7 @@
     "api/data.js": { "maxDuration": 10 },
     "api/claude.js": { "maxDuration": 30 },
     "api/scan.js": { "maxDuration": 15 },
+    "api/coingecko.js": { "maxDuration": 15 },
     "api/zerion.js": { "maxDuration": 15 },
     "api/covalent.js": { "maxDuration": 15 },
     "api/waitlist.js": { "maxDuration": 10 },

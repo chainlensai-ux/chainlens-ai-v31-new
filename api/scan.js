@@ -7,6 +7,7 @@ export default async function handler(req, res) {
   let { url, body, method } = req.body || {};
   if (!url) return res.status(400).json({ error: 'No URL provided' });
   const ESCAN = process.env.ETHERSCAN_KEY || '';
+  const BSCAN = process.env.BASESCAN_KEY || ESCAN;
   const MORALIS = process.env.MORALIS_KEY || '';
   const ALCHEMY = process.env.ALCHEMY_KEY || '';
   const isEtherscan = typeof url === 'string' && url.includes('api.etherscan.io');
@@ -23,7 +24,11 @@ export default async function handler(req, res) {
       error: 'ALCHEMY_KEY is not set on the server (Vercel env / local .env).'
     });
   }
-  if (ESCAN) url = url.replace(/apikey=ENV\b/g, () => `apikey=${encodeURIComponent(String(ESCAN).trim())}`);
+  if (typeof url === 'string' && url.includes('api.basescan.org') && BSCAN) {
+    url = url.replace(/apikey=ENV\b/g, () => `apikey=${encodeURIComponent(String(BSCAN).trim())}`);
+  } else if (ESCAN) {
+    url = url.replace(/apikey=ENV\b/g, () => `apikey=${encodeURIComponent(String(ESCAN).trim())}`);
+  }
   if (ALCHEMY) url = url.replace(/\/v2\/ENV\b/g, () => `/v2/${String(ALCHEMY).trim()}`);
   const allowed = [
     'api.etherscan.io',
