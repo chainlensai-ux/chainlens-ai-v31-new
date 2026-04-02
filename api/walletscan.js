@@ -21,7 +21,7 @@ export default async function handler(req, res) {
   }
 
   const goldRushTokens = goldRushRes.status === 'fulfilled' ? (goldRushRes.value?.data?.items || []) : [];
-  const zerionPositions = zerionRes.status === 'fulfilled' ? (zerionRes.value?.data || []) : [];
+  const zerionPositions = zerionPositionsRes.status === 'fulfilled' ? (zerionPositionsRes.value?.data || []) : [];
 
   const zerionMap = {};
   zerionPositions.forEach(p => {
