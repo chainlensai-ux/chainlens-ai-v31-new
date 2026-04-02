@@ -13140,7 +13140,6 @@ async function doWS() {
       top_tokens: top20,
       labels: data?.labels || []
     };
-    console.log("CLARK PAYLOAD:", JSON.stringify(walletData));
     fetch('/api/claude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
