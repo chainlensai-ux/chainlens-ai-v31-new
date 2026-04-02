@@ -8,7 +8,6 @@ export default async function handler(req, res) {
   if (!url) return res.status(400).json({ error: 'No URL provided' });
   const ESCAN = process.env.ETHERSCAN_KEY || '';
   const BSCAN = process.env.BASESCAN_KEY || ESCAN;
-  const MORALIS = process.env.MORALIS_KEY || '';
   const ALCHEMY = process.env.ALCHEMY_KEY || '';
   const isEtherscan = typeof url === 'string' && url.includes('api.etherscan.io');
   const isAlchemy = typeof url === 'string' && url.includes('g.alchemy.com');
@@ -42,8 +41,6 @@ export default async function handler(req, res) {
     'solana-mainnet.g.alchemy.com',
     'api.dexscreener.com',
     'api.coingecko.com',
-    'api.moralis.io',
-    'deep-index.moralis.io',
     'token.jup.ag',
     'tokens.jup.ag',
     'api.alternative.me',
@@ -53,13 +50,11 @@ export default async function handler(req, res) {
     return res.status(403).json({ error: 'Domain not allowed: ' + url });
   }
   try {
-    const isMoralis = typeof url === 'string' && (url.includes('api.moralis.io') || url.includes('deep-index.moralis.io'));
     const isAlchemyReq = typeof url === 'string' && url.includes('g.alchemy.com');
     const fetchOptions = {
       method: method || 'GET',
       headers: { 'Content-Type': 'application/json', 'User-Agent': 'ChainLens/1.0' }
     };
-    if (isMoralis && MORALIS) fetchOptions.headers['X-API-Key'] = String(MORALIS).trim();
     if (body) fetchOptions.body = typeof body === 'string' ? body : JSON.stringify(body);
     if (isAlchemyReq) {
       console.log('[scan] Alchemy request', {

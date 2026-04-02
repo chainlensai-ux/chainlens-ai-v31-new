@@ -12256,46 +12256,68 @@ function renderWSDefiPositions(rows) {
   }).join('') + '</div>';
 }
 
-async function fetchMoralisWalletScan(address, chainType) {
-  const base = 'https://deep-index.moralis.io/api/v2.2';
+async function fetchMoralisWalletScan(address, chainType, preloadedData) {
   const out = { holdings: [], txs: [], defi: [] };
+  const ZERION_CHAIN_MAP = { ethereum: 'eth', 'binance-smart-chain': 'bsc', base: 'base', polygon: 'polygon', solana: 'solana' };
   try {
-    if (chainType === 'evm') {
-      const chains = ['eth', 'base', 'bsc', 'polygon'];
-      const ZERION_CHAIN = { eth: 'eth', base: 'base', bsc: 'bnb', polygon: 'polygon' };
-      const zerionRaw = await fetch('/api/zerion?address=' + encodeURIComponent(address)).then(r => r.ok ? r.json() : null).catch(() => null);
-      const zerionData = zerionRaw ? parseZerionPositions(zerionRaw) : null;
-      for (const chain of chains) {
-        const [txs, defi] = await Promise.all([
-          moralisViaScan(`${base}/wallets/${address}/history?chain=${chain}&order=DESC`),
-          moralisViaScan(`${base}/wallets/${address}/defi/positions?chain=${chain}`)
-        ]);
-        const tokRows = zerionData ? (zerionData[ZERION_CHAIN[chain]]?.tokens || []) : [];
-        const txRows = Array.isArray(txs?.result) ? txs.result : [];
-        const defiRows = Array.isArray(defi?.result) ? defi.result : [];
-        out.holdings = out.holdings.concat(tokRows);
-        out.txs = out.txs.concat(txRows.map(t => mapMoralisTx(t, address, chain)));
-        out.defi = out.defi.concat(defiRows.map(d => ({ ...d, chain })));
-      }
-      if (zerionData?.totalUsd) out.totalUsd = zerionData.totalUsd;
-      out.holdings = out.holdings.filter(a => (a.balance || 0) > 0).sort((a, b) => (b.usdValue || 0) - (a.usdValue || 0));
-      out.txs = out.txs.sort((a, b) => (parseInt(b.timeStamp || 0, 10) - parseInt(a.timeStamp || 0, 10)));
-      return out;
+    let data = preloadedData;
+    if (!data) {
+      const r = await fetch('/api/walletscan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address })
+      });
+      if (!r.ok) return out;
+      data = await r.json();
     }
-    if (chainType === 'sol') {
-      const [tok, txs, defi] = await Promise.all([
-        moralisViaScan(`${base}/wallets/${address}/tokens?chain=solana`),
-        moralisViaScan(`${base}/wallets/${address}/history?chain=solana&order=DESC`),
-        moralisViaScan(`${base}/wallets/${address}/defi/positions?chain=solana`)
-      ]);
-      const tokRows = Array.isArray(tok?.result) ? tok.result : [];
-      const txRows = Array.isArray(txs?.result) ? txs.result : [];
-      const defiRows = Array.isArray(defi?.result) ? defi.result : [];
-      out.holdings = tokRows.map(t => mapMoralisToken(t, 'solana')).filter(a => (a.balance || 0) > 0);
-      out.txs = txRows.map(t => mapMoralisTx(t, address, 'solana')).sort((a, b) => (parseInt(b.timeStamp || 0, 10) - parseInt(a.timeStamp || 0, 10)));
-      out.defi = defiRows.map(d => ({ ...d, chain: 'solana' }));
-      return out;
+
+    // Transaction history — most recent 20 from Zerion
+    if (Array.isArray(data.transactions) && data.transactions.length) {
+      out.txs = data.transactions.slice(0, 20).map(tx => {
+        const attrs = tx?.attributes || {};
+        const ts = attrs.mined_at ? Math.floor(new Date(attrs.mined_at).getTime() / 1000) : 0;
+        const chain = ZERION_CHAIN_MAP[tx?.relationships?.chain?.data?.id || ''] || '';
+        const opType = attrs.operation_type || '';
+        const dir = opType === 'send' ? 'out' : opType === 'receive' ? 'in' : 'tx';
+        const sentTo = attrs.sent_to?.address || '';
+        const a = String(address || '').toLowerCase();
+        const transfers = Array.isArray(attrs.transfers) ? attrs.transfers : [];
+        const valUsd = Number((transfers[0] || {}).value || 0);
+        return {
+          from: dir === 'out' ? a : (sentTo || ''),
+          to: dir === 'out' ? (sentTo || '') : a,
+          value: String(Math.round(valUsd * 1e18)),
+          timeStamp: ts,
+          hash: attrs.hash || tx.id || '',
+          dir,
+          _chain: chain
+        };
+      });
+    } else if (chainType === 'evm' || chainType === 'sol') {
+      out._txUnavailable = true;
     }
+
+    // DeFi positions — filter for positions where type !== 'wallet'
+    if (Array.isArray(data.positions)) {
+      out.defi = data.positions
+        .filter(p => (p?.attributes?.position_type || '') !== 'wallet')
+        .map(p => {
+          const attrs = p?.attributes || {};
+          const chainId = p?.relationships?.chain?.data?.id || '';
+          return {
+            chain: ZERION_CHAIN_MAP[chainId] || chainId,
+            protocol_name: attrs.protocol?.name || attrs.protocol?.id || 'Protocol',
+            position_type: attrs.position_type || 'Position',
+            net_usd_value: Number(attrs.value) || 0
+          };
+        });
+    }
+
+    // Solana tokens from Helius
+    if (chainType === 'sol' && Array.isArray(data.solanaTokens) && data.solanaTokens.length) {
+      out.holdings = data.solanaTokens;
+    }
+
   } catch (e) {}
   return out;
 }
@@ -12800,7 +12822,7 @@ async function doWS() {
     if (chainType === 'evm') {
       document.getElementById('ws-total-sub').textContent = 'Loading portfolio context...';
       const [_moralis, _alchemy, _baseStats, _isDevWallet] = await Promise.all([
-        fetchMoralisWalletScan(address, chainType),
+        fetchMoralisWalletScan(address, chainType, data),
         fetchAlchemyWalletScan(address, chainType),
         fetchAlchemyBaseTxStats(address),
         wsDetectBaseDevWallet(address)
@@ -12814,7 +12836,7 @@ async function doWS() {
       }
       isDevWalletBase = _isDevWallet;
     } else if (chainType === 'sol') {
-      document.getElementById('ws-total-sub').textContent = 'Loading Moralis portfolio context...';
+      document.getElementById('ws-total-sub').textContent = 'Loading portfolio context...';
       moralisData = await fetchMoralisWalletScan(address, chainType);
     }
     document.getElementById('ws-total-value').textContent = fmtFx(zerionPortfolioTotalUsd || assets.filter(a => (a.usdValue || 0) > 0).reduce((s, a) => s + a.usdValue, 0));
@@ -13083,7 +13105,9 @@ async function doWS() {
       ...((alchemyData.txs && alchemyData.txs.length) ? alchemyData.txs : [])
     ].sort((a, b) => (parseInt(b.timeStamp || 0, 10) - parseInt(a.timeStamp || 0, 10)));
     document.getElementById('ws-all-assets').innerHTML = renderAllAssets(assetsForUI, txsForUI, address);
-    document.getElementById('ws-txs').innerHTML = renderAllTxs(txsForUI, address, chainType === 'evm' ? (selectedEvmChain || 'eth') : chainType);
+    document.getElementById('ws-txs').innerHTML = txsForUI.length
+      ? renderAllTxs(txsForUI, address, chainType === 'evm' ? (selectedEvmChain || 'eth') : chainType)
+      : '<div style="text-align:center;padding:20px;color:var(--cl-text-3);font-size:12px;font-family:\'Inter\',sans-serif;">Transaction history unavailable</div>';
     document.getElementById('ws-tx-count').textContent = (Number.isFinite(baseTxCount) ? baseTxCount : txsForUI.length) + ' transactions';
     document.getElementById('ws-defi').innerHTML = renderWSDefiPositions(moralisData.defi || []);
     document.getElementById('ws-defi-count').textContent = (moralisData.defi || []).length + ' positions';
