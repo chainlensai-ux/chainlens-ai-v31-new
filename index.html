@@ -13069,9 +13069,7 @@ async function doWS() {
       (alchemyData.holdings || []).forEach(pushRow);
       return merged;
     })();
-    const displayedTotal = assets.filter(a => a.usdValue > 0).reduce((sum, a) => sum + (a.usdValue || 0), 0);
-    console.log('assets total:', assets.reduce((s,a) => s + (a.usdValue||0), 0));
-    console.log('assets count:', assets.length);
+    const displayedTotal = assets.reduce((sum, a) => sum + (a.usdValue || 0), 0);
     document.getElementById('ws-total-value').textContent = fmtFx(displayedTotal);
     const txsForUI = [
       ...((moralisData.txs && moralisData.txs.length) ? moralisData.txs : allTxs),
