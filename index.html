@@ -13103,6 +13103,7 @@ async function doWS() {
       ...((moralisData.txs && moralisData.txs.length) ? moralisData.txs : allTxs),
       ...((alchemyData.txs && alchemyData.txs.length) ? alchemyData.txs : [])
     ].sort((a, b) => (parseInt(b.timeStamp || 0, 10) - parseInt(a.timeStamp || 0, 10)));
+    console.log('ASSETS FOR UI:', assetsForUI.filter(t => t.symbol === 'VIRTUAL'));
     document.getElementById('ws-all-assets').innerHTML = renderAllAssets(assetsForUI, txsForUI, address);
     document.getElementById('ws-txs').innerHTML = txsForUI.length
       ? renderAllTxs(txsForUI, address, chainType === 'evm' ? (selectedEvmChain || 'eth') : chainType)
