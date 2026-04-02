@@ -12743,7 +12743,7 @@ async function doWS() {
       // GoldRush + Zerion merged wallet pipeline
       try {
         document.getElementById('ws-total-sub').textContent = 'Running GoldRush + Zerion pipeline...';
-        const wsScan = await getWalletScanData(address, '8453');
+        data = await getWalletScanData(address, '8453');
         const stablecoinSymbols = new Set(['USDC', 'USDT', 'DAI', 'BUSD', 'FRAX', 'LUSD', 'USDC.E']);
         const isStablecoinSymbol = (symbol) => stablecoinSymbols.has(String(symbol || '').trim().toUpperCase());
         walletScanPortfolioTotal = Number(wsScan?.portfolioTotal) || 0;
