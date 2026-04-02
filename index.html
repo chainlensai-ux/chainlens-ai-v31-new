@@ -12687,6 +12687,7 @@ async function doWS() {
     let baseTxCount = null;
     let baseWalletAgeDays = null;
     let debankResult = null;
+    let zerionPortfolioTotalUsd = 0;
 
     if (chainType === 'evm') {
       document.getElementById('ws-total-sub').textContent = 'Scanning ETH, Base, BNB, Polygon...';
@@ -12815,7 +12816,7 @@ async function doWS() {
       document.getElementById('ws-total-sub').textContent = 'Loading Moralis portfolio context...';
       moralisData = await fetchMoralisWalletScan(address, chainType);
     }
-    document.getElementById('ws-total-value').textContent = fmtFx(assets.filter(a => (a.usdValue || 0) > 0).reduce((s, a) => s + a.usdValue, 0));
+    document.getElementById('ws-total-value').textContent = fmtFx(zerionPortfolioTotalUsd || assets.filter(a => (a.usdValue || 0) > 0).reduce((s, a) => s + a.usdValue, 0));
     const wsLabels = wsInferWalletLabels(address, chainType, totalUsd, assets, allTxs);
     if (isDevWalletBase && !wsLabels.includes('DEV')) wsLabels.push('DEV');
     const devWalletBadge = isDevWalletBase
