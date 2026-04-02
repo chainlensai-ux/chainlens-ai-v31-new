@@ -1,4 +1,16 @@
-const CLARK_SYSTEM = `You are Clark, ChainLens AI — the sharpest onchain analyst in the room.
+const CLARK_WALLET_SYSTEM = `You are Clark, ChainLens AI — the sharpest onchain analyst in the room.
+
+Personality and voice: confident, direct, data-driven. You state conclusions like a desk that already did the work. You never hedge with soft language.
+
+Hard rules:
+- Never say "I think", "I believe", "it might", "could be", "probably", "maybe", "perhaps", or similar uncertainty fillers. Replace them with the strongest supportable read from the data you have.
+- Lead the first sentence with the single most important signal or conclusion (price action, flow, risk, or opportunity).
+- Be concise and specific. Short paragraphs beat essays.
+- Ground every answer in real numbers, tickers, timeframes, levels, or on-chain facts whenever they appear in the user message or any context appended to it. Name the source when citing (e.g. CoinGecko price, DexScreener volume, LunarCrush sentiment, Etherscan / whale flow). If no data was supplied for a claim, say what is missing in one blunt line — do not fabricate metrics.
+- Treat the app as if you have already ingested live context from LunarCrush (sentiment), CoinGecko (prices), DexScreener (liquidity/volume/pairs), and Etherscan-style whale activity when those values are present in the prompt; prioritize them over generic crypto commentary.
+- End every reply with a clear actionable verdict: one line that says what to do, watch, or avoid (e.g. "Verdict: …").`;
+
+const CLARK_TOKEN_SYSTEM = `You are Clark, ChainLens AI — the sharpest onchain analyst in the room.
 
 Personality and voice: confident, direct, data-driven. You state conclusions like a desk that already did the work. You never hedge with soft language.
 
@@ -607,9 +619,27 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { prompt, max_tokens = 700 } = req.body;
+  const { prompt, max_tokens = 700, mode, walletData, tokenData } = req.body;
 
-  if (!prompt) {
+  const modeKey = String(mode || '').toLowerCase();
+  const activeMode = modeKey === 'wallet' || modeKey === 'token' ? modeKey : null;
+
+  let userMessage = prompt;
+  let systemPromptBase = CLARK_WALLET_SYSTEM;
+
+  if (activeMode === 'wallet') {
+    if (!walletData) return res.status(400).json({ error: 'walletData is required when mode is "wallet"' });
+    userMessage = `Analyze this wallet:
+${JSON.stringify(walletData, null, 2)}`;
+    systemPromptBase = CLARK_WALLET_SYSTEM;
+  } else if (activeMode === 'token') {
+    if (!tokenData) return res.status(400).json({ error: 'tokenData is required when mode is "token"' });
+    userMessage = `Analyze this token:
+${JSON.stringify(tokenData, null, 2)}`;
+    systemPromptBase = CLARK_TOKEN_SYSTEM;
+  }
+
+  if (!userMessage) {
     return res.status(400).json({ error: 'No prompt provided' });
   }
 
@@ -624,12 +654,12 @@ export default async function handler(req, res) {
 
   let liveContext = '';
   try {
-    liveContext = await buildLiveContextBlock(req, prompt);
+    liveContext = await buildLiveContextBlock(req, userMessage);
   } catch (e) {
     liveContext = 'LIVE_CONTEXT_FETCH_ERROR: ' + String(e.message || e);
   }
 
-  const system = `${CLARK_SYSTEM}
+  const system = `${systemPromptBase}
 
 ---
 LIVE CONTEXT (fetched server-side before this request; cite explicitly when using numbers below)
@@ -648,7 +678,7 @@ ${liveContext}
         model: 'claude-haiku-4-5-20251001',
         max_tokens,
         system,
-        messages: [{ role: 'user', content: prompt }],
+        messages: [{ role: 'user', content: userMessage }],
       }),
     });
 
