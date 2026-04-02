@@ -8,15 +8,85 @@ export default async function handler(req, res) {
 
   const GOLDRUSH_KEY = process.env.GOLDRUSH_API_KEY;
   const ZERION_KEY = process.env.ZERION_KEY;
+  const HELIUS_KEY = process.env.HELIUS_KEY;
 
-  const [goldRushRes, zerionPositionsRes, zerionPortfolioRes] = await Promise.allSettled([
+  const isSolana = !String(address).startsWith('0x');
+
+  const zerionAuth = `Basic ${Buffer.from(ZERION_KEY + ':').toString('base64')}`;
+  const zerionHeaders = { Authorization: zerionAuth, accept: 'application/json' };
+
+  // Always fetch Zerion transactions and DeFi positions (works for both EVM and Solana addresses)
+  const zerionTxUrl = `https://api.zerion.io/v1/wallets/${address}/transactions/?currency=usd&page[size]=20&sort=-operation_at`;
+  const zerionDefiUrl = `https://api.zerion.io/v1/wallets/${address}/positions/?filter[position_types]=deposited,staked,locked,borrowing&currency=usd&page[size]=100`;
+
+  const fetchZerionTxs = fetch(zerionTxUrl, { headers: zerionHeaders }).then(r => r.ok ? r.json() : null).catch(() => null);
+  const fetchZerionDefi = fetch(zerionDefiUrl, { headers: zerionHeaders }).then(r => r.ok ? r.json() : null).catch(() => null);
+
+  if (isSolana) {
+    // Solana path: Helius token accounts + Zerion transactions/DeFi positions
+    const heliusFetch = HELIUS_KEY
+      ? fetch(`https://mainnet.helius-rpc.com/?api-key=${HELIUS_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'getTokenAccountsByOwner',
+            params: [
+              address,
+              { programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' },
+              { encoding: 'jsonParsed' }
+            ]
+          })
+        }).then(r => r.ok ? r.json() : null).catch(() => null)
+      : Promise.resolve(null);
+
+    const [heliusData, zerionTxData, zerionDefiData] = await Promise.all([heliusFetch, fetchZerionTxs, fetchZerionDefi]);
+
+    const solanaTokenAccounts = Array.isArray(heliusData?.result?.value) ? heliusData.result.value : [];
+    const solanaTokens = solanaTokenAccounts
+      .map(acc => {
+        const info = acc?.account?.data?.parsed?.info || {};
+        const amount = info?.tokenAmount || {};
+        const balance = parseFloat(amount.uiAmountString || amount.uiAmount || 0);
+        if (!balance || balance <= 0) return null;
+        return {
+          mint: info.mint || '',
+          symbol: info.mint ? info.mint.slice(0, 6) : 'SPL',
+          name: info.mint || 'SPL Token',
+          balance,
+          decimals: Number(amount.decimals || 0),
+          usdValue: 0,
+          price: null,
+          chain: 'solana',
+          contractAddress: info.mint || ''
+        };
+      })
+      .filter(Boolean);
+
+    const transactions = Array.isArray(zerionTxData?.data) ? zerionTxData.data : [];
+    const positions = Array.isArray(zerionDefiData?.data) ? zerionDefiData.data : [];
+
+    return res.status(200).json({
+      success: true,
+      solanaTokens,
+      transactions,
+      positions,
+      totalTokens: solanaTokens.length
+    });
+  }
+
+  // EVM path: GoldRush + Zerion positions (wallet) + Zerion transactions + Zerion DeFi positions
+  const [goldRushRes, zerionPositionsRes, zerionPortfolioRes, zerionTxData, zerionDefiData] = await Promise.allSettled([
     fetch(`https://api.covalenthq.com/v1/${chainId}/address/${address}/balances_v2/?key=${GOLDRUSH_KEY}`).then(r => r.json()),
     fetch(`https://api.zerion.io/v1/wallets/${address}/positions/?filter[position_types]=wallet`, {
       headers: { Authorization: `Basic ${Buffer.from(ZERION_KEY + ':').toString('base64')}` }
     }).then(r => r.json()),
     fetch(`https://api.zerion.io/v1/wallets/${address}/portfolio/?currency=usd`, {
       headers: { Authorization: `Basic ${Buffer.from(ZERION_KEY + ':').toString('base64')}` }
-    }).then(r => r.json())
+    }).then(r => r.json()),
+    fetchZerionTxs,
+    fetchZerionDefi
   ]);
 
   if (goldRushRes.status === 'rejected' && zerionPositionsRes.status === 'rejected' && zerionPortfolioRes.status === 'rejected') {
@@ -58,10 +128,17 @@ export default async function handler(req, res) {
 
   merged.sort((a, b) => (b.usdValue || 0) - (a.usdValue || 0));
 
-
   merged.forEach(token => {
     console.log(`[walletscan] symbol=${token.symbol} usdValue=${token.usdValue} source=${token.source}`);
   });
 
-  return res.status(200).json({ portfolioTotal, tokens: merged, success: true, totalTokens: merged.length });
+  const transactions = zerionTxData?.status === 'fulfilled'
+    ? (Array.isArray(zerionTxData.value?.data) ? zerionTxData.value.data : [])
+    : (Array.isArray(zerionTxData?.data) ? zerionTxData.data : []);
+
+  const positions = zerionDefiData?.status === 'fulfilled'
+    ? (Array.isArray(zerionDefiData.value?.data) ? zerionDefiData.value.data : [])
+    : (Array.isArray(zerionDefiData?.data) ? zerionDefiData.data : []);
+
+  return res.status(200).json({ portfolioTotal, tokens: merged, transactions, positions, success: true, totalTokens: merged.length });
 }
