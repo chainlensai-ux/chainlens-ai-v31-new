@@ -13096,20 +13096,47 @@ async function doWS() {
     const lastTxDate = allTxs.length ? new Date(parseInt(allTxs[0].timeStamp||0)*1000).toLocaleDateString() : 'unknown';
     const topAssets = assets.filter(a => a.usdValue > 0).sort((a,b) => (b.usdValue||0)-(a.usdValue||0)).slice(0,5).map(a => a.symbol + ' $' + (a.usdValue||0).toFixed(0)).join(', ');
     const recentTxs = allTxs.slice(0,8).map(tx => { const isOut = tx.from && tx.from.toLowerCase() === address.toLowerCase(); return (tx.dir || (isOut ? 'OUT' : 'IN')) + ' ' + (tx.val || (parseFloat(fmtEth(tx.value||0)).toFixed(4) + 'ETH')); }).join(' | ');
-    const aiPrompt = [
-      'You are ChainLens AI WalletScan. Analyse this wallet behaviour.',
-      'WALLET: ' + address.slice(0,10) + '...',
-      'PORTFOLIO: ' + portfolioSummary,
-      'TOP ASSETS: ' + (topAssets || 'none'),
-      'DEGEN SCORE: ' + degenScore.score + '/100 (' + degenScore.label + ') - ' + degenScore.smallCapPct + '% small caps, ' + degenScore.activeChainCount + ' chains',
-      'ACTIVITY: ' + degenScore.txCount + ' txs, first ' + firstTxDate + ', last ' + lastTxDate,
-      'RECENT: ' + (recentTxs || 'none'),
-      'Reply in this EXACT format:',
-      'PATTERN: [wallet type: aper/accumulator/flipper/diamond hands + one sentence describing their strategy]',
-      'RISK: [risk level and main risk factor in one sentence]',
-      'INSIGHT: [one specific actionable insight based on their holdings and activity]'
-    ].join('\n');
-    ai(aiPrompt, 400).then(aiTxt => {
+    const walletScanResult = {
+      address,
+      chainType,
+      scan: data || null,
+      portfolioSummary,
+      topAssets,
+      recentTxs,
+      firstTxDate,
+      lastTxDate,
+      degenScore,
+      walletType,
+      copySignal,
+      flags,
+      walletAge,
+      walletAgeDays,
+      wsLabels,
+      isDevWalletBase,
+      cortex,
+      displayedTotal,
+      assets,
+      assetsForUI,
+      txsForUI,
+      moralisData,
+      alchemyData,
+      baseTxCount,
+      zerionPortfolioTotalUsd,
+      debankResult
+    };
+    fetch('/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mode: 'wallet',
+        walletData: walletScanResult,
+        max_tokens: 400
+      })
+    })
+      .then(r => r.json())
+      .then(d => {
+        if (d.error) throw new Error(d.error);
+        const aiTxt = d.text || '';
       const aiEl = document.getElementById('ws-ai');
       if (!aiEl) return;
       aiEl.classList.remove('ws-terminal--active');
@@ -13125,7 +13152,8 @@ async function doWS() {
       } else {
         aiEl.innerHTML = `<div style="white-space:pre-wrap;color:rgba(255,255,255,0.72);">${aiTxt.replace(/</g,'&lt;')}</div><div class="cl-ai-disclaimer" style="margin-top:12px;">Read-only scan of public blockchain data. Not financial advice.</div>`;
       }
-    }).catch(() => {
+    })
+    .catch(() => {
       const aiEl = document.getElementById('ws-ai');
       if (aiEl) { aiEl.classList.remove('ws-terminal--active'); aiEl.textContent = 'AI analysis unavailable.'; }
     });
@@ -13715,17 +13743,46 @@ async function doTokenScanner() {
     const devSellNote = deployerAddress ? `Dev wallet: ${deployerAddress.slice(0,6)}… | Dev transfers: ${devTransfers.length} txs` : 'Deployer data unavailable';
     const goplusAiLine = tsGoPlusSummaryForAi(gpJson, contractAddress);
 
-    const aiTxt = await ai(`You are ChainLens AI Token Scanner™ CORTEX analyst on Base chain.
-Token: ${tokenName} (${tokenSym}) | Contract: ${contractAddress || 'unknown'}
-Price: $${priceUsd} | 24h Change: ${chg24}% | Liquidity: ${fmtN(liqUsd)} | 24h Vol: ${fmtN(volUsd)} | FDV: ${fmtN(fdvUsd)}
-Active pairs on Base: ${pairCount} | ${devSellNote}
-GoPlus contract security (chain 8453): ${goplusAiLine}
-Live market: ${ctx()}
-Reply ONLY in this format:
-SAFETY: [SAFE / RISKY / RED FLAG — based on liquidity, FDV, dev activity]
-SIGNAL: [BULLISH / BEARISH / NEUTRAL — based on price action and volume]
-GOPLUS_RISK: [exactly one sentence — smart-contract risk from the GoPlus line only; if GoPlus data is missing say so plainly]
-ANALYSIS: [2-3 sentences on token health, dev wallet risk, and liquidity depth]`, 420);
+    const tokenScanData = {
+      query,
+      contractAddress,
+      tokenName,
+      tokenSymbol: tokenSym,
+      bestPair,
+      allPairs,
+      basePairs,
+      displayPairs,
+      pairCount,
+      metrics: {
+        priceUsd,
+        change24hPct: chg24,
+        liquidityUsd: liqUsd,
+        volume24hUsd: volUsd,
+        fdvUsd
+      },
+      deployer: {
+        address: deployerAddress,
+        short: deployerAddress ? deployerAddress.slice(0,6) + '…' + deployerAddress.slice(-4) : null,
+        transferCount: devTransfers.length,
+        transfers: devTransfers
+      },
+      goplus: gpJson,
+      goplusSummary: goplusAiLine,
+      devSellNote
+    };
+
+    const aiResp = await fetch('/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mode: 'token',
+        tokenData: tokenScanData,
+        max_tokens: 420
+      })
+    });
+    const aiJson = await aiResp.json();
+    if (aiJson.error) throw new Error(aiJson.error);
+    const aiTxt = aiJson.text || '';
 
     const safetyMatch = aiTxt.match(/SAFETY:\s*(.+)/i);
     const signalMatch = aiTxt.match(/SIGNAL:\s*(\w+)/i);
