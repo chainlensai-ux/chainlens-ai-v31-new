@@ -13126,11 +13126,16 @@ async function doWS() {
     renderSavedWallets();
 
   } catch(e) {
-    document.getElementById('ws-total-value').textContent = 'Error';
-    document.getElementById('ws-total-sub').textContent = e.message;
-    const _aiErrEl = document.getElementById('ws-ai');
-    if (_aiErrEl) { _aiErrEl.classList.remove('ws-terminal--active'); _aiErrEl.textContent = 'Scan failed: ' + e.message; }
-    toast(e.message, 'er');
+    const wsErrMsg = String(e && e.message ? e.message : e || 'Unknown error');
+    if (/\bterminate is not a function\b/i.test(wsErrMsg)) {
+      console.warn('Wallet scan worker terminate skipped:', wsErrMsg);
+    } else {
+      document.getElementById('ws-total-value').textContent = 'Error';
+      document.getElementById('ws-total-sub').textContent = wsErrMsg;
+      const _aiErrEl = document.getElementById('ws-ai');
+      if (_aiErrEl) { _aiErrEl.classList.remove('ws-terminal--active'); _aiErrEl.textContent = 'Scan failed: ' + wsErrMsg; }
+      toast(wsErrMsg, 'er');
+    }
   }
   btn.disabled = false; btn.textContent = 'SCAN';
 }
