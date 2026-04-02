@@ -13069,8 +13069,8 @@ async function doWS() {
       (alchemyData.holdings || []).forEach(pushRow);
       return merged;
     })();
-    // Use assets-only sum for displayed portfolio total.
-    document.getElementById('ws-total-value').textContent = fmtFx(assets.reduce((sum, a) => sum + (parseFloat(a.usdValue) || 0), 0));
+    const displayedTotal = assets.reduce((sum, a) => sum + (a.usdValue || 0), 0);
+    document.getElementById('ws-total-value').textContent = fmtFx(displayedTotal);
     const txsForUI = [
       ...((moralisData.txs && moralisData.txs.length) ? moralisData.txs : allTxs),
       ...((alchemyData.txs && alchemyData.txs.length) ? alchemyData.txs : [])
