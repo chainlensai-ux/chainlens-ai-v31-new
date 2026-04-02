@@ -123,16 +123,28 @@ export default async function handler(req, res) {
       const usdValue = zerionMatch != null ? (zerionMatch.attributes?.value ?? 0) : 0;
       const price = zerionMatch != null ? (zerionMatch.attributes?.price ?? 0) : 0;
       const isUnindexed = !zerionMatch;
+      const source = isUnindexed ? 'goldrush_only' : 'merged';
+      let finalUsdValue = usdValue;
+      let finalPrice = price;
+      if (source === 'goldrush_only' && finalUsdValue === 0) {
+        if (token.quote && token.quote > 0) {
+          finalUsdValue = token.quote;
+        }
+        const balance = parseFloat(token.balance) / Math.pow(10, token.contract_decimals || 0);
+        if (finalPrice === 0 && token.quote && token.quote > 0 && balance > 0) {
+          finalPrice = token.quote / balance;
+        }
+      }
       return {
         symbol: token.contract_ticker_symbol,
         name: token.contract_name,
         contractAddress: token.contract_address,
         balance: token.balance,
         decimals: token.contract_decimals,
-        usdValue,
-        price,
+        usdValue: finalUsdValue,
+        price: finalPrice,
         chain: chainId,
-        source: isUnindexed ? 'goldrush_only' : 'merged',
+        source,
         isLowCap: isUnindexed,
         isNewOrUnindexed: isUnindexed
       };
