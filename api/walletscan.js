@@ -123,6 +123,7 @@ export default async function handler(req, res) {
   if (zerionPortfolioRes.status === 'fulfilled') {
     const attrs = zerionPortfolioRes.value?.data?.attributes;
     const chainDist = attrs?.positions_distribution_by_chain;
+    console.log('[walletscan] positions_distribution_by_chain:', JSON.stringify(chainDist));
     const zerionChainName = CHAIN_ID_TO_ZERION_NAME[String(chainId)];
     if (chainDist && zerionChainName && chainDist[zerionChainName] != null) {
       portfolioTotal = chainDist[zerionChainName];
@@ -138,7 +139,7 @@ export default async function handler(req, res) {
   });
 
   const merged = goldRushTokens
-    .filter(token => (token.quote || 0) >= 0.01)
+    .filter(token => (token.quote || 0) >= 0.01 && token.contract_ticker_symbol && token.contract_address)
     .map(token => {
       const ca = (token.contract_address || '').toLowerCase();
       const zerionMatch = zerionMap[ca];
