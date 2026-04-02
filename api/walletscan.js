@@ -139,7 +139,7 @@ export default async function handler(req, res) {
         symbol: token.contract_ticker_symbol,
         name: token.contract_name,
         contractAddress: token.contract_address,
-        balance: token.balance,
+        balance: parseFloat(token.balance) / Math.pow(10, token.contract_decimals || 0),
         decimals: token.contract_decimals,
         usdValue: finalUsdValue,
         price: finalPrice,
