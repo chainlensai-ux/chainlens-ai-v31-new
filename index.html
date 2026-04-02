@@ -10358,6 +10358,45 @@ function wsMapEvmTx(tx, chain, kind) {
   return out;
 }
 
+function wsTxKey(tx) {
+  const chain = String(tx?._chain || '').toLowerCase();
+  const hash = String(tx?.hash || '').toLowerCase();
+  const from = String(tx?.from || '').toLowerCase();
+  const to = String(tx?.to || '').toLowerCase();
+  const ts = String(tx?.timeStamp || tx?.time || 0);
+  const value = String(tx?.value || 0);
+  const asset = String(tx?._assetSymbol || '');
+  return [chain, hash, from, to, ts, value, asset].join('|');
+}
+
+function wsMergeTxs() {
+  const seen = new Set();
+  const out = [];
+  for (const list of arguments) {
+    const rows = Array.isArray(list) ? list : [];
+    rows.forEach(tx => {
+      const key = wsTxKey(tx);
+      if (seen.has(key)) return;
+      seen.add(key);
+      out.push(tx);
+    });
+  }
+  return out.sort((a, b) => parseInt(b.timeStamp || b.time || 0, 10) - parseInt(a.timeStamp || a.time || 0, 10));
+}
+
+function wsMapEvmTx(tx, chain, kind) {
+  const out = { ...tx, _chain: chain };
+  if (kind === 'token') {
+    const decimals = parseInt(tx.tokenDecimal || 18, 10) || 18;
+    const rawVal = parseFloat(tx.value || 0);
+    const assetAmount = rawVal / Math.pow(10, decimals);
+    out._assetSymbol = tx.tokenSymbol || 'TOKEN';
+    out._assetAmount = Number.isFinite(assetAmount) ? assetAmount : 0;
+    out.value = '0';
+  }
+  return out;
+}
+
 async function fetchAllTxsEVM(address, chain) {
   const cfg = EVM_CHAINS[chain] || EVM_CHAINS.eth;
   try {
@@ -10819,14 +10858,14 @@ function renderAllTxs(txs, address, chain) {
     const amountLabel = assetSymbol && assetAmount > 0
       ? (assetAmount >= 1 ? assetAmount.toFixed(4) : assetAmount.toPrecision(4)) + ' ' + assetSymbol
       : (val > 0 ? val.toFixed(4) + ' ' + nativeSym : 'Contract');
-    return `<div data-dir="${isOut?'out':'in'}" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
-      <div style="width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0;border:1px solid ${isOut?'rgba(239,71,111,0.5)':'rgba(100,255,218,0.5)'};background:${isOut?'rgba(239,71,111,0.08)':'rgba(100,255,218,0.08)'};color:${isOut?'#ef476f':'#64ffda'};">${isOut?'OUT':'IN'}</div>
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(120,88,192,0.08);">
+      <div style="width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0;${isOut?'background:rgba(239,71,111,0.12);color:#ef476f;border:1px solid rgba(239,71,111,0.2);':'background:rgba(0,255,200,0.1);color:#00ffc8;border:1px solid rgba(0,255,200,0.2);'}">${isOut?'OUT':'IN'}</div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:11px;font-weight:600;font-family:'JetBrains Mono',monospace;color:var(--cl-text-2);">${isOut?'To: '+fmtAddr(tx.to):'From: '+fmtAddr(tx.from)}</div>
         <div style="font-size:10px;color:var(--cl-text-3);">${chainLabel} · ${fmtAge(tx.timeStamp||tx.time||0)}</div>
       </div>
       <div style="text-align:right;flex-shrink:0;">
-        <div style="font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${isOut?'#ef476f':'#64ffda'};">${amountLabel}</div>
+        <div style="font-size:12px;font-weight:700;color:${isOut?'#ef476f':'#00ffc8'};">${amountLabel}</div>
         ${(!assetSymbol && val>0)?`<div style="font-size:10px;color:var(--cl-text-3);">${fmtFx(val*nativeUsdPrice)}</div>`:''}
       </div>
     </div>`;
