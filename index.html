@@ -8243,7 +8243,7 @@ async function tdLoadBtcDominanceStat() {
 async function tdFetchScreenerData() {
   tdSetScreenerLoading();
   try {
-    const res = await fetch('https://api.dexscreener.com/latest/dex/pairs/base');
+    const res = await fetch('/api/scan', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ url: 'https://api.dexscreener.com/latest/dex/search?q=base&rankBy=trendingScoreH24', method: 'GET' }) });
     const data = await res.json();
     const pairs = Array.isArray(data?.pairs) ? data.pairs : [];
     _tdScreenerData = pairs
