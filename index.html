@@ -8340,6 +8340,7 @@ function initTerminal() {
   }
 
   tdInitScreener();
+  doBaseScreener();
 
   // Live feed refresh timers
   if (_tdPumpTimer) clearInterval(_tdPumpTimer);
@@ -13877,9 +13878,21 @@ function bsFormatPrice(price) {
 
 async function doBaseScreener() {
   console.log('SCREENER FETCH STARTING');
-  const tbody = document.getElementById('bs-tbody');
-  if (!tbody) { console.error('bs-tbody not found'); return; }
-  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--cl-text-3);font-size:13px;"><span class="cl-spinner"></span> Fetching live Base chain data...</td></tr>';
+  const bsTbody = document.getElementById('bs-tbody');
+  const tdTbody = document.getElementById('td-screener-body');
+  const tbody = bsTbody || tdTbody;
+  if (!tbody) { console.error('No screener tbody found (bs-tbody/td-screener-body)'); return; }
+  const isTerminalTable = tbody.id === 'td-screener-body';
+  const colspan = isTerminalTable ? 9 : 6;
+  const fmtMoney = (n) => {
+    const v = Number(n || 0);
+    if (!isFinite(v) || v <= 0) return '—';
+    if (v >= 1e9) return '$' + (v / 1e9).toFixed(2) + 'B';
+    if (v >= 1e6) return '$' + (v / 1e6).toFixed(2) + 'M';
+    if (v >= 1e3) return '$' + (v / 1e3).toFixed(2) + 'K';
+    return '$' + v.toFixed(2);
+  };
+  tbody.innerHTML = `<tr><td colspan="${colspan}" style="text-align:center;padding:32px;color:var(--cl-text-3);font-size:13px;"><span class="cl-spinner"></span> Fetching live Base chain data...</td></tr>`;
 
   try {
     const r = await fetch('/api/scan', {
@@ -13901,7 +13914,7 @@ async function doBaseScreener() {
     console.log('RENDERING PAIRS:', pairs.length);
 
     if (!pairs.length) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--cl-text-3);">No tokens matched the filter criteria.</td></tr>';
+      tbody.innerHTML = `<tr><td colspan="${colspan}" style="text-align:center;padding:32px;color:var(--cl-text-3);">No tokens matched the filter criteria.</td></tr>`;
       return;
     }
 
@@ -13922,6 +13935,22 @@ async function doBaseScreener() {
       const bsColor = buys > sells ? '#2DD4BF' : (sells > buys ? '#ef476f' : 'rgba(255,255,255,0.5)');
       const trendColor = changeUp ? '#2DD4BF' : '#ec4899';
       const barWidth = Math.min(Math.abs(change), 100);
+      const mcap = pair.fdv || pair.marketCap || 0;
+      const vol24 = pair.volume?.h24 || 0;
+
+      if (isTerminalTable) {
+        return '<tr>'
+          + '<td><span class="td-chain-pill">BASE</span></td>'
+          + '<td><div class="td-token"><span class="td-token-name"><strong>' + name + '</strong><span>' + symbol + '</span></span></div></td>'
+          + '<td>$' + bsFormatPrice(price) + '</td>'
+          + '<td class="' + (changeUp ? 'td-pos' : 'td-neg') + '">' + changeFmt + '</td>'
+          + '<td>' + fmtMoney(mcap) + '</td>'
+          + '<td>' + fmtMoney(vol24) + '</td>'
+          + '<td class="' + (buys >= sells ? 'td-bs-pos' : 'td-bs-neg') + '">' + buys.toLocaleString() + ' / ' + sells.toLocaleString() + '</td>'
+          + '<td>' + age + '</td>'
+          + '<td><div class="td-trend"><span style="width:' + barWidth + '%;background:' + trendColor + ';"></span></div></td>'
+          + '</tr>';
+      }
 
       return '<tr class="bs-row">'
         + '<td><div style="font-size:13px;font-weight:700;color:#fff;line-height:1.2;">' + name + '</div>'
@@ -13935,7 +13964,7 @@ async function doBaseScreener() {
     }).join('');
   } catch(err) {
     console.log('SCREENER ERROR:', err);
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:#ef476f;font-size:13px;">Failed to load data: ' + err.message + '</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="${colspan}" style="text-align:center;padding:32px;color:#ef476f;font-size:13px;">Failed to load data: ${err.message}</td></tr>`;
   }
 }
 
