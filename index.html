@@ -13878,9 +13878,9 @@ function bsFormatPrice(price) {
 
 async function doBaseScreener() {
   console.log('SCREENER FETCH STARTING');
-  const bsTbody = document.getElementById('bs-tbody');
-  const tdTbody = document.getElementById('td-screener-body');
-  const tbody = bsTbody || tdTbody;
+  const primaryTbody = document.getElementById('td-screener-body');
+  const fallbackTbody = document.getElementById('bs-tbody');
+  const tbody = primaryTbody || fallbackTbody;
   if (!tbody) { console.error('No screener tbody found (bs-tbody/td-screener-body)'); return; }
   const isTerminalTable = tbody.id === 'td-screener-body';
   const colspan = isTerminalTable ? 9 : 6;
@@ -13898,17 +13898,18 @@ async function doBaseScreener() {
     const r = await fetch('/api/scan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: 'https://api.dexscreener.com/latest/dex/search?q=base&rankBy=trendingScoreH24', method: 'GET' })
+      body: JSON.stringify({ url: 'https://api.dexscreener.com/latest/dex/tokens/list?chainId=base', method: 'GET' })
     });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const d = await r.json();
     console.log('RAW DEXSCREENER RESPONSE:', JSON.stringify(d).slice(0, 500));
     console.log('PAIRS COUNT:', (d.pairs || []).length);
-    let pairs = (d.pairs || [])
-      .filter(p => p.baseToken && p.baseToken.name.length <= 40)
-      .filter(p => (p.volume?.h24 || 0) >= 100)
-      .sort((a, b) => (b.volume?.h24 || 0) - (a.volume?.h24 || 0))
-      .slice(0, 25);
+    let pairs = (d.pairs || d.tokens || [])
+      .filter((p) => String(p.chainId || '').toLowerCase() === 'base')
+      .filter((p) => Number(p.volume?.h24 || 0) > 10000)
+      .filter((p) => Number(p.liquidity?.usd || 0) > 5000)
+      .sort((a, b) => Number(b.volume?.h24 || 0) - Number(a.volume?.h24 || 0))
+      .slice(0, 20);
     console.log('AFTER FILTER COUNT:', pairs.length);
     console.log('FIRST PAIR:', JSON.stringify(pairs[0]));
     console.log('RENDERING PAIRS:', pairs.length);
