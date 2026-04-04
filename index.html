@@ -4292,20 +4292,20 @@ body::after {
   min-height: 0;
   flex: 1;
 }
-.td-screener__head, .td-screener__filters {
-  padding: 10px 14px;
+.td-trending__head {
+  padding: 12px 16px;
   border-bottom: 1px solid rgba(255,255,255,0.06);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
 }
-.td-screener__title {
+.td-trending__title {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.56);
+  color: #fff;
+  font-weight: 700;
 }
 .td-live-badge {
   margin-left: 8px;
@@ -4316,33 +4316,54 @@ body::after {
   background: rgba(217,70,239,0.15);
   border-radius: 999px;
   padding: 2px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
-.td-time-tabs{display:flex;gap:6px;}
-.td-time-tab{
-  border:none;background:transparent;color:rgba(255,255,255,0.45);font-family:'IBM Plex Mono',monospace;font-size:10px;cursor:pointer;padding:4px 6px;border-radius:6px;
+.td-live-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #d946ef;
+  display: inline-block;
+  animation: td-pulse 1.5s infinite;
 }
-.td-time-tab.active{color:#fff;text-decoration:underline;text-decoration-color:#8b5cf6;text-underline-offset:5px;text-decoration-thickness:2px;}
-.td-filter-group{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-.td-filter-pill,.td-filter-btn{
-  height:28px;padding:0 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.02);color:rgba(255,255,255,0.72);font-size:11px;
+.td-trending__update {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: rgba(255,255,255,0.32);
 }
-.td-table-wrap{flex:1;}
-.td-token-table{width:100%;border-collapse:collapse;}
-.td-token-table th{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.28);text-align:left;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.08);}
-.td-token-table td{padding:11px 12px;height:44px;font-size:12px;color:#fff;border-bottom:1px solid rgba(255,255,255,0.04);font-family:'IBM Plex Mono',monospace;}
-.td-token-table tbody tr:nth-child(odd){background:rgba(255,255,255,0.015);}
-.td-token-table tbody tr:hover{background:rgba(255,255,255,0.03);}
-.td-token{display:flex;align-items:center;gap:8px;}
-.td-token-initial{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;font-family:'IBM Plex Mono',monospace;}
-.td-chain-pill{display:inline-flex;align-items:center;justify-content:center;padding:3px 8px;border-radius:999px;border:1px solid rgba(45,212,191,0.32);background:rgba(45,212,191,0.12);color:#2DD4BF;font-size:10px;font-family:'IBM Plex Mono',monospace;}
-.td-token-name{display:flex;flex-direction:column;line-height:1.1;}
-.td-token-name strong{font-family:'Inter',sans-serif;font-size:12px;color:#fff;font-weight:700;}
-.td-token-name span{color:rgba(255,255,255,0.5);font-size:11px;}
-.td-trend{width:50px;height:7px;background:rgba(255,255,255,0.08);border-radius:999px;overflow:hidden;}
-.td-trend>span{display:block;height:100%;}
+.td-trending__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 10px;
+  padding: 14px;
+  overflow-y: auto;
+  flex: 1;
+}
+.td-trending-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.td-trending-card:hover {
+  border-color: rgba(139,92,246,0.5);
+  box-shadow: 0 0 0 1px rgba(139,92,246,0.25);
+}
+.td-tc-name { font-family:'Inter',sans-serif; font-size:13px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.td-tc-symbol { font-family:'IBM Plex Mono',monospace; font-size:10px; color:rgba(45,212,191,0.7); }
+.td-tc-price { font-family:'IBM Plex Mono',monospace; font-size:14px; font-weight:600; color:#fff; margin-top:4px; }
+.td-tc-change { font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; }
+.td-tc-vol { font-family:'IBM Plex Mono',monospace; font-size:10px; color:rgba(255,255,255,0.4); }
+.td-tc-bar { height:3px; background:rgba(255,255,255,0.06); border-radius:999px; overflow:hidden; margin-top:6px; }
+.td-tc-bar > span { display:block; height:100%; border-radius:999px; }
+.td-skeleton-card { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:16px; display:flex; flex-direction:column; gap:8px; min-height:110px; }
 .td-pos{color:#2DD4BF;}.td-neg{color:#f43f5e;}
 .td-bs-pos{color:#2DD4BF;}.td-bs-neg{color:#f43f5e;}
-.td-skeleton-row td{padding:14px 12px;}
 .td-skeleton{height:10px;border-radius:6px;background:linear-gradient(90deg,rgba(255,255,255,0.05),rgba(255,255,255,0.12),rgba(255,255,255,0.05));background-size:200% 100%;animation:td-shimmer 1.3s infinite;}
 .td-stats-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
 .td-stat-card{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:16px;}
@@ -7648,34 +7669,14 @@ WALLETCONNECT
         </section>
 
         <section class="td-screener">
-          <div class="td-screener__head">
-            <div><span class="td-screener__title">Token Screener</span><span class="td-live-badge">LIVE</span></div>
-            <div class="td-time-tabs" id="td-time-tabs">
-              <button class="td-time-tab" data-time="m5">5m</button>
-              <button class="td-time-tab" data-time="m10">10m</button>
-              <button class="td-time-tab" data-time="h1">1h</button>
-              <button class="td-time-tab" data-time="h6">6h</button>
-              <button class="td-time-tab active" data-time="h24">24h</button>
-              <button class="td-time-tab" data-time="d7">7D</button>
+          <div class="td-trending__head">
+            <div>
+              <span class="td-trending__title">🔥 TRENDING ON BASE</span>
+              <span class="td-live-badge"><span class="td-live-dot"></span>LIVE</span>
             </div>
+            <span class="td-trending__update">Updates every 5 min</span>
           </div>
-          <div class="td-screener__filters">
-            <div class="td-filter-group">
-              <select class="td-filter-pill"><option>Base</option></select>
-              <select class="td-filter-pill"><option>All Caps</option></select>
-              <select class="td-filter-pill"><option>Sectors</option></select>
-              <select class="td-filter-pill"><option>Token Age</option></select>
-              <button class="td-filter-btn">+ Filter</button>
-            </div>
-          </div>
-          <div class="td-table-wrap">
-            <table class="td-token-table">
-              <thead>
-                <tr><th>Chain</th><th>Token</th><th>Price</th><th>24H</th><th>MCap</th><th>Volume</th><th>Buys/Sells</th><th>Age</th><th>Trend</th></tr>
-              </thead>
-              <tbody id="td-screener-body"></tbody>
-            </table>
-          </div>
+          <div class="td-trending__grid" id="td-trending-grid"></div>
         </section>
         <section class="td-stats-grid">
           <div class="td-stat-card">
@@ -8093,8 +8094,7 @@ function tdSearch(q) {
 }
 
 
-let _tdScreenerData = [];
-let _tdActiveTime = 'h24';
+let _tdTrendingData = [];
 
 function tdUsePromptChip(text) {
   const input = document.getElementById('td-hero-input');
@@ -8132,63 +8132,40 @@ function tdFmtPrice(v) {
   return '$' + n.toLocaleString(undefined, { maximumFractionDigits: 2 });
 }
 
-function tdSetScreenerLoading() {
-  const body = document.getElementById('td-screener-body');
-  if (!body) return;
-  body.innerHTML = Array.from({ length: 8 }).map(() => '<tr class="td-skeleton-row">' +
-    '<td><div class="td-skeleton"></div></td>'.repeat(9) + '</tr>').join('');
+function tdRenderTrendingSkeletons() {
+  const grid = document.getElementById('td-trending-grid');
+  if (!grid) return;
+  grid.innerHTML = Array.from({ length: 10 }).map(() =>
+    '<div class="td-skeleton-card">' +
+    '<div class="td-skeleton" style="width:60%;height:12px;"></div>' +
+    '<div class="td-skeleton" style="width:30%;height:8px;"></div>' +
+    '<div class="td-skeleton" style="width:50%;height:14px;margin-top:4px;"></div>' +
+    '<div class="td-skeleton" style="width:40%;height:8px;"></div>' +
+    '<div class="td-skeleton" style="width:100%;height:3px;margin-top:6px;"></div>' +
+    '</div>'
+  ).join('');
 }
 
-function tdScreenerSortVal(item, key) {
-  if (key === 'm5') return Math.abs(item.m5Vol || 0);
-  if (key === 'm10') return Math.abs(item.m10Vol || 0);
-  if (key === 'h1') return Math.abs(item.h1Vol || 0);
-  if (key === 'h6') return Math.abs(item.h6Vol || 0);
-  if (key === 'd7') return Math.abs(item.d7Vol || 0);
-  return Math.abs(item.h24Vol || 0);
-}
-
-function tdTokenInitialColor(seedText) {
-  const seed = String(seedText || 'T');
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) hash = seed.charCodeAt(i) + ((hash << 5) - hash);
-  const hue = Math.abs(hash) % 360;
-  return 'hsl(' + hue + ' 65% 42%)';
-}
-
-function tdPairAge(ts) {
-  const created = Number(ts || 0);
-  if (!created) return '—';
-  const deltaMs = Date.now() - created;
-  if (!isFinite(deltaMs) || deltaMs <= 0) return '0d';
-  const day = 24 * 60 * 60 * 1000;
-  const month = 30 * day;
-  if (deltaMs < 7 * day) return Math.max(1, Math.floor(deltaMs / day)) + 'd';
-  if (deltaMs < month) return Math.max(1, Math.floor(deltaMs / (7 * day))) + 'w';
-  return Math.max(1, Math.floor(deltaMs / month)) + 'm';
-}
-
-function tdRenderScreenerRows() {
-  const body = document.getElementById('td-screener-body');
-  if (!body) return;
-  const rows = [..._tdScreenerData].sort((a, b) => tdScreenerSortVal(b, _tdActiveTime) - tdScreenerSortVal(a, _tdActiveTime)).slice(0, 20);
-
-  body.innerHTML = rows.map((r) => {
-    const change24 = Number(r.change24 || 0);
-    const trendPct = Math.max(6, Math.min(100, Math.abs(change24)));
-    const initial = (r.name || 'T').charAt(0).toUpperCase();
-    const buysDominant = (r.buys || 0) > (r.sells || 0);
-    return `<tr>
-      <td><span class="td-chain-pill">BASE</span></td>
-      <td><div class="td-token"><span class="td-token-initial" style="background:${tdTokenInitialColor(r.symbol || r.name)}">${initial}</span><span class="td-token-name"><strong>${r.name}</strong><span>${r.symbol}</span></span></div></td>
-      <td>${tdFmtPrice(r.price)}</td>
-      <td class="${change24 >= 0 ? 'td-pos' : 'td-neg'}">${change24 >= 0 ? '+' : ''}${change24.toFixed(2)}%</td>
-      <td>${tdFmtMoney(r.mcap)}</td>
-      <td>${tdFmtMoney(r.h24Vol)}</td>
-      <td class="${buysDominant ? 'td-bs-pos' : 'td-bs-neg'}">${Number(r.buys || 0).toLocaleString()} / ${Number(r.sells || 0).toLocaleString()}</td>
-      <td>${tdPairAge(r.pairCreatedAt)}</td>
-      <td><div class="td-trend"><span style="width:${trendPct}%;background:${change24 >= 0 ? '#2DD4BF' : '#d946ef'}"></span></div></td>
-    </tr>`;
+function tdRenderTrendingCards() {
+  const grid = document.getElementById('td-trending-grid');
+  if (!grid) return;
+  if (!_tdTrendingData.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;padding:32px;text-align:center;font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:rgba(255,255,255,0.35);">Unable to load trending data</div>';
+    return;
+  }
+  grid.innerHTML = _tdTrendingData.map((t) => {
+    const up = t.change24 >= 0;
+    const changeColor = up ? '#2DD4BF' : '#f43f5e';
+    const barColor = up ? '#2DD4BF' : '#ec4899';
+    const barPct = Math.max(4, Math.min(100, Math.abs(t.change24)));
+    return `<div class="td-trending-card">
+      <div class="td-tc-name">${t.name}</div>
+      <div class="td-tc-symbol">${t.symbol}</div>
+      <div class="td-tc-price">${tdFmtPrice(t.price)}</div>
+      <div class="td-tc-change" style="color:${changeColor}">${up ? '+' : ''}${t.change24.toFixed(2)}%</div>
+      <div class="td-tc-vol">Vol ${tdFmtMoney(t.vol24)}</div>
+      <div class="td-tc-bar"><span style="width:${barPct}%;background:${barColor};"></span></div>
+    </div>`;
   }).join('');
 }
 
@@ -8223,12 +8200,12 @@ function tdLoadTopGainerStat() {
   const val = document.getElementById('td-stat-gainer');
   const sub = document.getElementById('td-stat-gainer-sub');
   if (!val) return;
-  if (!_tdScreenerData.length) {
+  if (!_tdTrendingData.length) {
     val.textContent = '—';
     if (sub) sub.textContent = 'No Base pairs matched current filters.';
     return;
   }
-  const top = [..._tdScreenerData].sort((a, b) => (b.change24 || 0) - (a.change24 || 0))[0];
+  const top = [..._tdTrendingData].sort((a, b) => (b.change24 || 0) - (a.change24 || 0))[0];
   const pct = Number(top?.change24 || 0);
   val.textContent = top?.name || '—';
   if (sub) sub.innerHTML = `<span style="color:#2DD4BF;">${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%</span> · ${top?.symbol || ''}`;
@@ -8247,72 +8224,47 @@ async function tdLoadBtcDominanceStat() {
   }
 }
 
-async function tdFetchScreenerData() {
-  tdSetScreenerLoading();
+async function tdFetchTrendingTokens() {
+  tdRenderTrendingSkeletons();
   try {
-    const res = await fetch('/api/scan', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ url: 'https://api.dexscreener.com/latest/dex/search?q=VIRTUAL,DEGEN,BRETT,TOSHI,AERO,HIGHER,MOCHI,KEYCAT', method: 'GET' }) });
+    const res = await fetch('/api/scan', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        url: 'https://api.dexscreener.com/latest/dex/search?q=VIRTUAL,DEGEN,BRETT,TOSHI,AERO,HIGHER,MOCHI,KEYCAT,BALD,NORMIE',
+        method: 'GET'
+      })
+    });
     const data = await res.json();
     const pairs = Array.isArray(data?.pairs) ? data.pairs : [];
-    _tdScreenerData = pairs
-      .filter((p) => {
-        const name = String(p?.baseToken?.name || '');
-        const symbol = String(p?.baseToken?.symbol || '');
-        const volume24 = Number(p?.volume?.h24 || 0);
-        const lname = name.toLowerCase();
-        return (
-          name.length <= 25 &&
-          volume24 >= 5000 &&
-          !symbol.toUpperCase().includes('USD') &&
-          !lname.includes('brian') &&
-          !lname.includes('coinbase')
-        );
-      })
-      .map((p) => {
-        const tx24 = p.txns?.h24 || {};
-        return {
-          name: p.baseToken?.name || 'Unknown',
-          symbol: p.baseToken?.symbol || '—',
-          price: Number(p.priceUsd || 0),
-          change24: Number(p.priceChange?.h24 || 0),
-          mcap: Number(p.fdv || 0),
-          h24Vol: Number(p.volume?.h24 || 0),
-          liq: Number(p.liquidity?.usd || 0),
-          buys: Number(tx24.buys || 0),
-          sells: Number(tx24.sells || 0),
-          pairCreatedAt: Number(p.pairCreatedAt || 0),
-          m5Vol: Number(p.volume?.m5 || 0),
-          m10Vol: Number(p.volume?.m5 || 0) * 2,
-          h1Vol: Number(p.volume?.h1 || 0),
-          h6Vol: Number(p.volume?.h6 || 0),
-          d7Vol: Number(p.volume?.h24 || 0) * 7
-        };
-      })
-      .sort((a, b) => (b.h24Vol || 0) - (a.h24Vol || 0));
-    tdRenderScreenerRows();
+    _tdTrendingData = pairs
+      .filter((p) => p.chainId === 'base')
+      .sort((a, b) => Number(b.volume?.h24 || 0) - Number(a.volume?.h24 || 0))
+      .slice(0, 10)
+      .map((p) => ({
+        name: p.baseToken?.name || 'Unknown',
+        symbol: p.baseToken?.symbol || '—',
+        price: Number(p.priceUsd || 0),
+        change24: Number(p.priceChange?.h24 || 0),
+        vol24: Number(p.volume?.h24 || 0)
+      }));
+    tdRenderTrendingCards();
     tdLoadTopGainerStat();
   } catch (e) {
-    const body = document.getElementById('bs-tbody');
-    if (body) body.innerHTML = '<tr><td colspan="9" style="color:rgba(255,255,255,.55);padding:16px;">Failed to load DexScreener Base data.</td></tr>';
+    const grid = document.getElementById('td-trending-grid');
+    if (grid) grid.innerHTML = '<div style="grid-column:1/-1;padding:32px;text-align:center;font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:rgba(255,255,255,0.35);">Unable to load trending data</div>';
   }
 }
 
-function tdInitScreener() {
+function tdInitTrending() {
   const tier = document.getElementById('td-hero-tier');
   if (tier) {
     const plan = (user?.plan || 'free');
     tier.textContent = plan.charAt(0).toUpperCase() + plan.slice(1);
   }
-  document.querySelectorAll('.td-time-tab').forEach((btn) => {
-    btn.onclick = () => {
-      document.querySelectorAll('.td-time-tab').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      _tdActiveTime = btn.dataset.time || 'h24';
-      tdRenderScreenerRows();
-    };
-  });
   tdLoadSentimentStat();
   tdLoadBtcDominanceStat();
-  tdFetchScreenerData();
+  tdFetchTrendingTokens();
 }
 
 function initTerminal() {
@@ -8339,15 +8291,11 @@ function initTerminal() {
     }
   }
 
-  tdInitScreener();
-  tdFetchScreenerData();
-  if (typeof doBaseScreener === 'function') {
-    doBaseScreener();
-  }
+  tdInitTrending();
 
   // Live feed refresh timers
   if (_tdPumpTimer) clearInterval(_tdPumpTimer);
-  _tdPumpTimer = setInterval(tdFetchScreenerData, 60000);
+  _tdPumpTimer = setInterval(tdFetchTrendingTokens, 300000);
   setTimeout(function() {
     if (!user && !window._connectedWallet && !localStorage.getItem('cl_wallet')) {
       if (typeof window.ethereum !== 'undefined') {
