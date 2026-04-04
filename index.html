@@ -13880,8 +13880,8 @@ function bsFormatPrice(price) {
 
 async function doBaseScreener() {
   console.log('SCREENER FETCH STARTING');
-  const primaryTbody = document.getElementById('bs-tbody');
-  const fallbackTbody = document.getElementById('td-screener-body');
+  const primaryTbody = document.getElementById('td-screener-body');
+  const fallbackTbody = document.getElementById('bs-tbody');
   const tbody = primaryTbody || fallbackTbody;
   if (!tbody) { console.error('No screener tbody found (bs-tbody/td-screener-body)'); return; }
   const isTerminalTable = tbody.id === 'td-screener-body';
