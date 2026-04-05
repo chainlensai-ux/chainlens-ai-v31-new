@@ -4359,6 +4359,7 @@ body::after {
 .td-tc-price { font-family:'IBM Plex Mono',monospace; font-size:14px; font-weight:600; color:#fff; margin-top:4px; }
 .td-tc-change { font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; }
 .td-tc-vol { font-family:'IBM Plex Mono',monospace; font-size:10px; color:rgba(255,255,255,0.4); }
+.td-tc-mcap { font-family:'IBM Plex Mono',monospace; font-size:10px; color:rgba(255,255,255,0.3); }
 .td-tc-bar { height:3px; background:rgba(255,255,255,0.06); border-radius:999px; overflow:hidden; margin-top:6px; }
 .td-tc-bar > span { display:block; height:100%; border-radius:999px; }
 .td-skeleton-card { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:16px; display:flex; flex-direction:column; gap:8px; min-height:110px; }
@@ -8164,6 +8165,7 @@ function tdRenderTrendingCards() {
       <div class="td-tc-price">${tdFmtPrice(t.price)}</div>
       <div class="td-tc-change" style="color:${changeColor}">${up ? '+' : ''}${t.change24h.toFixed(2)}%</div>
       <div class="td-tc-vol">Vol ${tdFmtMoney(t.vol24)}</div>
+      ${t.mcap > 0 ? `<div class="td-tc-mcap">MC ${t.mcap >= 1e9 ? '$' + (t.mcap/1e9).toFixed(2) + 'B' : t.mcap >= 1e6 ? '$' + (t.mcap/1e6).toFixed(1) + 'M' : t.mcap >= 1e3 ? '$' + (t.mcap/1e3).toFixed(0) + 'K' : '$' + t.mcap.toFixed(0)}</div>` : ''}
       <div class="td-tc-bar"><span style="width:${barPct}%;background:${barColor};"></span></div>
     </div>`;
   }).join('');
@@ -8255,7 +8257,8 @@ async function tdFetchTrendingTokens() {
         symbol: p.baseToken?.symbol || '—',
         price: Number(p.priceUsd || 0),
         change24h: Number(p.priceChange?.h24 || 0),
-        vol24: Number(p.volume?.h24 || 0)
+        vol24: Number(p.volume?.h24 || 0),
+        mcap: Number(p.fdv || p.marketCap || 0)
       }));
 
     tdRenderTrendingCards();
