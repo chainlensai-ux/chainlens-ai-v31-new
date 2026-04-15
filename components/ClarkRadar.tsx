@@ -1,5 +1,7 @@
 'use client'
 
+import type { ReactNode } from 'react'
+
 const LIVE_SIGNALS = [
   { pair: 'BRETT/WETH', chain: 'Base', change: '+18.4%', signal: 'BUY', up: true },
   { pair: 'TOSHI/WETH', chain: 'Base', change: '+6.2%', signal: 'WATCH', up: true },
@@ -26,7 +28,7 @@ const AI_NOTES = [
   'BTC dominance rising — alt momentum may slow in 24–48h.',
 ]
 
-function PanelSection({ title, children }: { title: string; children: React.ReactNode }) {
+function PanelSection({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="border-b border-white/[0.06] last:border-none">
       <div className="px-4 pt-4 pb-2">

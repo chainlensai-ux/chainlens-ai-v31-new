@@ -66,7 +66,7 @@ export default function ClarkChat({ active, toolLabel }: Props) {
     if (!active || active === prevActive.current) return
     prevActive.current = active
     const lines = STARTERS[active] ?? []
-    setMsgs(prev => [
+    setMsgs((prev: Msg[]) => [
       ...prev,
       { type: 'system', text: `[TOOL] Switched to: ${toolLabel}` },
       ...lines,
@@ -81,7 +81,7 @@ export default function ClarkChat({ active, toolLabel }: Props) {
     const q = input.trim()
     if (!q || busy) return
     setInput('')
-    setMsgs(prev => [...prev, { type: 'user', text: q }])
+    setMsgs((prev: Msg[]) => [...prev, { type: 'user', text: q }])
     setBusy(true)
     try {
       const res = await fetch('/api/claude', {
@@ -94,9 +94,9 @@ export default function ClarkChat({ active, toolLabel }: Props) {
       })
       const data = await res.json()
       const reply = (data.text || '').trim() || 'CORTEX is processing — try again in a moment.'
-      setMsgs(prev => [...prev, { type: 'clark', text: reply }])
+      setMsgs((prev: Msg[]) => [...prev, { type: 'clark', text: reply }])
     } catch {
-      setMsgs(prev => [...prev, { type: 'system', text: '[ERROR] CORTEX unreachable — check connection.' }])
+      setMsgs((prev: Msg[]) => [...prev, { type: 'system', text: '[ERROR] CORTEX unreachable — check connection.' }])
     } finally {
       setBusy(false)
     }
