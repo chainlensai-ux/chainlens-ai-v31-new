@@ -10,6 +10,7 @@ import Topbar from "@/components/Topbar";
 export default function TerminalPage() {
   const [selectedFeature, setSelectedFeature] = useState<string | null>("token-scanner");
 
+export default function TerminalPage() {
   return (
     <main className="h-screen bg-[#06060a] text-white">
       <div className="flex h-full">
