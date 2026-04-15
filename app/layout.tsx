@@ -1,19 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter, IBM_Plex_Mono } from 'next/font/google'
 import './globals.css'
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-})
-
-const ibmPlexMono = IBM_Plex_Mono({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-mono',
-  display: 'swap',
-})
 
 export const metadata: Metadata = {
   title: 'ChainLens AI — Crypto Intelligence Platform',
@@ -23,8 +9,19 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${ibmPlexMono.variable}`}>
-      <body style={{ background: '#06060a', color: '#fff', fontFamily: 'var(--font-inter), Inter, sans-serif', overflowX: 'hidden' }}>
+    <html lang="en">
+      <body
+        style={
+          {
+            '--font-inter': 'Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif',
+            '--font-mono': '"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+            background: '#06060a',
+            color: '#fff',
+            fontFamily: 'var(--font-inter), Inter, sans-serif',
+            overflowX: 'hidden',
+          } as React.CSSProperties
+        }
+      >
         {children}
       </body>
     </html>
