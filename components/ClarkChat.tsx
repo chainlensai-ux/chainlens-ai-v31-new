@@ -10,19 +10,19 @@ const STARTERS: Record<string, Array<{ type: 'system' | 'clark'; text: string }>
   'token-scanner': [
     { type: 'system', text: '[SCAN] Token scanner initialised.' },
     { type: 'system', text: '[AI] CORTEX contract analysis ready.' },
-    { type: 'clark', text: 'Paste a contract address and I\'ll break down token structure, holder distribution, and risk flags.' },
+    { type: 'clark', text: "Paste a contract address and I'll break down token structure, holder distribution, and risk flags." },
   ],
   'wallet-scanner': [
     { type: 'system', text: '[SCAN] Wallet profiler ready. Chains: ETH · BNB · Base · SOL · BTC' },
-    { type: 'clark', text: 'Drop any wallet address and I\'ll build a full profile — holdings, PnL, degen score, and smart money signals.' },
+    { type: 'clark', text: "Drop any wallet address and I'll build a full profile — holdings, PnL, degen score, and smart money signals." },
   ],
   'dev-wallet': [
     { type: 'system', text: '[SCAN] Dev cluster detector initialised.' },
-    { type: 'clark', text: 'Give me a contract address and I\'ll trace the deployer wallet cluster to flag insider wallets and pre-mine activity.' },
+    { type: 'clark', text: "Give me a contract address and I'll trace the deployer wallet cluster to flag insider wallets and pre-mine activity." },
   ],
   'liquidity-scanner': [
     { type: 'system', text: '[SCAN] Liquidity safety module active.' },
-    { type: 'clark', text: 'Paste a contract — I\'ll check LP lock status, liquidity depth, and assign a rug risk score.' },
+    { type: 'clark', text: "Paste a contract — I'll check LP lock status, liquidity depth, and assign a rug risk score." },
   ],
   'whale-alerts': [
     { type: 'system', text: '[LIVE] Monitoring Base chain for whale moves...' },
@@ -34,7 +34,7 @@ const STARTERS: Record<string, Array<{ type: 'system' | 'clark'; text: string }>
   ],
   'base-radar': [
     { type: 'system', text: '[LIVE] Tracking new Base deployments...' },
-    { type: 'clark', text: 'Monitoring the newest contracts deployed on Base. I\'ll flag anything worth watching.' },
+    { type: 'clark', text: "Monitoring the newest contracts deployed on Base. I'll flag anything worth watching." },
   ],
   'clark-ai': [
     { type: 'system', text: '[CORTEX] Full intelligence mode active.' },
@@ -49,6 +49,8 @@ const BOOT: Msg[] = [
   { type: 'system', text: '[SYSTEM] All modules loaded. Ready.' },
   { type: 'clark', text: 'Select a tool from the sidebar or ask me anything.' },
 ]
+
+const CHIPS = ['Scan 0x...', 'Top pumps on Base', 'Whale activity', 'Rug check']
 
 interface Props {
   active: string | null
@@ -103,38 +105,78 @@ export default function ClarkChat({ active, toolLabel }: Props) {
   }
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 bg-[#06060a]">
+    <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#06060a]">
+
+      {/* Context bar */}
+      <div className="shrink-0 flex items-center justify-between px-5 h-9 bg-[#080c14] border-b border-white/[0.06]">
+        <div className="flex items-center gap-2">
+          <span
+            className="text-[11px] font-semibold text-[#64748b]"
+            style={{ fontFamily: 'var(--font-plex-mono)' }}
+          >
+            {toolLabel}
+          </span>
+          <span
+            className="text-[8px] px-1.5 py-0.5 rounded-[3px] bg-white/[0.04] border border-white/[0.06] text-[#2a3a4a]"
+            style={{ fontFamily: 'var(--font-plex-mono)' }}
+          >
+            Base
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-1 h-1 rounded-full bg-[#2DD4BF]" />
+          <span
+            className="text-[9px] text-[#1e2d3d]"
+            style={{ fontFamily: 'var(--font-plex-mono)' }}
+          >
+            LIVE
+          </span>
+        </div>
+      </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-2.5">
+      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
         {msgs.map((m, i) => {
+
           if (m.type === 'system') {
             return (
-              <div key={i} className="text-[11px] text-[#475569]" style={{ fontFamily: 'var(--font-mono)' }}>
+              <div
+                key={i}
+                className="text-[10px] text-[#2a3a4a] leading-relaxed"
+                style={{ fontFamily: 'var(--font-plex-mono)' }}
+              >
                 {m.text}
               </div>
             )
           }
+
           if (m.type === 'user') {
             return (
               <div key={i} className="flex justify-end">
                 <div
-                  className="max-w-[75%] bg-[#8b5cf6]/[0.12] border border-[#8b5cf6]/25 text-white text-[12px] px-3 py-2 rounded-lg rounded-br-sm"
-                  style={{ fontFamily: 'var(--font-mono)' }}
+                  className="max-w-[70%] bg-[#8b5cf6]/[0.09] border border-[#8b5cf6]/[0.18] text-[#c4b5fd] text-[12px] px-3.5 py-2.5 rounded-[10px] rounded-br-[3px] leading-relaxed"
+                  style={{ fontFamily: 'var(--font-plex-mono)' }}
                 >
                   {m.text}
                 </div>
               </div>
             )
           }
+
+          // clark message
           return (
             <div key={i} className="flex gap-2.5 items-start">
-              <div className="shrink-0 w-[20px] h-[20px] rounded-full bg-[#2DD4BF]/[0.12] border border-[#2DD4BF]/30 flex items-center justify-center text-[9px] font-bold text-[#2DD4BF] mt-0.5">
-                C
+              <div className="shrink-0 w-[20px] h-[20px] rounded-full bg-[#2DD4BF]/[0.09] border border-[#2DD4BF]/[0.22] flex items-center justify-center mt-0.5">
+                <span
+                  className="text-[8px] font-bold text-[#2DD4BF]"
+                  style={{ fontFamily: 'var(--font-plex-mono)' }}
+                >
+                  C
+                </span>
               </div>
               <div
-                className="text-[12px] text-[#e2e8f0] leading-relaxed"
-                style={{ fontFamily: 'var(--font-mono)' }}
+                className="text-[12px] text-[#94a3b8] leading-relaxed pt-0.5"
+                style={{ fontFamily: 'var(--font-plex-mono)' }}
               >
                 {m.text}
               </div>
@@ -142,14 +184,28 @@ export default function ClarkChat({ active, toolLabel }: Props) {
           )
         })}
 
+        {/* Typing indicator */}
         {busy && (
           <div className="flex gap-2.5 items-center">
-            <div className="w-[20px] h-[20px] rounded-full bg-[#2DD4BF]/[0.12] border border-[#2DD4BF]/30 flex items-center justify-center text-[9px] font-bold text-[#2DD4BF]">
-              C
+            <div className="shrink-0 w-[20px] h-[20px] rounded-full bg-[#2DD4BF]/[0.09] border border-[#2DD4BF]/[0.22] flex items-center justify-center">
+              <span
+                className="text-[8px] font-bold text-[#2DD4BF]"
+                style={{ fontFamily: 'var(--font-plex-mono)' }}
+              >
+                C
+              </span>
             </div>
-            <span className="text-[11px] text-[#475569] animate-pulse" style={{ fontFamily: 'var(--font-mono)' }}>
-              CORTEX processing...
-            </span>
+            <div className="flex items-center gap-1 pt-0.5">
+              <div className="w-1 h-1 rounded-full bg-[#334155] animate-pulse" />
+              <div
+                className="w-1 h-1 rounded-full bg-[#334155] animate-pulse"
+                style={{ animationDelay: '0.15s' }}
+              />
+              <div
+                className="w-1 h-1 rounded-full bg-[#334155] animate-pulse"
+                style={{ animationDelay: '0.3s' }}
+              />
+            </div>
           </div>
         )}
 
@@ -157,33 +213,41 @@ export default function ClarkChat({ active, toolLabel }: Props) {
       </div>
 
       {/* Input bar */}
-      <div className="px-4 py-3 border-t border-white/[0.08] bg-[#080c14]">
-        <div className="flex gap-2">
+      <div className="shrink-0 px-5 py-3 bg-[#080c14] border-t border-white/[0.08]">
+        <div className="flex gap-2 mb-2">
           <input
             type="text"
             value={input}
             onChange={e => setInput(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                send()
+              }
+            }}
             placeholder="Ask Clark or paste a contract / wallet address..."
             disabled={busy}
-            className="flex-1 bg-[#06060a] border border-white/[0.08] rounded-[10px] px-3 py-2 text-[12px] text-white placeholder:text-[#475569] outline-none focus:border-[#2DD4BF]/40 transition-colors disabled:opacity-50"
-            style={{ fontFamily: 'var(--font-mono)' }}
+            className="flex-1 min-w-0 bg-[#06060a] border border-white/[0.08] rounded-[9px] px-3.5 py-2 text-[11px] text-white placeholder:text-[#1e2d3d] outline-none focus:border-[#2DD4BF]/[0.28] transition-colors disabled:opacity-40"
+            style={{ fontFamily: 'var(--font-plex-mono)' }}
           />
           <button
             onClick={send}
             disabled={busy || !input.trim()}
-            className="px-4 py-2 rounded-[10px] bg-[#2DD4BF]/[0.1] border border-[#2DD4BF]/30 text-[#2DD4BF] text-[12px] font-semibold hover:bg-[#2DD4BF]/[0.18] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            className="shrink-0 px-4 py-2 rounded-[9px] bg-[#2DD4BF]/[0.08] border border-[#2DD4BF]/[0.22] text-[#2DD4BF] text-[10px] font-semibold hover:bg-[#2DD4BF]/[0.13] transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
+            style={{ fontFamily: 'var(--font-plex-mono)' }}
           >
             Send
           </button>
         </div>
-        <div className="mt-2 flex gap-1.5 flex-wrap">
-          {['Scan 0x...', 'Top pumps on Base', 'Whale activity', 'Rug check'].map(p => (
+
+        {/* Quick chips */}
+        <div className="flex gap-1 flex-wrap">
+          {CHIPS.map(p => (
             <button
               key={p}
               onClick={() => setInput(p)}
-              className="text-[10px] text-[#475569] hover:text-[#94a3b8] bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] px-2 py-0.5 rounded-[6px] transition-colors"
-              style={{ fontFamily: 'var(--font-mono)' }}
+              className="text-[9px] text-[#1e2d3d] hover:text-[#334155] bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.05] px-2 py-1 rounded-[4px] transition-colors"
+              style={{ fontFamily: 'var(--font-plex-mono)' }}
             >
               {p}
             </button>

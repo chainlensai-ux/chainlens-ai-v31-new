@@ -8,7 +8,7 @@ const NAV_GROUPS = [
     items: [
       { key: 'token-scanner', label: 'Token Scanner' },
       { key: 'wallet-scanner', label: 'Wallet Scanner' },
-      { key: 'dev-wallet', label: 'Dev Wallet Detector' },
+      { key: 'dev-wallet', label: 'Dev Wallet' },
       { key: 'liquidity-scanner', label: 'Liquidity Safety' },
     ],
   },
@@ -33,70 +33,117 @@ interface Props {
   onSelect: (key: string) => void
 }
 
-function NavItem({ label, isActive, onClick }: { label: string; isActive: boolean; onClick: () => void }) {
+interface NavItemProps {
+  label: string
+  isActive: boolean
+  onClick: () => void
+}
+
+function NavItem({ label, isActive, onClick }: NavItemProps) {
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-2 pl-3 pr-2 py-[7px] rounded-lg text-[12px] font-medium transition-colors text-left
-        border-l-2 ${isActive
-          ? 'bg-[#2DD4BF]/[0.08] text-[#2DD4BF] border-[#2DD4BF]'
-          : 'text-[#94a3b8] hover:text-white hover:bg-white/[0.04] border-transparent'
-        }`}
+      className={[
+        'w-full flex items-center pl-3 pr-2 py-[6px] rounded-[5px] text-left border-l-2 transition-colors',
+        isActive
+          ? 'bg-[#2DD4BF]/[0.07] text-[#2DD4BF] border-[#2DD4BF]'
+          : 'text-[#3d5066] hover:text-[#64748b] hover:bg-white/[0.03] border-transparent',
+      ].join(' ')}
     >
-      {label}
+      <span
+        className="text-[11px] font-medium truncate"
+        style={{ fontFamily: 'var(--font-plex-mono)' }}
+      >
+        {label}
+      </span>
     </button>
   )
 }
 
 export default function FeatureBar({ active, onSelect }: Props) {
   return (
-    <aside className="w-[240px] shrink-0 h-screen flex flex-col bg-[#080c14] border-r border-white/[0.08]">
+    <aside className="w-[220px] shrink-0 h-screen flex flex-col bg-[#080c14] border-r border-white/[0.08] overflow-hidden">
 
-      {/* Logo + Home */}
-      <div className="px-4 pt-5 pb-3 border-b border-white/[0.08]">
-        <div className="flex items-center gap-2.5 mb-4">
-          <Image src="/cl-logo.png" alt="ChainLens AI" width={26} height={26} />
-          <div>
-            <div className="text-[13px] font-bold text-white leading-tight" style={{ fontFamily: 'var(--font-mono)' }}>
+      {/* Logo */}
+      <div className="px-4 pt-5 pb-4 border-b border-white/[0.06] shrink-0">
+        <div className="flex items-center gap-2.5">
+          <Image
+            src="/cl-logo.png"
+            alt="ChainLens AI"
+            width={24}
+            height={24}
+            className="opacity-90 shrink-0"
+          />
+          <div className="min-w-0">
+            <div
+              className="text-[13px] font-bold text-white leading-tight tracking-tight"
+              style={{ fontFamily: 'var(--font-plex-mono)' }}
+            >
               Chain<span className="text-[#2DD4BF]">Lens</span>
             </div>
-            <div className="text-[9px] text-[#475569] tracking-[0.12em] uppercase mt-0.5" style={{ fontFamily: 'var(--font-mono)' }}>
+            <div
+              className="text-[9px] text-[#2a3a4a] tracking-[0.14em] uppercase mt-0.5"
+              style={{ fontFamily: 'var(--font-plex-mono)' }}
+            >
               AI Terminal
             </div>
           </div>
         </div>
+      </div>
 
+      {/* Home */}
+      <div className="px-3 pt-3 pb-2 shrink-0">
         <button
           onClick={() => onSelect('home')}
-          className={`w-full flex items-center gap-2.5 pl-3 pr-2 py-[7px] rounded-lg transition-colors border-l-2 ${
+          className={[
+            'w-full flex items-center gap-2 pl-3 pr-2 py-[6px] rounded-[5px] transition-colors border-l-2',
             active === 'home'
-              ? 'bg-[#2DD4BF]/[0.08] text-[#2DD4BF] border-[#2DD4BF]'
-              : 'text-[#94a3b8] hover:text-white hover:bg-white/[0.04] border-transparent'
-          }`}
+              ? 'bg-[#2DD4BF]/[0.07] text-[#2DD4BF] border-[#2DD4BF]'
+              : 'text-[#3d5066] hover:text-[#64748b] hover:bg-white/[0.03] border-transparent',
+          ].join(' ')}
         >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
+          <svg
+            width="11"
+            height="11"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="shrink-0"
+          >
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
           </svg>
-          <div>
-            <div className="text-[12px] font-medium leading-tight">Home</div>
-            <div className="text-[10px] text-[#475569] mt-0.5">Dashboard</div>
-          </div>
+          <span
+            className="text-[11px] font-medium"
+            style={{ fontFamily: 'var(--font-plex-mono)' }}
+          >
+            Home
+          </span>
         </button>
       </div>
 
-      {/* Tools header */}
-      <div className="px-4 pt-4 pb-2">
-        <span className="text-[9px] font-semibold text-[#475569] tracking-[0.14em] uppercase" style={{ fontFamily: 'var(--font-mono)' }}>
+      {/* Tools label */}
+      <div className="px-4 pb-1 shrink-0">
+        <span
+          className="text-[8px] font-semibold text-[#1e2d3d] tracking-[0.18em] uppercase"
+          style={{ fontFamily: 'var(--font-plex-mono)' }}
+        >
           Tools
         </span>
       </div>
 
-      {/* Nav groups — scrollable */}
-      <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-1">
+      {/* Nav groups */}
+      <nav className="flex-1 overflow-y-auto px-3 pb-2 space-y-1">
         {NAV_GROUPS.map(group => (
           <div key={group.label}>
-            <div className="px-2 pt-3 pb-1.5">
-              <span className="text-[9px] text-[#475569] tracking-[0.1em] uppercase" style={{ fontFamily: 'var(--font-mono)' }}>
+            <div className="px-1 pt-3 pb-1.5">
+              <span
+                className="text-[8px] text-[#1e2d3d] tracking-[0.14em] uppercase"
+                style={{ fontFamily: 'var(--font-plex-mono)' }}
+              >
                 {group.label}
               </span>
             </div>
@@ -112,18 +159,35 @@ export default function FeatureBar({ active, onSelect }: Props) {
             </div>
           </div>
         ))}
-      </div>
+      </nav>
 
       {/* Bottom actions */}
-      <div className="px-3 py-4 border-t border-white/[0.08] space-y-1">
-        <button className="w-full flex items-center gap-2.5 pl-3 pr-2 py-[7px] rounded-lg text-[12px] text-[#94a3b8] hover:text-white hover:bg-white/[0.04] transition-colors">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="3" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
+      <div className="px-3 py-3 border-t border-white/[0.06] space-y-1.5 shrink-0">
+        <button
+          className="w-full flex items-center gap-2 pl-3 pr-2 py-[6px] rounded-[5px] transition-colors text-[#2a3a4a] hover:text-[#3d5066] hover:bg-white/[0.03]"
+          style={{ fontFamily: 'var(--font-plex-mono)' }}
+        >
+          <svg
+            width="11"
+            height="11"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="shrink-0"
+          >
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
           </svg>
-          Settings
+          <span className="text-[11px] font-medium">Settings</span>
         </button>
-        <button className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-[10px] text-[12px] font-semibold bg-[#2DD4BF]/[0.08] text-[#2DD4BF] hover:bg-[#2DD4BF]/[0.14] border border-[#2DD4BF]/30 transition-colors">
-          Connect Wallet
+        <button
+          className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-[7px] bg-[#2DD4BF]/[0.07] text-[#2DD4BF] hover:bg-[#2DD4BF]/[0.11] border border-[#2DD4BF]/[0.2] transition-colors"
+          style={{ fontFamily: 'var(--font-plex-mono)' }}
+        >
+          <span className="text-[10px] font-semibold">Connect Wallet</span>
         </button>
       </div>
 
