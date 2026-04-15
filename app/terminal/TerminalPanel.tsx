@@ -9,8 +9,8 @@ interface TerminalPanelProps {
 
 export default function TerminalPanel({ selectedFeature }: TerminalPanelProps) {
   return (
-    <section className="flex min-w-0 flex-1 flex-col gap-4 border-x border-white/10 bg-[#06060a] p-4">
-      <div className="rounded-2xl border border-white/15 bg-[linear-gradient(145deg,rgba(18,10,28,0.72),rgba(11,12,22,0.64))] shadow-[0_16px_50px_rgba(124,58,237,0.24),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl transition hover:shadow-[0_22px_65px_rgba(236,72,153,0.27),0_0_40px_rgba(45,212,191,0.22)]">
+    <section className="flex h-full min-w-0 flex-1 flex-col gap-4 border-x border-white/10 bg-[#06060a] p-4">
+      <div className="shrink-0 rounded-2xl border border-white/15 bg-[linear-gradient(145deg,rgba(18,10,28,0.72),rgba(11,12,22,0.64))] shadow-[0_16px_50px_rgba(124,58,237,0.24),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl transition hover:shadow-[0_22px_65px_rgba(236,72,153,0.27),0_0_40px_rgba(45,212,191,0.22)]">
         <Topbar
           title="TERMINAL"
           className="rounded-2xl border-[rgba(255,255,255,0.08)] bg-transparent"
@@ -22,7 +22,7 @@ export default function TerminalPanel({ selectedFeature }: TerminalPanelProps) {
         />
       </div>
 
-      <div className="flex-1 overflow-hidden rounded-2xl border border-white/15 bg-[linear-gradient(145deg,rgba(15,10,26,0.72),rgba(6,10,18,0.68))] shadow-[0_16px_50px_rgba(168,85,247,0.22),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl transition hover:shadow-[0_24px_70px_rgba(236,72,153,0.26),0_0_45px_rgba(45,212,191,0.2)]">
+      <div className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-white/15 bg-[linear-gradient(145deg,rgba(15,10,26,0.72),rgba(6,10,18,0.68))] shadow-[0_16px_50px_rgba(168,85,247,0.22),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl transition hover:shadow-[0_24px_70px_rgba(236,72,153,0.26),0_0_45px_rgba(45,212,191,0.2)] [&>div]:h-full">
         <ClarkChat
           selectedFeature={selectedFeature}
           title="CLARK — CORTEX ENGINE"
