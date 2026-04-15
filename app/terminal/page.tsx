@@ -6,15 +6,15 @@ import ClarkChat from '@/components/ClarkChat'
 import ClarkRadar from '@/components/ClarkRadar'
 
 const TOOL_LABELS: Record<string, string> = {
-  'home': 'Dashboard',
-  'token-scanner': 'Token Scanner',
-  'wallet-scanner': 'Wallet Scanner',
-  'dev-wallet': 'Dev Wallet Detector',
-  'liquidity-scanner': 'Liquidity Safety',
-  'whale-alerts': 'Whale Alerts',
-  'pump-alerts': 'Pump Alerts',
-  'base-radar': 'Base Radar',
-  'clark-ai': 'Clark AI',
+  'home':               'Dashboard',
+  'token-scanner':      'Token Scanner',
+  'wallet-scanner':     'Wallet Scanner',
+  'dev-wallet':         'Dev Wallet Detector',
+  'liquidity-scanner':  'Liquidity Safety',
+  'whale-alerts':       'Whale Alerts',
+  'pump-alerts':        'Pump Alerts',
+  'base-radar':         'Base Radar',
+  'clark-ai':           'Clark AI',
 }
 
 export default function TerminalPage() {
@@ -26,80 +26,56 @@ export default function TerminalPage() {
 
       <FeatureBar active={active} onSelect={setActive} />
 
-      {/* Content column */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      {/* Content column — padded so panels float as cards */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden p-3 gap-3">
 
-        {/* Topbar */}
-        <header className="h-11 shrink-0 flex items-center justify-between px-5 bg-[#080c14] border-b border-white/[0.08]">
+        {/* Topbar card */}
+        <header className="h-12 shrink-0 flex items-center justify-between px-5 bg-[#080c14] border border-white/[0.08] rounded-xl">
 
-          {/* Left: breadcrumb */}
+          {/* Breadcrumb */}
           <div className="flex items-center gap-1.5">
             <span
-              className="text-[10px] text-[#334155]"
+              className="text-[11px] text-[#475569]"
               style={{ fontFamily: 'var(--font-plex-mono)' }}
             >
               terminal
             </span>
-            <span className="text-[10px] text-[#1e2d3d]">/</span>
+            <span className="text-[11px] text-[#2a3a4a]">/</span>
             <span
-              className="text-[10px] text-[#64748b] font-medium"
+              className="text-[11px] font-medium text-[#94a3b8]"
               style={{ fontFamily: 'var(--font-plex-mono)' }}
             >
               {toolLabel}
             </span>
           </div>
 
-          {/* Center: search slot */}
-          <div className="flex items-center gap-2 bg-[#06060a] border border-white/[0.06] rounded-[7px] px-3 py-1.5 w-52">
-            <svg
-              width="10"
-              height="10"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#2a3a4a"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
+          {/* Search */}
+          <div className="flex items-center gap-2 bg-[#06060a] border border-white/[0.07] rounded-lg px-3 py-1.5 w-56">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
-            <span
-              className="text-[10px] text-[#1e2d3d]"
-              style={{ fontFamily: 'var(--font-plex-mono)' }}
-            >
-              Search tokens, wallets...
-            </span>
+            <span className="text-[12px] text-[#334155]">Search tokens, wallets...</span>
           </div>
 
-          {/* Right: status + account */}
+          {/* Right actions */}
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-[#2DD4BF]" />
-              <span
-                className="text-[10px] text-[#334155]"
-                style={{ fontFamily: 'var(--font-plex-mono)' }}
-              >
-                CORTEX live
-              </span>
+              <span className="text-[12px] text-[#475569]">CORTEX live</span>
             </div>
-            <div className="w-px h-3.5 bg-white/[0.06]" />
-            <div className="flex items-center gap-1.5 bg-white/[0.03] border border-white/[0.06] rounded-[6px] px-2 py-1 cursor-pointer hover:bg-white/[0.06] transition-colors">
-              <div className="w-[18px] h-[18px] rounded-full bg-[#8b5cf6]/[0.15] border border-[#8b5cf6]/[0.25] flex items-center justify-center">
-                <span className="text-[8px] font-bold text-[#8b5cf6]">U</span>
+            <div className="w-px h-4 bg-white/[0.07]" />
+            <button className="flex items-center gap-2 bg-white/[0.04] border border-white/[0.07] rounded-lg px-2.5 py-1.5 hover:bg-white/[0.07] transition-colors">
+              <div className="w-5 h-5 rounded-full bg-[#8b5cf6]/20 border border-[#8b5cf6]/30 flex items-center justify-center">
+                <span className="text-[9px] font-bold text-[#8b5cf6]">U</span>
               </div>
-              <span
-                className="text-[10px] text-[#475569]"
-                style={{ fontFamily: 'var(--font-plex-mono)' }}
-              >
-                Account
-              </span>
-            </div>
+              <span className="text-[12px] text-[#64748b] font-medium">Account</span>
+            </button>
           </div>
         </header>
 
-        {/* Main panels */}
-        <div className="flex flex-1 overflow-hidden">
+        {/* Panels row — gap creates visible separation */}
+        <div className="flex flex-1 gap-3 overflow-hidden min-h-0">
           <ClarkChat active={active} toolLabel={toolLabel} />
           <ClarkRadar onSelectRadar={setActive} />
         </div>
