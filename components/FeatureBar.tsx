@@ -1,99 +1,132 @@
-// FeatureBar.tsx
+'use client'
 
-type FeatureKey =
-  | "token-scanner"
-  | "wallet-scanner"
-  | "dev-wallet"
-  | "liquidity-scanner"
-  | "whale-alerts"
-  | "pump-alerts"
-  | "base-radar"
-  | "clark-ai";
+import Image from 'next/image'
 
-interface FeatureBarProps {
-  onSelectFeature: (featureKey: string) => void;
-  activeFeature?: string | null;
-  grouped?: boolean;
-  compact?: boolean;
+const NAV_GROUPS = [
+  {
+    label: 'Scanners',
+    items: [
+      { key: 'token-scanner', label: 'Token Scanner' },
+      { key: 'wallet-scanner', label: 'Wallet Scanner' },
+      { key: 'dev-wallet', label: 'Dev Wallet Detector' },
+      { key: 'liquidity-scanner', label: 'Liquidity Safety' },
+    ],
+  },
+  {
+    label: 'Alerts',
+    items: [
+      { key: 'whale-alerts', label: 'Whale Alerts' },
+      { key: 'pump-alerts', label: 'Pump Alerts' },
+    ],
+  },
+  {
+    label: 'Radar & AI',
+    items: [
+      { key: 'base-radar', label: 'Base Radar' },
+      { key: 'clark-ai', label: 'Clark AI' },
+    ],
+  },
+]
+
+interface Props {
+  active: string | null
+  onSelect: (key: string) => void
 }
 
-const features: { key: FeatureKey; label: string; section: "SCANNERS" | "SIGNALS" | "INTELLIGENCE" }[] = [
-  { key: "token-scanner", label: "Token Scanner", section: "SCANNERS" },
-  { key: "wallet-scanner", label: "Wallet Scanner", section: "SCANNERS" },
-  { key: "dev-wallet", label: "Dev Wallet Detector", section: "SCANNERS" },
-  { key: "liquidity-scanner", label: "Liquidity Safety Scanner", section: "SCANNERS" },
-  { key: "whale-alerts", label: "Whale Alerts", section: "SIGNALS" },
-  { key: "pump-alerts", label: "Pump Alerts", section: "SIGNALS" },
-  { key: "base-radar", label: "Base Radar", section: "INTELLIGENCE" },
-  { key: "clark-ai", label: "Clark AI", section: "INTELLIGENCE" },
-];
+function NavItem({ label, isActive, onClick }: { label: string; isActive: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center gap-2 pl-3 pr-2 py-[7px] rounded-lg text-[12px] font-medium transition-colors text-left
+        border-l-2 ${isActive
+          ? 'bg-[#2DD4BF]/[0.08] text-[#2DD4BF] border-[#2DD4BF]'
+          : 'text-[#94a3b8] hover:text-white hover:bg-white/[0.04] border-transparent'
+        }`}
+    >
+      {label}
+    </button>
+  )
+}
 
-export default function FeatureBar({
-  onSelectFeature,
-  activeFeature = null,
-  grouped = false,
-  compact = false,
-}: FeatureBarProps) {
-  if (!grouped) {
-    return (
-      <aside className="w-72 bg-[#080c14] p-6 border-r border-[rgba(255,255,255,0.08)]">
-        <h2 className="text-xl font-bold text-teal-400">Feature Bar</h2>
-        <ul className="mt-6 space-y-4 text-sm text-neutral-200">
-          {features.map((f) => (
-            <li
-              key={f.key}
-              onClick={() => onSelectFeature(f.key)}
-              className="cursor-pointer hover:text-purple-400 transition"
-            >
-              {f.label}
-            </li>
-          ))}
-        </ul>
-        <button className="mt-8 w-full rounded bg-purple-600 py-2 font-semibold hover:bg-purple-500 transition">
+export default function FeatureBar({ active, onSelect }: Props) {
+  return (
+    <aside className="w-[240px] shrink-0 h-screen flex flex-col bg-[#080c14] border-r border-white/[0.08]">
+
+      {/* Logo + Home */}
+      <div className="px-4 pt-5 pb-3 border-b border-white/[0.08]">
+        <div className="flex items-center gap-2.5 mb-4">
+          <Image src="/cl-logo.png" alt="ChainLens AI" width={26} height={26} />
+          <div>
+            <div className="text-[13px] font-bold text-white leading-tight" style={{ fontFamily: 'var(--font-mono)' }}>
+              Chain<span className="text-[#2DD4BF]">Lens</span>
+            </div>
+            <div className="text-[9px] text-[#475569] tracking-[0.12em] uppercase mt-0.5" style={{ fontFamily: 'var(--font-mono)' }}>
+              AI Terminal
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={() => onSelect('home')}
+          className={`w-full flex items-center gap-2.5 pl-3 pr-2 py-[7px] rounded-lg transition-colors border-l-2 ${
+            active === 'home'
+              ? 'bg-[#2DD4BF]/[0.08] text-[#2DD4BF] border-[#2DD4BF]'
+              : 'text-[#94a3b8] hover:text-white hover:bg-white/[0.04] border-transparent'
+          }`}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+          <div>
+            <div className="text-[12px] font-medium leading-tight">Home</div>
+            <div className="text-[10px] text-[#475569] mt-0.5">Dashboard</div>
+          </div>
+        </button>
+      </div>
+
+      {/* Tools header */}
+      <div className="px-4 pt-4 pb-2">
+        <span className="text-[9px] font-semibold text-[#475569] tracking-[0.14em] uppercase" style={{ fontFamily: 'var(--font-mono)' }}>
+          Tools
+        </span>
+      </div>
+
+      {/* Nav groups — scrollable */}
+      <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-1">
+        {NAV_GROUPS.map(group => (
+          <div key={group.label}>
+            <div className="px-2 pt-3 pb-1.5">
+              <span className="text-[9px] text-[#475569] tracking-[0.1em] uppercase" style={{ fontFamily: 'var(--font-mono)' }}>
+                {group.label}
+              </span>
+            </div>
+            <div className="space-y-0.5">
+              {group.items.map(item => (
+                <NavItem
+                  key={item.key}
+                  label={item.label}
+                  isActive={active === item.key}
+                  onClick={() => onSelect(item.key)}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Bottom actions */}
+      <div className="px-3 py-4 border-t border-white/[0.08] space-y-1">
+        <button className="w-full flex items-center gap-2.5 pl-3 pr-2 py-[7px] rounded-lg text-[12px] text-[#94a3b8] hover:text-white hover:bg-white/[0.04] transition-colors">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
+          </svg>
+          Settings
+        </button>
+        <button className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-[10px] text-[12px] font-semibold bg-[#2DD4BF]/[0.08] text-[#2DD4BF] hover:bg-[#2DD4BF]/[0.14] border border-[#2DD4BF]/30 transition-colors">
           Connect Wallet
         </button>
-      </aside>
-    );
-  }
+      </div>
 
-  const sections: ("SCANNERS" | "SIGNALS" | "INTELLIGENCE")[] = ["SCANNERS", "SIGNALS", "INTELLIGENCE"];
-
-  return (
-    <div className={`${compact ? "space-y-4" : "space-y-5"}`}>
-      {sections.map((section) => (
-        <div key={section}>
-          <p
-            className="mb-2 px-3 text-[10px] tracking-[0.18em] text-white/45 uppercase"
-            style={{ fontFamily: "var(--font-mono), IBM Plex Mono, monospace" }}
-          >
-            {section}
-          </p>
-          <ul className="space-y-1">
-            {features
-              .filter((f) => f.section === section)
-              .map((f) => {
-                const active = activeFeature === f.key;
-
-                return (
-                  <li key={f.key}>
-                    <button
-                      type="button"
-                      onClick={() => onSelectFeature(f.key)}
-                      className={`w-full rounded-md border-l-2 px-3 py-2 text-left text-[13px] transition ${
-                        active
-                          ? "border-l-[#2DD4BF] bg-white/10 text-white"
-                          : "border-l-transparent text-white/70 hover:bg-white/10 hover:text-white"
-                      }`}
-                      style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
-                    >
-                      {f.label}
-                    </button>
-                  </li>
-                );
-              })}
-          </ul>
-        </div>
-      ))}
-    </div>
-  );
+    </aside>
+  )
 }
