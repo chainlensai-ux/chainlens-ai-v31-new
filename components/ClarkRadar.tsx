@@ -118,8 +118,7 @@ export default function ClarkRadar({ onSelectRadar }: { onSelectRadar: (val: str
                 <div className="flex-1 min-w-0 text-left">
                   <div
                     className="text-[12px] font-semibold truncate leading-tight"
-                    style={{ color: '#f1f5f9' }}
-                    style={{ fontFamily: 'var(--font-plex-mono)' }}
+                    style={{ color: '#f1f5f9', fontFamily: 'var(--font-plex-mono)' }}
                   >
                     {s.pair}
                   </div>
