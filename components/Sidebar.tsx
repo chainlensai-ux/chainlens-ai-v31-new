@@ -2,8 +2,7 @@
 
 import Image from 'next/image'
 
-// ─── Icons ────────────────────────────────────────────────────────────────
-// 14×14, strokeWidth 1.6, Lucide-style
+// ─── Icons (14×14, strokeWidth 1.6, Lucide-style) ─────────────────────────
 
 function IcHome() {
   return (
@@ -121,13 +120,12 @@ const FEATURES: Item[] = [
 ]
 
 const SECONDARY: Item[] = [
-  { key: 'portfolio',      label: 'Portfolio',      icon: <IcPortfolio />      },
-  { key: 'settings',       label: 'Settings',       icon: <IcSettings />       },
-  { key: 'connect-wallet', label: 'Connect Wallet', icon: <IcConnectWallet />  },
+  { key: 'portfolio',      label: 'Portfolio',      icon: <IcPortfolio />     },
+  { key: 'settings',       label: 'Settings',       icon: <IcSettings />      },
+  { key: 'connect-wallet', label: 'Connect Wallet', icon: <IcConnectWallet /> },
 ]
 
 // ─── NavItem ──────────────────────────────────────────────────────────────
-// Always renders border-l-2 (transparent when inactive) to prevent shift.
 
 interface NavItemProps {
   item:     Item
@@ -141,18 +139,28 @@ function NavItem({ item, active, onSelect }: NavItemProps) {
     <button
       onClick={() => onSelect(item.key)}
       className={[
-        'w-full flex items-center gap-2.5 py-2 px-3 rounded-lg',
+        'w-full flex items-center gap-2.5 py-[9px] px-3 rounded-lg',
         'text-[13px] font-medium border-l-2 transition-colors duration-100',
         on
-          ? 'bg-[#2DD4BF]/[0.1] text-[#2DD4BF] border-[#2DD4BF]'
+          ? 'bg-[#2DD4BF]/[0.08] text-[#2DD4BF] border-[#2DD4BF]'
           : 'text-[#64748b] border-transparent hover:text-[#94a3b8] hover:bg-white/[0.05]',
       ].join(' ')}
     >
-      <span className={`shrink-0 ${on ? 'text-[#2DD4BF]' : 'text-[#475569]'}`}>
+      <span className={`shrink-0 ${on ? 'text-[#2DD4BF]' : 'text-[#4a5e72]'}`}>
         {item.icon}
       </span>
       {item.label}
     </button>
+  )
+}
+
+// ─── SectionLabel ─────────────────────────────────────────────────────────
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-[#475569]">
+      {children}
+    </p>
   )
 }
 
@@ -167,52 +175,66 @@ export default function Sidebar({ active = 'home', onSelect = () => {} }: Props)
   return (
     <aside className="w-[240px] h-screen shrink-0 flex flex-col bg-[#080c14] border-r border-white/[0.08]">
 
-      {/* Logo ─────────────────────────────────────────────────────────── */}
-      <div className="px-5 pt-6 pb-5 border-b border-white/[0.06]">
+      {/* ── Branding ────────────────────────────────────────────────── */}
+      <div className="px-5 pt-7 pb-6 border-b border-white/[0.06]">
         <div className="flex items-center gap-3">
-          <Image src="/cl-logo.png" alt="ChainLens AI" width={30} height={30} className="shrink-0" />
+          <Image
+            src="/cl-logo.png"
+            alt="ChainLens AI"
+            width={32}
+            height={32}
+            className="shrink-0"
+          />
           <div>
-            <p className="text-[15px] font-bold text-white leading-tight tracking-tight">
+            <p className="text-[16px] font-bold text-white leading-tight tracking-tight">
               Chain<span className="text-[#2DD4BF]">Lens</span>
-              <span className="text-[#475569] font-medium"> AI</span>
+              <span className="text-[#94a3b8] font-semibold"> AI</span>
             </p>
-            <p className="text-[10px] text-[#3d5066] mt-0.5 font-medium">
+            <p className="text-[10px] text-[#475569] mt-[3px] font-medium">
               Base Intelligence Terminal
             </p>
           </div>
         </div>
       </div>
 
-      {/* Nav ──────────────────────────────────────────────────────────── */}
-      <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
+      {/* ── Navigation ──────────────────────────────────────────────── */}
+      <nav className="flex-1 overflow-y-auto px-4 py-5 flex flex-col gap-5">
 
         {/* Home */}
-        <NavItem item={{ key: 'home', label: 'Home', icon: <IcHome /> }} active={active} onSelect={onSelect} />
+        <div className="space-y-1.5">
+          <NavItem
+            item={{ key: 'home', label: 'Home', icon: <IcHome /> }}
+            active={active}
+            onSelect={onSelect}
+          />
+        </div>
 
         {/* Features */}
-        <p className="px-3 pt-4 pb-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#3d5066]">
-          Features
-        </p>
-        {FEATURES.map(item => (
-          <NavItem key={item.key} item={item} active={active} onSelect={onSelect} />
-        ))}
+        <div className="space-y-1.5">
+          <SectionLabel>Features</SectionLabel>
+          {FEATURES.map(item => (
+            <NavItem key={item.key} item={item} active={active} onSelect={onSelect} />
+          ))}
+        </div>
 
         {/* Divider */}
-        <div className="!my-4 h-px bg-white/[0.08]" />
+        <div className="h-px bg-white/[0.08] -mx-1" />
 
         {/* Secondary */}
-        {SECONDARY.map(item => (
-          <NavItem key={item.key} item={item} active={active} onSelect={onSelect} />
-        ))}
+        <div className="space-y-1.5">
+          {SECONDARY.map(item => (
+            <NavItem key={item.key} item={item} active={active} onSelect={onSelect} />
+          ))}
+        </div>
 
       </nav>
 
-      {/* Auth ─────────────────────────────────────────────────────────── */}
-      <div className="px-4 py-4 space-y-2 border-t border-white/[0.06]">
-        <button className="w-full py-2.5 rounded-xl bg-[#2DD4BF] text-[#06060a] text-[13px] font-bold hover:bg-[#25bfac] transition-colors">
+      {/* ── Auth ────────────────────────────────────────────────────── */}
+      <div className="px-5 py-5 space-y-2 border-t border-white/[0.06]">
+        <button className="w-full py-2.5 rounded-xl bg-[#2DD4BF] text-[#06060a] text-[13px] font-bold tracking-tight hover:bg-[#25bfac] active:bg-[#1fa898] transition-colors">
           Sign Up
         </button>
-        <button className="w-full py-2.5 rounded-xl border border-white/[0.1] text-[#64748b] text-[13px] font-medium hover:text-[#94a3b8] hover:border-white/[0.16] hover:bg-white/[0.04] transition-colors">
+        <button className="w-full py-2.5 rounded-xl border border-white/[0.12] text-[#64748b] text-[13px] font-medium hover:text-[#94a3b8] hover:border-white/[0.18] hover:bg-white/[0.04] transition-colors">
           Sign In
         </button>
       </div>
