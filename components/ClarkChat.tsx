@@ -45,10 +45,12 @@ const CHAINS: ChainFilter[] = ['All Chains', 'Ethereum', 'Solana', 'Arbitrum', '
 const TIMES:  TimeFilter[]  = ['1H', '24H', '7D', '30D']
 
 const CHIPS = [
-  { label: 'Find trending tokens', icon: '🔥' },
-  { label: 'Whale movements',      icon: '🐋' },
-  { label: 'High volatility',      icon: '⚡' },
-  { label: 'Smart money flow',     icon: '💎' },
+  { label: 'Scan Whale Wallet',  rgba: '236,72,153',  text: '#f472b6' },
+  { label: 'Smart Money Flow',   rgba: '45,212,191',  text: '#4de8d8' },
+  { label: 'Trending on Base',   rgba: '45,212,191',  text: '#4de8d8' },
+  { label: 'Early Pump Signals', rgba: '236,72,153',  text: '#f472b6' },
+  { label: 'Meme Rotation',      rgba: '139,92,246',  text: '#b89dfc' },
+  { label: 'Whale Alerts',       rgba: '236,72,153',  text: '#f472b6' },
 ]
 
 // ─── Main component ───────────────────────────────────────────────────────
@@ -62,8 +64,10 @@ export default function ClarkChat({ active, toolLabel }: Props) {
   const [query,    setQuery]    = useState('')
   const [chain,    setChain]    = useState<ChainFilter>('All Chains')
   const [time,     setTime]     = useState<TimeFilter>('24H')
-  const [response, setResponse] = useState<string | null>(null)
-  const [busy,     setBusy]     = useState(false)
+  const [response,  setResponse]  = useState<string | null>(null)
+  const [busy,      setBusy]      = useState(false)
+  const [fastMode,  setFastMode]  = useState(false)
+  const [tradeMode, setTradeMode] = useState(false)
 
   async function handleAsk() {
     const q = query.trim()
@@ -93,250 +97,296 @@ export default function ClarkChat({ active, toolLabel }: Props) {
   return (
     <div className="px-6 py-6 w-full max-w-[920px] mx-auto space-y-6">
 
-      {/* ─── Clark AI Command Center Card ──────────────── */}
-      <motion.div
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.42, ease: 'easeOut' }}
-        className="relative rounded-2xl overflow-hidden"
-        style={{
-          background: 'linear-gradient(150deg, #0d1b2e 0%, #090f1e 60%, #060b16 100%)',
-          border: '1px solid rgba(255,255,255,0.11)',
-          boxShadow: '0 24px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.03), inset 0 1px 0 rgba(255,255,255,0.06)',
-        }}
-      >
-        {/* Top edge gradient line */}
+      {/* ─── Clark AI Command Box ──────────────── */}
+      <div className="relative">
+
+        {/* Behind-card ambient glow */}
         <div
-          className="absolute inset-x-0 top-0 pointer-events-none"
+          className="absolute pointer-events-none"
           style={{
-            height: '2px',
-            background: 'linear-gradient(90deg, transparent 0%, #2DD4BF 30%, #8B5CF6 70%, transparent 100%)',
+            inset: '-48px',
+            borderRadius: '48px',
+            background: 'radial-gradient(ellipse at 20% 50%, rgba(45,212,191,0.09) 0%, transparent 55%), radial-gradient(ellipse at 80% 50%, rgba(139,92,246,0.09) 0%, transparent 55%)',
+            filter: 'blur(28px)',
           }}
         />
 
-        {/* Ambient glow orbs */}
-        <div
-          className="absolute -top-24 -left-16 w-[360px] h-[280px] rounded-full pointer-events-none"
-          style={{ background: 'rgba(45,212,191,0.13)', filter: 'blur(60px)' }}
-        />
-        <div
-          className="absolute -bottom-20 -right-8 w-[300px] h-[240px] rounded-full pointer-events-none"
-          style={{ background: 'rgba(139,92,246,0.13)', filter: 'blur(60px)' }}
-        />
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.42, ease: 'easeOut' }}
+          className="relative rounded-2xl overflow-hidden"
+          style={{
+            background: 'linear-gradient(160deg, #0c1828 0%, #080e1c 55%, #060b16 100%)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            boxShadow: '0 32px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.07)',
+          }}
+        >
+          {/* Top edge gradient line */}
+          <div
+            className="absolute inset-x-0 top-0 pointer-events-none"
+            style={{
+              height: '1.5px',
+              background: 'linear-gradient(90deg, transparent 0%, #2DD4BF 35%, #8B5CF6 65%, transparent 100%)',
+            }}
+          />
 
-        <div className="relative px-9 pt-10 pb-9">
+          <div className="px-8 pt-8 pb-7">
 
-          {/* Icon badge + title */}
-          <div className="flex items-center gap-4 mb-7">
-            <div
-              className="w-[52px] h-[52px] rounded-2xl flex items-center justify-center shrink-0"
-              style={{
-                background: 'linear-gradient(135deg, rgba(45,212,191,0.15), rgba(139,92,246,0.15))',
-                border: '1px solid rgba(45,212,191,0.3)',
-                boxShadow: '0 0 30px rgba(45,212,191,0.2)',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: '22px',
-                  background: 'linear-gradient(135deg, #2DD4BF, #8B5CF6)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
-              >
-                ⚡
-              </span>
-            </div>
-            <div>
-              <h1
-                className="leading-tight"
-                style={{
-                  fontSize: '24px',
+            {/* ── Header ── */}
+            <div className="flex items-start justify-between mb-7">
+              <div>
+                {/* Live indicator */}
+                <div className="flex items-center gap-2 mb-2.5">
+                  <div
+                    className="w-2 h-2 rounded-full bg-[#2DD4BF] animate-pulse"
+                    style={{ boxShadow: '0 0 8px rgba(45,212,191,0.9)' }}
+                  />
+                  <span style={{
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    letterSpacing: '0.14em',
+                    color: '#2DD4BF',
+                    fontFamily: 'var(--font-plex-mono)',
+                  }}>
+                    LIVE
+                  </span>
+                </div>
+                <h1 style={{
+                  fontSize: '30px',
                   fontWeight: 800,
+                  color: '#f8fafc',
+                  fontFamily: 'var(--font-inter)',
+                  letterSpacing: '-0.03em',
+                  lineHeight: 1.1,
+                }}>
+                  Clark AI
+                </h1>
+                <p style={{
+                  fontSize: '12px',
+                  color: '#3e5c78',
+                  fontFamily: 'var(--font-plex-mono)',
+                  marginTop: '5px',
+                }}>
+                  Powered by CORTEX Engine
+                </p>
+              </div>
+
+              {/* CORTEX badge */}
+              <div style={{
+                background: 'rgba(139,92,246,0.1)',
+                border: '1px solid rgba(139,92,246,0.22)',
+                borderRadius: '8px',
+                padding: '5px 12px',
+                fontSize: '10px',
+                fontWeight: 700,
+                color: '#a78bfa',
+                fontFamily: 'var(--font-plex-mono)',
+                letterSpacing: '0.1em',
+              }}>
+                CORTEX v2
+              </div>
+            </div>
+
+            {/* ── Main input ── */}
+            <div className="relative mb-5">
+              <input
+                type="text"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleAsk() }}
+                placeholder="Ask Clark what whales are buying..."
+                disabled={busy}
+                className="w-full outline-none disabled:opacity-50"
+                style={{
+                  padding: '18px 72px 18px 22px',
+                  fontSize: '15px',
+                  background: 'rgba(3,6,18,0.92)',
+                  border: '1px solid rgba(255,255,255,0.09)',
+                  borderRadius: '14px',
                   color: '#f1f5f9',
                   fontFamily: 'var(--font-inter)',
-                  letterSpacing: '-0.02em',
+                  boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.4)',
+                  transition: 'border-color 0.15s, box-shadow 0.15s',
                 }}
-              >
-                Clark AI Command Center
-              </h1>
-              <p
-                className="mt-0.5"
-                style={{
-                  fontSize: '12px',
-                  color: '#4e6e88',
-                  fontFamily: 'var(--font-plex-mono)',
+                onFocus={e => {
+                  e.currentTarget.style.borderColor = 'rgba(45,212,191,0.5)'
+                  e.currentTarget.style.boxShadow   = 'inset 0 2px 8px rgba(0,0,0,0.4), 0 0 0 3px rgba(45,212,191,0.08)'
                 }}
-              >
-                Powered by CORTEX AI Engine · Base Intelligence Layer
-              </p>
-            </div>
-          </div>
-
-          {/* Search input */}
-          <div className="relative mb-5">
-            <input
-              type="text"
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') handleAsk() }}
-              placeholder="Ask anything about Base chain..."
-              disabled={busy}
-              className="w-full rounded-xl text-[14px] outline-none transition-all disabled:opacity-50"
-              style={{
-                padding: '14px 150px 14px 20px',
-                background: 'rgba(2,4,12,0.9)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                color: '#f1f5f9',
-                fontFamily: 'var(--font-inter)',
-              }}
-              onFocus={e => {
-                e.currentTarget.style.borderColor = 'rgba(45,212,191,0.48)'
-                e.currentTarget.style.boxShadow   = '0 0 0 3px rgba(45,212,191,0.07)'
-              }}
-              onBlur={e => {
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
-                e.currentTarget.style.boxShadow   = 'none'
-              }}
-            />
-            <button
-              onClick={handleAsk}
-              disabled={!query.trim() || busy}
-              className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 rounded-lg text-[13px] font-bold transition-all disabled:opacity-30 active:scale-[0.97]"
-              style={{
-                background: 'linear-gradient(90deg, #2DD4BF 0%, #0ea5e9 100%)',
-                color: '#061210',
-                boxShadow: '0 0 18px rgba(45,212,191,0.32)',
-                fontFamily: 'var(--font-inter)',
-              }}
-            >
-              Ask Clark
-            </button>
-          </div>
-
-          {/* 4 action chips — 2×2 grid */}
-          <div className="grid grid-cols-2 gap-2.5 mb-7">
-            {CHIPS.map(chip => (
+                onBlur={e => {
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'
+                  e.currentTarget.style.boxShadow   = 'inset 0 2px 8px rgba(0,0,0,0.4)'
+                }}
+              />
+              {/* Arrow send button */}
               <motion.button
-                key={chip.label}
-                onClick={() => setQuery(chip.label)}
-                className="flex items-center gap-2.5 px-4 py-3 rounded-xl text-[13px] font-medium text-left transition-colors"
+                onClick={handleAsk}
+                disabled={!query.trim() || busy}
+                className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center disabled:opacity-30"
                 style={{
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  color: '#94a3b8',
-                  fontFamily: 'var(--font-inter)',
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '11px',
+                  background: 'linear-gradient(135deg, #2DD4BF 0%, #0ea5e9 100%)',
+                  border: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 0 20px rgba(45,212,191,0.4)',
+                  color: '#031412',
+                  flexShrink: 0,
                 }}
-                whileHover={{ scale: 1.01 }}
-                transition={{ duration: 0.1 }}
-                onMouseEnter={e => {
-                  const el = e.currentTarget as HTMLButtonElement
-                  el.style.color       = '#2DD4BF'
-                  el.style.borderColor = 'rgba(45,212,191,0.3)'
-                  el.style.background  = 'rgba(45,212,191,0.08)'
-                }}
-                onMouseLeave={e => {
-                  const el = e.currentTarget as HTMLButtonElement
-                  el.style.color       = '#94a3b8'
-                  el.style.borderColor = 'rgba(255,255,255,0.08)'
-                  el.style.background  = 'rgba(255,255,255,0.04)'
-                }}
+                whileHover={{ scale: 1.06, boxShadow: '0 0 32px rgba(45,212,191,0.65)' } as never}
+                whileTap={{ scale: 0.95 } as never}
+                transition={{ duration: 0.12 }}
               >
-                <span>{chip.icon}</span>
-                {chip.label}
-              </motion.button>
-            ))}
-          </div>
-
-          {/* Clark response */}
-          {(busy || response) && (
-            <motion.div
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.25 }}
-              className="flex gap-3 items-start p-4 rounded-xl mb-7"
-              style={{
-                background: 'rgba(139,92,246,0.07)',
-                border: '1px solid rgba(139,92,246,0.18)',
-              }}
-            >
-              <div
-                className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center mt-0.5"
-                style={{ background: 'rgba(139,92,246,0.2)', border: '1px solid rgba(167,139,250,0.3)' }}
-              >
-                <span
-                  className="text-[10px] font-bold text-[#a78bfa]"
-                  style={{ fontFamily: 'var(--font-plex-mono)' }}
-                >
-                  C
-                </span>
-              </div>
-              <div className="flex-1 pt-0.5">
                 {busy ? (
-                  <div className="flex items-center gap-2 py-1">
-                    {[0, 0.15, 0.3].map((delay, i) => (
-                      <div
-                        key={i}
-                        className="w-1.5 h-1.5 rounded-full animate-pulse"
-                        style={{ background: 'rgba(139,92,246,0.7)', animationDelay: `${delay}s` }}
-                      />
-                    ))}
-                  </div>
+                  <div
+                    className="rounded-full border-2 border-t-transparent animate-spin"
+                    style={{ width: '16px', height: '16px', borderColor: '#031412', borderTopColor: 'transparent' }}
+                  />
                 ) : (
-                  <p className="text-[13px] leading-relaxed" style={{ color: '#94a3b8', fontFamily: 'var(--font-inter)' }}>
-                    {response}
-                  </p>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                    <polyline points="13 6 19 12 13 18"/>
+                  </svg>
                 )}
-              </div>
-            </motion.div>
-          )}
+              </motion.button>
+            </div>
 
-          {/* Stats row */}
-          <div
-            className="grid grid-cols-3 pt-6"
-            style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
-          >
-            {[
-              { label: 'Active Queries', value: '12,847' },
-              { label: 'AI Accuracy',    value: '98.7%'  },
-              { label: 'Data Sources',   value: '150+'   },
-            ].map((stat, i) => (
-              <div
-                key={stat.label}
-                className="flex flex-col items-center py-1"
-                style={i > 0 ? { borderLeft: '1px solid rgba(255,255,255,0.07)' } : {}}
+            {/* ── Clark response bubble ── */}
+            {(busy || response) && (
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25 }}
+                className="flex gap-3 items-start p-4 rounded-xl mb-5"
+                style={{
+                  background: 'rgba(139,92,246,0.07)',
+                  border: '1px solid rgba(139,92,246,0.18)',
+                }}
               >
-                <p
-                  className="leading-none"
-                  style={{
-                    fontSize: '24px',
-                    fontWeight: 900,
-                    fontFamily: 'var(--font-plex-mono)',
-                    background: 'linear-gradient(135deg, #2DD4BF 0%, #8B5CF6 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                  }}
+                <div
+                  className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center mt-0.5"
+                  style={{ background: 'rgba(139,92,246,0.2)', border: '1px solid rgba(167,139,250,0.3)' }}
                 >
-                  {stat.value}
-                </p>
-                <p
-                  className="mt-1.5"
-                  style={{
-                    fontSize: '11px',
-                    color: '#4e6e88',
-                    fontFamily: 'var(--font-inter)',
-                  }}
-                >
-                  {stat.label}
-                </p>
-              </div>
-            ))}
-          </div>
+                  <span className="text-[10px] font-bold text-[#a78bfa]" style={{ fontFamily: 'var(--font-plex-mono)' }}>C</span>
+                </div>
+                <div className="flex-1 pt-0.5">
+                  {busy ? (
+                    <div className="flex items-center gap-2 py-1">
+                      {[0, 0.15, 0.3].map((delay, i) => (
+                        <div
+                          key={i}
+                          className="w-1.5 h-1.5 rounded-full animate-pulse"
+                          style={{ background: 'rgba(139,92,246,0.7)', animationDelay: `${delay}s` }}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-[13px] leading-relaxed" style={{ color: '#94a3b8', fontFamily: 'var(--font-inter)' }}>
+                      {response}
+                    </p>
+                  )}
+                </div>
+              </motion.div>
+            )}
 
-        </div>
-      </motion.div>
+            {/* ── Quick action chips — 3×2 pill grid ── */}
+            <div className="grid grid-cols-3 gap-2 mb-6">
+              {CHIPS.map((chip, i) => (
+                <motion.button
+                  key={chip.label}
+                  onClick={() => setQuery(chip.label)}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.22, delay: i * 0.04 }}
+                  className="px-4 py-2.5 text-left truncate"
+                  style={{
+                    borderRadius: '100px',
+                    background: `rgba(${chip.rgba}, 0.07)`,
+                    border: `1px solid rgba(${chip.rgba}, 0.16)`,
+                    color: chip.text,
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    fontFamily: 'var(--font-inter)',
+                    cursor: 'pointer',
+                    transition: 'background 0.15s, border-color 0.15s, box-shadow 0.15s',
+                  }}
+                  whileHover={{ scale: 1.02 } as never}
+                  onMouseEnter={e => {
+                    const el = e.currentTarget as HTMLButtonElement
+                    el.style.background   = `rgba(${chip.rgba}, 0.15)`
+                    el.style.borderColor  = `rgba(${chip.rgba}, 0.32)`
+                    el.style.boxShadow    = `0 0 18px rgba(${chip.rgba}, 0.14)`
+                  }}
+                  onMouseLeave={e => {
+                    const el = e.currentTarget as HTMLButtonElement
+                    el.style.background   = `rgba(${chip.rgba}, 0.07)`
+                    el.style.borderColor  = `rgba(${chip.rgba}, 0.16)`
+                    el.style.boxShadow    = 'none'
+                  }}
+                >
+                  {chip.label}
+                </motion.button>
+              ))}
+            </div>
+
+            {/* ── Bottom utility bar ── */}
+            <div
+              className="flex items-center justify-between pt-4"
+              style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
+            >
+              {/* Mode toggles */}
+              <div className="flex items-center gap-2">
+                {([
+                  { key: 'fast',  label: 'Fast Mode',  active: fastMode,  set: () => setFastMode(v  => !v)  },
+                  { key: 'trade', label: 'Trade Mode', active: tradeMode, set: () => setTradeMode(v => !v) },
+                ] as const).map(m => (
+                  <motion.button
+                    key={m.key}
+                    onClick={m.set}
+                    className="flex items-center gap-1.5 px-3 py-1.5"
+                    style={{
+                      borderRadius: '100px',
+                      background: m.active ? 'rgba(45,212,191,0.12)' : 'rgba(255,255,255,0.04)',
+                      border: `1px solid ${m.active ? 'rgba(45,212,191,0.28)' : 'rgba(255,255,255,0.08)'}`,
+                      cursor: 'pointer',
+                      transition: 'background 0.15s, border-color 0.15s',
+                    }}
+                    whileHover={{ scale: 1.03 } as never}
+                    transition={{ duration: 0.1 }}
+                  >
+                    <div style={{
+                      width: '6px',
+                      height: '6px',
+                      borderRadius: '50%',
+                      background: m.active ? '#2DD4BF' : 'rgba(255,255,255,0.18)',
+                      boxShadow: m.active ? '0 0 6px rgba(45,212,191,0.8)' : 'none',
+                      transition: 'all 0.15s',
+                    }}/>
+                    <span style={{
+                      fontSize: '11px',
+                      fontWeight: 500,
+                      color: m.active ? '#2DD4BF' : '#4a6380',
+                      fontFamily: 'var(--font-inter)',
+                      transition: 'color 0.15s',
+                    }}>
+                      {m.label}
+                    </span>
+                  </motion.button>
+                ))}
+              </div>
+
+              {/* Query counter */}
+              <div className="flex items-center gap-0.5" style={{ fontFamily: 'var(--font-plex-mono)' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#6a8da8' }}>7</span>
+                <span style={{ fontSize: '13px', color: '#2e4a62' }}>/20</span>
+                <span style={{ fontSize: '11px', color: '#243848', marginLeft: '3px' }}>queries</span>
+              </div>
+            </div>
+
+          </div>
+        </motion.div>
+      </div>
 
       {/* ─── Token Screener ────────────────────────────────── */}
       <motion.div
