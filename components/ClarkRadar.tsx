@@ -46,13 +46,13 @@ function Card({ title, children, accent }: { title: string; children: ReactNode;
   return (
     <div
       className="rounded-xl overflow-hidden"
-      style={{ background: '#07090f', border: '1px solid rgba(255,255,255,0.07)' }}
+      style={{ background: '#07090f', border: '1px solid rgba(255,255,255,0.08)' }}
     >
       <div
         className="flex items-center justify-between px-4 py-3"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.025)' }}
       >
-        <span className="text-[10px] font-bold uppercase tracking-[0.13em]" style={{ color: '#64748b' }}>
+        <span className="text-[10px] font-bold uppercase tracking-[0.13em]" style={{ color: '#6d8299' }}>
           {title}
         </span>
         {accent && (
@@ -73,16 +73,16 @@ function Card({ title, children, accent }: { title: string; children: ReactNode;
 export default function ClarkRadar({ onSelectRadar }: { onSelectRadar: (val: string) => void }) {
   return (
     <aside
-      className="w-[284px] shrink-0 flex flex-col rounded-xl overflow-hidden"
+      className="w-[292px] shrink-0 flex flex-col rounded-xl overflow-hidden"
       style={{ background: '#080c14', border: '1px solid rgba(255,255,255,0.08)' }}
     >
 
       {/* Panel header */}
       <div
         className="shrink-0 flex items-center justify-between px-5 h-[52px]"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
       >
-        <span className="text-[14px] font-bold text-white tracking-tight">Radar</span>
+        <span className="text-[14px] font-bold tracking-tight" style={{ color: '#f1f5f9' }}>Radar</span>
         <div className="flex items-center gap-2">
           <div
             className="w-1.5 h-1.5 rounded-full bg-[#2DD4BF]"
@@ -98,7 +98,7 @@ export default function ClarkRadar({ onSelectRadar }: { onSelectRadar: (val: str
       </div>
 
       {/* Scrollable body */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-3">
+      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-3.5">
 
         {/* Live Signals */}
         <Card title="Live Signals" accent="BASE">
@@ -117,7 +117,8 @@ export default function ClarkRadar({ onSelectRadar }: { onSelectRadar: (val: str
                 />
                 <div className="flex-1 min-w-0 text-left">
                   <div
-                    className="text-[12px] font-semibold text-white truncate leading-tight"
+                    className="text-[12px] font-semibold truncate leading-tight"
+                    style={{ color: '#f1f5f9' }}
                     style={{ fontFamily: 'var(--font-plex-mono)' }}
                   >
                     {s.pair}
@@ -153,19 +154,19 @@ export default function ClarkRadar({ onSelectRadar }: { onSelectRadar: (val: str
                   style={{ background: 'rgba(255,255,255,0.12)', minHeight: '28px' }}
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[12px] font-medium text-white leading-tight truncate">
+                  <p className="text-[12px] font-semibold leading-tight truncate" style={{ color: '#e2e8f0' }}>
                     {w.action}
                   </p>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span
                       className="text-[10px] truncate"
-                      style={{ fontFamily: 'var(--font-plex-mono)', color: '#64748b' }}
+                      style={{ fontFamily: 'var(--font-plex-mono)', color: '#6d8299' }}
                     >
                       {w.addr}
                     </span>
                     <span
                       className="text-[10px] shrink-0"
-                      style={{ fontFamily: 'var(--font-plex-mono)', color: '#475569' }}
+                      style={{ fontFamily: 'var(--font-plex-mono)', color: '#4d6280' }}
                     >
                       {w.time} ago
                     </span>
@@ -224,7 +225,7 @@ export default function ClarkRadar({ onSelectRadar }: { onSelectRadar: (val: str
                 >
                   {note.tag}
                 </span>
-                <p className="text-[12px] leading-snug" style={{ color: '#94a3b8' }}>{note.text}</p>
+                <p className="text-[12px] leading-relaxed" style={{ color: '#8fafc7' }}>{note.text}</p>
               </div>
             ))}
           </div>

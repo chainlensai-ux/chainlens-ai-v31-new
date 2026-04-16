@@ -37,21 +37,21 @@ function NavItem({ label, isActive, onClick }: { label: string; isActive: boolea
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center pl-3.5 pr-3 py-2.5 rounded-xl text-left border-l-2 transition-all"
+      className="w-full flex items-center pl-3.5 pr-3 py-3 rounded-xl text-left border-l-2 transition-all"
       style={
         isActive
-          ? { background: 'rgba(45,212,191,0.09)', color: '#2DD4BF', borderLeftColor: '#2DD4BF' }
-          : { color: '#64748b', borderLeftColor: 'transparent' }
+          ? { background: 'rgba(45,212,191,0.1)', color: '#2DD4BF', borderLeftColor: '#2DD4BF' }
+          : { color: '#6d8299', borderLeftColor: 'transparent' }
       }
       onMouseEnter={e => {
         if (!isActive) {
-          (e.currentTarget as HTMLButtonElement).style.color = '#94a3b8';
-          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.04)';
+          (e.currentTarget as HTMLButtonElement).style.color = '#a0b4c8';
+          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.05)';
         }
       }}
       onMouseLeave={e => {
         if (!isActive) {
-          (e.currentTarget as HTMLButtonElement).style.color = '#64748b';
+          (e.currentTarget as HTMLButtonElement).style.color = '#6d8299';
           (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
         }
       }}
@@ -64,28 +64,28 @@ function NavItem({ label, isActive, onClick }: { label: string; isActive: boolea
 export default function FeatureBar({ active, onSelect }: Props) {
   return (
     <aside
-      className="w-[220px] shrink-0 h-screen flex flex-col overflow-hidden"
-      style={{ background: '#080c14', borderRight: '1px solid rgba(255,255,255,0.07)' }}
+      className="w-[228px] shrink-0 h-screen flex flex-col overflow-hidden"
+      style={{ background: '#080c14', borderRight: '1px solid rgba(255,255,255,0.08)' }}
     >
 
       {/* Logo */}
       <div
-        className="px-5 pt-6 pb-5 shrink-0"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+        className="px-5 pt-7 pb-6 shrink-0"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
       >
         <div className="flex items-center gap-3">
           <Image
             src="/cl-logo.png"
             alt="ChainLens AI"
-            width={30}
-            height={30}
+            width={32}
+            height={32}
             className="shrink-0"
           />
           <div className="min-w-0">
-            <div className="text-[15px] font-extrabold text-white leading-tight tracking-tight">
+            <div className="text-[15px] font-extrabold leading-tight tracking-tight" style={{ color: '#f8fafc' }}>
               Chain<span style={{ color: '#2DD4BF' }}>Lens</span>
             </div>
-            <div className="text-[10px] font-medium mt-0.5" style={{ color: '#475569' }}>AI Terminal</div>
+            <div className="text-[10px] font-medium mt-0.5" style={{ color: '#6d8299' }}>AI Terminal</div>
           </div>
         </div>
       </div>
@@ -131,7 +131,7 @@ export default function FeatureBar({ active, onSelect }: Props) {
           <div key={group.label} className="mt-5">
             <p
               className="px-1 pb-2 text-[10px] font-bold uppercase tracking-[0.14em]"
-              style={{ color: '#475569' }}
+              style={{ color: '#6d8299' }}
             >
               {group.label}
             </p>

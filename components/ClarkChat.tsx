@@ -122,33 +122,33 @@ export default function ClarkChat({ active, toolLabel }: Props) {
   const tokens = SCREENER[tab]
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 overflow-hidden rounded-xl" style={{ background: '#06090e', border: '1px solid rgba(255,255,255,0.07)' }}>
+    <div className="flex-1 flex flex-col min-w-0 overflow-hidden rounded-xl" style={{ background: '#06090e', border: '1px solid rgba(255,255,255,0.08)' }}>
       <div className="flex-1 overflow-y-auto">
-        <div className="px-8 py-10 max-w-[760px] mx-auto w-full space-y-10">
+        <div className="px-10 py-12 max-w-[820px] mx-auto w-full space-y-12">
 
           {/* ─── Clark Hero ─────────────────────────────────────── */}
-          <div className="relative rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.09)' }}>
+          <div className="relative rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
 
             {/* Ambient glow orbs */}
             <div
-              className="absolute -top-24 -left-20 w-[420px] h-[340px] rounded-full blur-3xl pointer-events-none"
-              style={{ background: 'rgba(45,212,191,0.13)', opacity: 0.7 }}
+              className="absolute -top-28 -left-24 w-[480px] h-[380px] rounded-full blur-3xl pointer-events-none"
+              style={{ background: 'rgba(45,212,191,0.16)' }}
             />
             <div
-              className="absolute -bottom-20 right-0 w-[380px] h-[300px] rounded-full blur-3xl pointer-events-none"
-              style={{ background: 'rgba(139,92,246,0.11)', opacity: 0.8 }}
+              className="absolute -bottom-24 right-0 w-[440px] h-[360px] rounded-full blur-3xl pointer-events-none"
+              style={{ background: 'rgba(139,92,246,0.14)' }}
             />
 
             {/* Card surface */}
-            <div className="relative" style={{ background: 'linear-gradient(150deg, #0d1628 0%, #090e1c 45%, #06090e 100%)' }}>
+            <div className="relative" style={{ background: 'linear-gradient(150deg, #0e1929 0%, #0a1020 50%, #07090e 100%)' }}>
 
               {/* Top edge glow line */}
               <div
                 className="absolute inset-x-0 top-0 h-px pointer-events-none"
-                style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(45,212,191,0.6) 25%, rgba(139,92,246,0.5) 75%, transparent 100%)' }}
+                style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(45,212,191,0.7) 25%, rgba(139,92,246,0.65) 75%, transparent 100%)' }}
               />
 
-              <div className="px-10 pt-12 pb-12">
+              <div className="px-12 pt-14 pb-14">
 
                 {/* CORTEX badge */}
                 <div
@@ -166,14 +166,14 @@ export default function ClarkChat({ active, toolLabel }: Props) {
 
                 {/* Headline */}
                 <h1
-                  className="font-extrabold leading-[1.05] tracking-[-0.02em] mb-5"
-                  style={{ fontSize: '48px' }}
+                  className="font-extrabold leading-[1.04] tracking-[-0.025em] mb-6"
+                  style={{ fontSize: '52px' }}
                 >
-                  <span className="text-white">Ask Clark</span>
+                  <span style={{ color: '#f8fafc' }}>Ask Clark</span>
                   <br />
                   <span
                     style={{
-                      background: 'linear-gradient(90deg, #2DD4BF 0%, #818cf8 100%)',
+                      background: 'linear-gradient(88deg, #2DD4BF 0%, #60a5fa 55%, #a78bfa 100%)',
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
                       backgroundClip: 'text',
@@ -185,8 +185,8 @@ export default function ClarkChat({ active, toolLabel }: Props) {
 
                 {/* Subtitle */}
                 <p
-                  className="text-[16px] leading-relaxed mb-10"
-                  style={{ color: '#94a3b8', maxWidth: '440px' }}
+                  className="text-[17px] leading-relaxed mb-11"
+                  style={{ color: '#94a3b8', maxWidth: '460px' }}
                 >
                   Real-time wallet scanning, whale tracking, token analysis
                   <br />and momentum signals — all powered by CORTEX.
@@ -201,23 +201,32 @@ export default function ClarkChat({ active, toolLabel }: Props) {
                     onKeyDown={e => { if (e.key === 'Enter') handleAsk() }}
                     placeholder="Ask a question or paste a contract / wallet address..."
                     disabled={busy}
-                    className="w-full rounded-2xl pl-6 pr-44 py-5 text-[15px] text-white placeholder:text-[#2a3a50] outline-none focus:ring-2 focus:ring-[#2DD4BF]/[0.15] transition-all disabled:opacity-50"
+                    className="w-full rounded-2xl pl-6 pr-44 text-[15px] outline-none transition-all disabled:opacity-50"
                     style={{
-                      background: 'rgba(4,7,15,0.85)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
+                      padding: '20px 176px 20px 24px',
+                      background: 'rgba(3,6,14,0.9)',
+                      border: '1px solid rgba(255,255,255,0.11)',
+                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+                      color: '#f1f5f9',
                     }}
-                    onFocus={e => { e.currentTarget.style.borderColor = 'rgba(45,212,191,0.45)'; }}
-                    onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+                    onFocus={e => {
+                      e.currentTarget.style.borderColor = 'rgba(45,212,191,0.5)';
+                      e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.04), 0 0 0 3px rgba(45,212,191,0.08)';
+                    }}
+                    onBlur={e => {
+                      e.currentTarget.style.borderColor = 'rgba(255,255,255,0.11)';
+                      e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.04)';
+                    }}
                   />
                   <button
                     onClick={handleAsk}
                     disabled={!query.trim() || busy}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 px-6 py-3 rounded-xl text-[13px] font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:opacity-90 active:opacity-75"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 px-6 py-3 rounded-xl text-[13px] font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:opacity-90 active:scale-[0.97]"
                     style={{
                       background: '#2DD4BF',
-                      color: '#04070f',
-                      boxShadow: '0 0 20px rgba(45,212,191,0.35)',
+                      color: '#020a07',
+                      boxShadow: '0 0 24px rgba(45,212,191,0.4), 0 1px 0 rgba(255,255,255,0.2) inset',
+                      letterSpacing: '-0.01em',
                     }}
                   >
                     Ask Clark
@@ -230,7 +239,7 @@ export default function ClarkChat({ active, toolLabel }: Props) {
                     <button
                       key={chip}
                       onClick={() => setQuery(chip)}
-                      className="text-[12px] font-medium px-4 py-2 rounded-full transition-all text-[#94a3b8] hover:text-[#2DD4BF] bg-white/[0.04] hover:bg-[#2DD4BF]/[0.08] border border-white/[0.09] hover:border-[#2DD4BF]/[0.3]"
+                      className="text-[12px] font-medium px-4 py-2 rounded-full transition-all text-[#7d9ab5] hover:text-[#2DD4BF] bg-white/[0.04] hover:bg-[#2DD4BF]/[0.08] border border-white/[0.09] hover:border-[#2DD4BF]/[0.3]"
                     >
                       {chip}
                     </button>
@@ -275,18 +284,18 @@ export default function ClarkChat({ active, toolLabel }: Props) {
           <div>
 
             {/* Heading row with inline tabs */}
-            <div className="flex items-end justify-between mb-5">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-[20px] font-bold text-white tracking-tight">
+                <h2 className="text-[22px] font-bold tracking-tight" style={{ color: '#f8fafc' }}>
                   Base Token Screener
                 </h2>
-                <p className="text-[13px] mt-1" style={{ color: '#475569' }}>
+                <p className="text-[13px] mt-1" style={{ color: '#64748b' }}>
                   Track what&apos;s moving on Base in real time
                 </p>
               </div>
               <div
                 className="flex gap-0.5 p-1 rounded-xl shrink-0"
-                style={{ background: '#060912', border: '1px solid rgba(255,255,255,0.07)' }}
+                style={{ background: '#050810', border: '1px solid rgba(255,255,255,0.08)' }}
               >
                 {TABS.map(t => (
                   <button
@@ -295,9 +304,10 @@ export default function ClarkChat({ active, toolLabel }: Props) {
                     className={[
                       'px-4 py-2 rounded-lg text-[12px] font-semibold transition-all',
                       tab === t
-                        ? 'bg-[#0d1525] text-white border border-white/[0.1] shadow-[0_2px_8px_rgba(0,0,0,0.5)]'
+                        ? 'text-white border border-white/[0.1]'
                         : 'text-[#64748b] border border-transparent hover:text-[#94a3b8] hover:bg-white/[0.04]',
                     ].join(' ')}
+                    style={tab === t ? { background: '#0f1b2e', boxShadow: '0 2px 10px rgba(0,0,0,0.6)' } : {}}
                   >
                     {t}
                   </button>
@@ -308,26 +318,30 @@ export default function ClarkChat({ active, toolLabel }: Props) {
             {/* Table card */}
             <div
               className="rounded-2xl overflow-hidden"
-              style={{ background: '#060912', border: '1px solid rgba(255,255,255,0.07)' }}
+              style={{ background: '#060912', border: '1px solid rgba(255,255,255,0.08)' }}
             >
               {/* Column headers */}
               <div
-                className="flex items-center px-6 py-3.5"
-                style={{ background: 'rgba(255,255,255,0.025)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+                className="flex items-center px-7 py-4"
+                style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}
               >
-                <div className="flex-1 text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: '#475569' }}>Token</div>
-                <div className="w-28 text-right text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: '#475569' }}>Price</div>
-                <div className="w-20 text-right text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: '#475569' }}>24h</div>
-                <div className="w-24 text-right text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: '#475569' }}>Volume</div>
-                <div className="w-24 text-right text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: '#475569' }}>Signal</div>
+                <div className="flex-1 text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: '#64748b' }}>Token</div>
+                <div className="w-32 text-right text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: '#64748b' }}>Price</div>
+                <div className="w-20 text-right text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: '#64748b' }}>24h</div>
+                <div className="w-24 text-right text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: '#64748b' }}>Volume</div>
+                <div className="w-24 text-right text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: '#64748b' }}>Signal</div>
               </div>
 
               {/* Rows */}
               {tokens.map((token, i) => (
                 <div
                   key={token.sym}
-                  className="relative group flex items-center px-6 py-5 cursor-pointer transition-colors hover:bg-white/[0.03]"
-                  style={{ borderBottom: i < tokens.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}
+                  className="relative group flex items-center px-7 cursor-pointer transition-colors hover:bg-white/[0.04]"
+                  style={{
+                    paddingTop: '22px',
+                    paddingBottom: '22px',
+                    borderBottom: i < tokens.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                  }}
                 >
                   {/* Token color accent */}
                   <div
@@ -339,10 +353,10 @@ export default function ClarkChat({ active, toolLabel }: Props) {
                   <div className="flex-1 flex items-center gap-4 min-w-0 pl-1">
                     <TokenAvatar sym={token.sym} color={token.color} />
                     <div className="min-w-0">
-                      <p className="text-[14px] font-semibold text-white leading-tight">{token.name}</p>
+                      <p className="text-[14px] font-semibold leading-tight" style={{ color: '#f1f5f9' }}>{token.name}</p>
                       <p
                         className="text-[11px] mt-0.5"
-                        style={{ fontFamily: 'var(--font-plex-mono)', color: '#475569' }}
+                        style={{ fontFamily: 'var(--font-plex-mono)', color: '#4d6280' }}
                       >
                         {token.sym} · Base
                       </p>
@@ -351,8 +365,8 @@ export default function ClarkChat({ active, toolLabel }: Props) {
 
                   {/* Price */}
                   <div
-                    className="w-28 text-right text-[14px] font-medium"
-                    style={{ fontFamily: 'var(--font-plex-mono)', color: '#e2e8f0' }}
+                    className="w-32 text-right text-[14px] font-medium"
+                    style={{ fontFamily: 'var(--font-plex-mono)', color: '#f1f5f9' }}
                   >
                     {token.price}
                   </div>
@@ -368,7 +382,7 @@ export default function ClarkChat({ active, toolLabel }: Props) {
                   {/* Volume */}
                   <div
                     className="w-24 text-right text-[13px]"
-                    style={{ fontFamily: 'var(--font-plex-mono)', color: '#64748b' }}
+                    style={{ fontFamily: 'var(--font-plex-mono)', color: '#5d7a94' }}
                   >
                     {token.vol}
                   </div>

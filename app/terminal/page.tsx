@@ -27,7 +27,7 @@ export default function TerminalPage() {
       <FeatureBar active={active} onSelect={setActive} />
 
       {/* Content column — padded so panels float as cards */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden p-3 gap-3">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden p-3.5 gap-3.5">
 
         {/* Topbar */}
         <header

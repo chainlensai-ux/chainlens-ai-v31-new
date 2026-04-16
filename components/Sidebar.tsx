@@ -138,33 +138,33 @@ function NavItem({ item, active, onSelect }: NavItemProps) {
   return (
     <button
       onClick={() => onSelect(item.key)}
-      className="w-full flex items-center gap-3 py-2.5 px-3.5 rounded-xl text-[13px] font-medium transition-all duration-150 border-l-2"
+      className="w-full flex items-center gap-3 py-3 px-3.5 rounded-xl text-[13px] font-medium transition-all duration-150 border-l-2"
       style={
         on
           ? {
-              background: 'rgba(45,212,191,0.09)',
+              background: 'rgba(45,212,191,0.1)',
               color: '#2DD4BF',
               borderLeftColor: '#2DD4BF',
             }
           : {
-              color: '#64748b',
+              color: '#6d8299',
               borderLeftColor: 'transparent',
             }
       }
       onMouseEnter={e => {
         if (!on) {
-          (e.currentTarget as HTMLButtonElement).style.color = '#94a3b8';
-          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.04)';
+          (e.currentTarget as HTMLButtonElement).style.color = '#a0b4c8';
+          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.05)';
         }
       }}
       onMouseLeave={e => {
         if (!on) {
-          (e.currentTarget as HTMLButtonElement).style.color = '#64748b';
+          (e.currentTarget as HTMLButtonElement).style.color = '#6d8299';
           (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
         }
       }}
     >
-      <span style={{ color: on ? '#2DD4BF' : '#475569', flexShrink: 0 }}>
+      <span style={{ color: on ? '#2DD4BF' : '#556880', flexShrink: 0 }}>
         {item.icon}
       </span>
       {item.label}
@@ -176,7 +176,7 @@ function NavItem({ item, active, onSelect }: NavItemProps) {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="px-3.5 pb-2 text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: '#475569' }}>
+    <p className="px-3.5 pb-2 text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: '#556880' }}>
       {children}
     </p>
   )
@@ -192,33 +192,33 @@ interface Props {
 export default function Sidebar({ active = 'home', onSelect = () => {} }: Props) {
   return (
     <aside
-      className="w-[260px] h-screen shrink-0 flex flex-col"
-      style={{ background: '#080c14', borderRight: '1px solid rgba(255,255,255,0.07)' }}
+      className="w-[272px] h-screen shrink-0 flex flex-col"
+      style={{ background: '#080c14', borderRight: '1px solid rgba(255,255,255,0.08)' }}
     >
 
       {/* ── Branding ─────────────────────────────────────────────────── */}
       <div
-        className="px-6 pt-8 pb-7"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+        className="px-6 pt-9 pb-8"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
       >
-        <div className="flex items-center gap-3.5">
+        <div className="flex items-center gap-4">
           <Image
             src="/cl-logo.png"
             alt="ChainLens AI"
-            width={40}
-            height={40}
+            width={44}
+            height={44}
             className="shrink-0"
           />
           <div>
             <p
-              className="text-[18px] font-extrabold leading-tight tracking-tight"
-              style={{ color: 'white' }}
+              className="text-[19px] font-extrabold leading-tight tracking-tight"
+              style={{ color: '#f8fafc' }}
             >
               Chain
               <span style={{ color: '#2DD4BF' }}>Lens</span>
               <span style={{ color: '#94a3b8', fontWeight: 600 }}> AI</span>
             </p>
-            <p className="text-[11px] font-medium mt-0.5" style={{ color: '#64748b' }}>
+            <p className="text-[11px] font-medium mt-1" style={{ color: '#6d8299' }}>
               Base Intelligence Terminal
             </p>
           </div>
@@ -226,7 +226,7 @@ export default function Sidebar({ active = 'home', onSelect = () => {} }: Props)
       </div>
 
       {/* ── Navigation ───────────────────────────────────────────────── */}
-      <nav className="flex-1 overflow-y-auto px-4 py-6 flex flex-col gap-6">
+      <nav className="flex-1 overflow-y-auto px-4 py-7 flex flex-col gap-6">
 
         {/* Home */}
         <div>
@@ -262,26 +262,36 @@ export default function Sidebar({ active = 'home', onSelect = () => {} }: Props)
       {/* ── Auth ─────────────────────────────────────────────────────── */}
       <div
         className="px-5 py-6 space-y-2.5"
-        style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
+        style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}
       >
         <button
-          className="w-full py-3 rounded-xl text-[13px] font-bold tracking-tight transition-all duration-150 hover:opacity-90 active:opacity-75"
+          className="w-full py-3.5 rounded-xl text-[13px] font-bold tracking-tight transition-all duration-150 hover:opacity-90 active:scale-[0.98]"
           style={{
             background: '#2DD4BF',
-            color: '#04070f',
-            boxShadow: '0 0 28px rgba(45,212,191,0.28)',
+            color: '#020d0a',
+            boxShadow: '0 0 32px rgba(45,212,191,0.32), 0 1px 0 rgba(255,255,255,0.25) inset',
           }}
         >
           Sign Up — It&apos;s Free
         </button>
         <button
-          className="w-full py-3 rounded-xl text-[13px] font-medium transition-all duration-150 hover:text-[#94a3b8] hover:bg-white/[0.04]"
+          className="w-full py-3.5 rounded-xl text-[13px] font-medium transition-all duration-150"
           style={{
-            color: '#64748b',
+            color: '#6d8299',
             border: '1px solid rgba(255,255,255,0.1)',
           }}
-          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.16)'; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.1)'; }}
+          onMouseEnter={e => {
+            const el = e.currentTarget as HTMLButtonElement;
+            el.style.color = '#a0b4c8';
+            el.style.borderColor = 'rgba(255,255,255,0.18)';
+            el.style.background = 'rgba(255,255,255,0.04)';
+          }}
+          onMouseLeave={e => {
+            const el = e.currentTarget as HTMLButtonElement;
+            el.style.color = '#6d8299';
+            el.style.borderColor = 'rgba(255,255,255,0.1)';
+            el.style.background = 'transparent';
+          }}
         >
           Sign In
         </button>
