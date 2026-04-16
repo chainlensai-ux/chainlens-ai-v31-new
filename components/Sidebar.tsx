@@ -145,6 +145,7 @@ function NavItem({ item, active, onSelect }: NavItemProps) {
               background: 'rgba(45,212,191,0.1)',
               color: '#2DD4BF',
               borderLeftColor: '#2DD4BF',
+              boxShadow: 'inset 0 0 0 1px rgba(45,212,191,0.12)',
             }
           : {
               color: '#6d8299',
@@ -176,7 +177,7 @@ function NavItem({ item, active, onSelect }: NavItemProps) {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="px-3.5 pb-2 text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: '#556880' }}>
+    <p className="px-3.5 pb-2 text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: '#6d8a9e' }}>
       {children}
     </p>
   )
@@ -198,27 +199,36 @@ export default function Sidebar({ active = 'home', onSelect = () => {} }: Props)
 
       {/* ── Branding ─────────────────────────────────────────────────── */}
       <div
-        className="px-6 pt-9 pb-8"
+        className="relative px-6 pt-9 pb-8 overflow-hidden"
         style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
       >
-        <div className="flex items-center gap-4">
-          <Image
-            src="/cl-logo.png"
-            alt="ChainLens AI"
-            width={44}
-            height={44}
-            className="shrink-0"
-          />
+        {/* Subtle mint glow behind logo */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse at 20% 60%, rgba(45,212,191,0.07) 0%, transparent 65%)' }}
+        />
+        <div className="relative flex items-center gap-4">
+          <div
+            className="shrink-0 rounded-2xl p-1"
+            style={{ background: 'rgba(45,212,191,0.08)', border: '1px solid rgba(45,212,191,0.15)' }}
+          >
+            <Image
+              src="/cl-logo.png"
+              alt="ChainLens AI"
+              width={40}
+              height={40}
+              className="shrink-0"
+            />
+          </div>
           <div>
             <p
               className="text-[19px] font-extrabold leading-tight tracking-tight"
               style={{ color: '#f8fafc' }}
             >
-              Chain
-              <span style={{ color: '#2DD4BF' }}>Lens</span>
+              Chain<span style={{ color: '#2DD4BF' }}>Lens</span>
               <span style={{ color: '#94a3b8', fontWeight: 600 }}> AI</span>
             </p>
-            <p className="text-[11px] font-medium mt-1" style={{ color: '#6d8299' }}>
+            <p className="text-[11px] font-medium mt-1" style={{ color: '#7d96ae' }}>
               Base Intelligence Terminal
             </p>
           </div>
@@ -240,7 +250,7 @@ export default function Sidebar({ active = 'home', onSelect = () => {} }: Props)
         {/* Features */}
         <div>
           <SectionLabel>Features</SectionLabel>
-          <div className="space-y-0.5">
+          <div className="space-y-1">
             {FEATURES.map(item => (
               <NavItem key={item.key} item={item} active={active} onSelect={onSelect} />
             ))}
@@ -248,10 +258,10 @@ export default function Sidebar({ active = 'home', onSelect = () => {} }: Props)
         </div>
 
         {/* Divider */}
-        <div className="h-px" style={{ background: 'rgba(255,255,255,0.07)', margin: '0 -4px' }} />
+        <div className="h-px" style={{ background: 'rgba(255,255,255,0.08)', margin: '0 -2px' }} />
 
         {/* Secondary */}
-        <div className="space-y-0.5">
+        <div className="space-y-1">
           {SECONDARY.map(item => (
             <NavItem key={item.key} item={item} active={active} onSelect={onSelect} />
           ))}

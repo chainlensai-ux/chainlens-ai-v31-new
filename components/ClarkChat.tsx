@@ -239,7 +239,26 @@ export default function ClarkChat({ active, toolLabel }: Props) {
                     <button
                       key={chip}
                       onClick={() => setQuery(chip)}
-                      className="text-[12px] font-medium px-4 py-2 rounded-full transition-all text-[#7d9ab5] hover:text-[#2DD4BF] bg-white/[0.04] hover:bg-[#2DD4BF]/[0.08] border border-white/[0.09] hover:border-[#2DD4BF]/[0.3]"
+                      className="text-[12px] font-medium px-4 py-2.5 rounded-xl transition-all"
+                      style={{
+                        color: '#8fafc7',
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                      }}
+                      onMouseEnter={e => {
+                        const el = e.currentTarget as HTMLButtonElement
+                        el.style.color = '#2DD4BF'
+                        el.style.borderColor = 'rgba(45,212,191,0.4)'
+                        el.style.background = 'rgba(45,212,191,0.07)'
+                        el.style.boxShadow = '0 0 18px rgba(45,212,191,0.13)'
+                      }}
+                      onMouseLeave={e => {
+                        const el = e.currentTarget as HTMLButtonElement
+                        el.style.color = '#8fafc7'
+                        el.style.borderColor = 'rgba(255,255,255,0.1)'
+                        el.style.background = 'rgba(255,255,255,0.04)'
+                        el.style.boxShadow = 'none'
+                      }}
                     >
                       {chip}
                     </button>

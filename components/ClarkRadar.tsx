@@ -50,13 +50,13 @@ function Card({ title, children, accent }: { title: string; children: ReactNode;
     >
       <div
         className="flex items-center justify-between px-4 py-3"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.025)' }}
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)' }}
       >
-        <span className="text-[10px] font-bold uppercase tracking-[0.13em]" style={{ color: '#6d8299' }}>
+        <span className="text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: '#7d96ae' }}>
           {title}
         </span>
         {accent && (
-          <span className="text-[9px] font-bold text-[#2DD4BF] tracking-wider" style={{ fontFamily: 'var(--font-plex-mono)' }}>
+          <span className="text-[9px] font-bold tracking-wider" style={{ fontFamily: 'var(--font-plex-mono)', color: '#2DD4BF' }}>
             {accent}
           </span>
         )}
@@ -107,13 +107,15 @@ export default function ClarkRadar({ onSelectRadar }: { onSelectRadar: (val: str
               <button
                 key={i}
                 onClick={() => onSelectRadar(s.pair.split('/')[0].toLowerCase())}
-                className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors hover:bg-white/[0.04]"
-                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
+                className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all hover:bg-white/[0.05]"
+                style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.11)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.07)' }}
               >
                 {/* Change indicator */}
                 <div
-                  className="shrink-0 w-1 h-8 rounded-full"
-                  style={{ background: s.up ? 'rgba(45,212,191,0.5)' : 'rgba(251,113,133,0.5)' }}
+                  className="shrink-0 w-[3px] h-8 rounded-full"
+                  style={{ background: s.up ? 'rgba(45,212,191,0.7)' : 'rgba(251,113,133,0.7)' }}
                 />
                 <div className="flex-1 min-w-0 text-left">
                   <div
@@ -122,7 +124,7 @@ export default function ClarkRadar({ onSelectRadar }: { onSelectRadar: (val: str
                   >
                     {s.pair}
                   </div>
-                  <div className="text-[10px] mt-0.5" style={{ color: '#475569' }}>{s.chain}</div>
+                  <div className="text-[10px] mt-0.5" style={{ color: '#64748b' }}>{s.chain}</div>
                 </div>
                 <div className="shrink-0 flex flex-col items-end gap-1">
                   <span
@@ -149,8 +151,8 @@ export default function ClarkRadar({ onSelectRadar }: { onSelectRadar: (val: str
             {WALLET_ACTIVITY.map((w, i) => (
               <div key={i} className="flex items-start gap-3">
                 <div
-                  className="shrink-0 w-[3px] h-full rounded-full mt-1.5"
-                  style={{ background: 'rgba(255,255,255,0.12)', minHeight: '28px' }}
+                  className="shrink-0 w-[3px] rounded-full mt-1.5"
+                  style={{ background: 'rgba(255,255,255,0.18)', minHeight: '30px' }}
                 />
                 <div className="flex-1 min-w-0">
                   <p className="text-[12px] font-semibold leading-tight truncate" style={{ color: '#e2e8f0' }}>
@@ -187,7 +189,7 @@ export default function ClarkRadar({ onSelectRadar }: { onSelectRadar: (val: str
                 >
                   {t.sym}
                 </span>
-                <div className="flex-1 h-[5px] rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                <div className="flex-1 h-[6px] rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
                   <div
                     className="h-full rounded-full transition-all"
                     style={{
@@ -232,7 +234,7 @@ export default function ClarkRadar({ onSelectRadar }: { onSelectRadar: (val: str
           {/* Footer */}
           <div className="mt-4 flex items-center gap-2 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
             <div className="w-1.5 h-1.5 rounded-full bg-[#2DD4BF]" style={{ boxShadow: '0 0 5px rgba(45,212,191,0.8)' }} />
-            <span className="text-[11px]" style={{ color: '#475569' }}>CORTEX monitoring live</span>
+            <span className="text-[11px]" style={{ color: '#64748b' }}>CORTEX monitoring live</span>
           </div>
         </Card>
 
