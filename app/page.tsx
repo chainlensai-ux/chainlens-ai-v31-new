@@ -1,253 +1,442 @@
-import Navbar from '@/components/Navbar'
-import HeroChat from '@/components/HeroChat'
-import TickerBar from '@/components/TickerBar'
+
+'use client'
+
+import { useState } from 'react'
 import Link from 'next/link'
+import Navbar from '@/components/Navbar'
 
-const gradText: React.CSSProperties = {
-  background: 'linear-gradient(135deg, #ec4899, #8b5cf6, #64ffda)',
-  WebkitBackgroundClip: 'text',
-  WebkitTextFillColor: 'transparent',
-  backgroundClip: 'text',
-}
+// ─── Action chips inside the prompt box ───────────────────────────────────
 
-const CONT = { maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }
-
-function SectionEyebrow({ label }: { label: string }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-      <div style={{ height: '1px', flex: 1, background: 'rgba(139,92,246,0.15)' }} />
-      <span style={{
-        fontFamily: 'var(--font-mono, IBM Plex Mono, monospace)',
-        fontSize: '9px', fontWeight: 700,
-        color: '#64ffda', letterSpacing: '3px', textTransform: 'uppercase',
-      }}>
-        {label}
-      </span>
-      <div style={{ height: '1px', flex: 1, background: 'rgba(139,92,246,0.15)' }} />
-    </div>
-  )
-}
-
-const FREE_FEATURES = [
-  'BearProof Score™',
-  'GlobalRank™ Leaderboard',
-  '150+ coin live prices',
-  'Live Discovery Feed',
-  'Clark AI — general questions',
+const CHIPS = [
+  "WHAT'S PUMPING RIGHT NOW?",
+  'SCAN A WHALE WALLET',
+  'IS BTC A BUY RIGHT NOW?',
+  'SHOW ME SMART MONEY MOVES',
+  'BEST PERFORMER THIS WEEK?',
+  "WHAT'S THE MARKET SENTIMENT?",
 ]
 
-const PRO_FEATURES = [
-  'Everything in Free',
-  'EdgeScan™ AI — 10 uses/month',
-  'DipRadar™ + GhostTrade™',
-  'TradeCoach™ — 10 trades/month',
-  'SentimentPulse™ + TaxMate™',
-  'Price Alerts — 5 active',
-  'Token Unlocks™',
-  'Clark AI — wallet scans & live data',
+// ─── Bottom ticker tokens ──────────────────────────────────────────────────
+
+const TICKER = [
+  { sym: 'ADA',  price: '$0.2493', pct: '+3.88%' },
+  { sym: 'AVAX', price: '$9.47',   pct: '+1.25%' },
+  { sym: 'DOGE', price: '$0.0963', pct: '+3.55%' },
+  { sym: 'DOT',  price: '$1.26',   pct: '+8.60%' },
+  { sym: 'LINK', price: '$9.29',   pct: '+2.44%' },
+  { sym: 'UNI',  price: '$3.27',   pct: '+3.63%' },
+  { sym: 'LTC',  price: '$55.50',  pct: '+2.21%' },
+  { sym: 'BCH',  price: '$439.90', pct: '+1.39%' },
+  { sym: 'XLM',  price: '$0.1619', pct: '+3.78%' },
+  { sym: 'ATOM', price: '$1.80',   pct: '+3.35%' },
+  { sym: 'XMR',  price: '$344.77', pct: '+1.22%' },
+  { sym: 'ETC',  price: '$8.55',   pct: '+2.79%' },
+  { sym: 'FIL',  price: '$0.9692', pct: '+8.31%' },
+  { sym: 'AAVE', price: '$106.45', pct: '+5.66%' },
+  { sym: 'MKR',  price: '$1,773',  pct: '+0.78%' },
+  { sym: 'OP',   price: '$0.1227', pct: '+8.46%' },
+  { sym: 'ARB',  price: '$0.1190', pct: '+5.54%' },
+  { sym: 'NEAR', price: '$1.43',   pct: '+6.09%' },
+  { sym: 'FTM',  price: '$0.0471', pct: '+3.84%' },
 ]
 
-const ELITE_FEATURES = [
-  'Everything in Pro — Unlimited',
-  'WalletScan™ — 5 chains, full AI',
-  'Smart Wallets™ tracking',
-  'SignalBreaker™ + PumpAlert™',
-  'NarrativeRank™ full access',
-  'ProofVault™ on-chain proofs',
-  'Price Alerts — 20 active',
-  'Clark AI — all features + Elite',
-]
+// ─── Page ─────────────────────────────────────────────────────────────────
 
 export default function HomePage() {
+  const [query, setQuery] = useState('')
+
   return (
-    <main style={{ minHeight: '100vh', background: '#06060a' }}>
-      <Navbar />
+    <>
+      {/* Keyframes */}
+      <style>{`
+        @keyframes ticker-scroll {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        ::placeholder { color: rgba(255,255,255,0.3); }
+      `}</style>
 
-      {/* ── Hero ── */}
-      <section style={{ padding: '64px 0 44px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-        {/* Ambient orbs */}
-        <div style={{ position: 'absolute', borderRadius: '50%', pointerEvents: 'none', filter: 'blur(80px)', width: '440px', height: '440px', top: '-160px', left: '50%', transform: 'translateX(-50%)', background: 'radial-gradient(circle, rgba(139,92,246,0.22), transparent 70%)' }} />
-        <div style={{ position: 'absolute', borderRadius: '50%', pointerEvents: 'none', filter: 'blur(80px)', width: '220px', height: '220px', top: '40px', right: '5%', background: 'radial-gradient(circle, rgba(100,255,218,0.09), transparent 70%)' }} />
-        <div style={{ position: 'absolute', borderRadius: '50%', pointerEvents: 'none', filter: 'blur(80px)', width: '200px', height: '200px', top: '60px', left: '5%', background: 'radial-gradient(circle, rgba(139,92,246,0.12), transparent 70%)' }} />
+      <div style={{ minHeight: '100vh', background: '#07070f', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
-        <div style={{ ...CONT, position: 'relative', zIndex: 1 }}>
-          {/* CORTEX eyebrow badge */}
+        {/* Scattered-star background */}
+        <div style={{
+          position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0,
+          backgroundImage: [
+            'radial-gradient(1px 1px at 12% 18%, rgba(255,255,255,0.18) 0%, transparent 100%)',
+            'radial-gradient(1px 1px at 28% 55%, rgba(255,255,255,0.12) 0%, transparent 100%)',
+            'radial-gradient(1px 1px at 44% 32%, rgba(255,255,255,0.15) 0%, transparent 100%)',
+            'radial-gradient(1px 1px at 62% 74%, rgba(255,255,255,0.10) 0%, transparent 100%)',
+            'radial-gradient(1px 1px at 78% 22%, rgba(255,255,255,0.13) 0%, transparent 100%)',
+            'radial-gradient(1px 1px at 88% 60%, rgba(255,255,255,0.16) 0%, transparent 100%)',
+            'radial-gradient(1px 1px at 5%  80%, rgba(255,255,255,0.10) 0%, transparent 100%)',
+            'radial-gradient(1px 1px at 35% 90%, rgba(255,255,255,0.12) 0%, transparent 100%)',
+            'radial-gradient(1px 1px at 55% 10%, rgba(255,255,255,0.14) 0%, transparent 100%)',
+            'radial-gradient(1px 1px at 92% 45%, rgba(255,255,255,0.11) 0%, transparent 100%)',
+            'radial-gradient(1px 1px at 20% 42%, rgba(255,255,255,0.09) 0%, transparent 100%)',
+            'radial-gradient(1px 1px at 70% 88%, rgba(255,255,255,0.10) 0%, transparent 100%)',
+          ].join(', '),
+        }} />
+
+        {/* Navbar */}
+        <div style={{ position: 'relative', zIndex: 10 }}>
+          <Navbar />
+        </div>
+
+        {/* Hero */}
+        <main style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '60px 24px 40px',
+          position: 'relative',
+          zIndex: 1,
+          textAlign: 'center',
+        }}>
+
+          {/* POWERED BY CORTEX ENGINE badge */}
           <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: '8px',
-            background: 'rgba(139,92,246,0.05)', border: '1px solid rgba(139,92,246,0.2)',
-            borderRadius: '30px', padding: '5px 14px', marginBottom: '20px',
-            fontSize: '9px', fontWeight: 700, color: 'rgba(167,139,250,1)',
-            letterSpacing: '2px', textTransform: 'uppercase',
-            fontFamily: 'var(--font-mono, IBM Plex Mono, monospace)',
-            animation: 'cl-fade-up 0.8s ease both',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '7px',
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(139,92,246,0.28)',
+            borderRadius: '999px',
+            padding: '5px 14px',
+            marginBottom: '28px',
           }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', flexShrink: 0, background: '#64ffda', boxShadow: '0 0 8px #64ffda', animation: 'cl-pulse 2s infinite' }} />
-            Powered by CORTEX ENGINE
+            <span style={{
+              width: '6px', height: '6px', borderRadius: '50%',
+              background: '#4ade80',
+              boxShadow: '0 0 7px #4ade80',
+              display: 'inline-block',
+              flexShrink: 0,
+            }} />
+            <span style={{
+              fontSize: '10px',
+              fontWeight: 700,
+              letterSpacing: '0.15em',
+              color: 'rgba(255,255,255,0.75)',
+              fontFamily: 'var(--font-plex-mono, IBM Plex Mono, monospace)',
+              textTransform: 'uppercase',
+            }}>
+              Powered by CORTEX ENGINE
+            </span>
           </div>
 
           {/* Headline */}
-          <h1 style={{ fontFamily: 'var(--font-inter, Inter, sans-serif)', fontWeight: 900, letterSpacing: '-1.5px', lineHeight: 1.0, marginBottom: '18px' }}>
-            <span style={{ display: 'block', fontSize: 'clamp(28px, 3.8vw, 48px)', color: '#fff', animation: 'cl-fade-up 0.9s 0.1s ease both' }}>
+          <h1 style={{
+            fontSize: 'clamp(52px, 7vw, 80px)',
+            fontWeight: 800,
+            lineHeight: 1.08,
+            letterSpacing: '-0.02em',
+            margin: '0 0 24px',
+            maxWidth: '820px',
+          }}>
+            {/* Line 1 — white */}
+            <span style={{ color: '#ffffff', display: 'block' }}>
               See what whales do
             </span>
-            <span style={{ display: 'block', fontSize: 'clamp(28px, 3.8vw, 48px)', ...gradText, animation: 'cl-fade-up 0.9s 0.26s ease both' }}>
-              before everyone else does
+            {/* Line 2 — pink → purple gradient */}
+            <span style={{
+              display: 'block',
+              background: 'linear-gradient(90deg, #ec4899 0%, #a855f7 50%, #818cf8 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}>
+              before everyone else
+            </span>
+            {/* Line 3 — purple */}
+            <span style={{
+              display: 'block',
+              background: 'linear-gradient(90deg, #a855f7 0%, #8b5cf6 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}>
+              does
             </span>
           </h1>
 
-          {/* Subtitle */}
-          <p style={{ fontSize: 'clamp(13px, 1.4vw, 15px)', color: 'rgba(255,255,255,0.5)', maxWidth: '460px', margin: '0 auto 28px', lineHeight: 1.7, animation: 'cl-fade-up 0.65s 0.38s ease both' }}>
-            Ask Clark anything — scan wallets, find early pumps, track smart money, and get real-time onchain intelligence.
+          {/* Subtext */}
+          <p style={{
+            fontSize: '16px',
+            color: 'rgba(255,255,255,0.55)',
+            lineHeight: 1.65,
+            maxWidth: '480px',
+            margin: '0 0 36px',
+          }}>
+            Ask Clark anything — scan wallets, find early pumps, track
+            smart money, and get real-time onchain intelligence.
           </p>
 
-          <HeroChat />
+          {/* Prompt box */}
+          <div style={{
+            width: '100%',
+            maxWidth: '520px',
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(139,92,246,0.28)',
+            borderRadius: '16px',
+            padding: '20px 20px 16px',
+            marginBottom: '28px',
+          }}>
 
-          {/* CTAs */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '40px', animation: 'cl-fade-up 0.7s 0.7s ease both' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
-              <Link href="/app" style={{ padding: '12px 24px', borderRadius: '10px', background: 'linear-gradient(135deg, #ec4899, #8b5cf6)', color: '#fff', fontSize: '13px', fontWeight: 700, textDecoration: 'none', letterSpacing: '0.06em', textTransform: 'uppercase', boxShadow: '0 0 24px rgba(139,92,246,0.4)' }}>
-                Start Free
-              </Link>
-              <Link href="/app" style={{ padding: '12px 24px', borderRadius: '10px', border: '1px solid rgba(139,92,246,0.35)', background: 'transparent', color: 'rgba(255,255,255,0.7)', fontSize: '13px', fontWeight: 700, textDecoration: 'none', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                Connect Wallet
+            {/* Action chips — 3 rows */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center', marginBottom: '18px' }}>
+              {CHIPS.map(chip => (
+                <button
+                  key={chip}
+                  onClick={() => setQuery(chip)}
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    borderRadius: '999px',
+                    padding: '5px 13px',
+                    fontSize: '9.5px',
+                    fontWeight: 600,
+                    letterSpacing: '0.10em',
+                    color: 'rgba(255,255,255,0.7)',
+                    cursor: 'pointer',
+                    textTransform: 'uppercase',
+                    fontFamily: 'var(--font-plex-mono, IBM Plex Mono, monospace)',
+                    transition: 'border-color 0.15s, color 0.15s',
+                    whiteSpace: 'nowrap',
+                  }}
+                  onMouseEnter={e => {
+                    const el = e.currentTarget as HTMLButtonElement
+                    el.style.borderColor = 'rgba(139,92,246,0.6)'
+                    el.style.color = '#fff'
+                  }}
+                  onMouseLeave={e => {
+                    const el = e.currentTarget as HTMLButtonElement
+                    el.style.borderColor = 'rgba(255,255,255,0.15)'
+                    el.style.color = 'rgba(255,255,255,0.7)'
+                  }}
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
+
+            {/* Divider */}
+            <div style={{ height: '1px', background: 'rgba(255,255,255,0.07)', marginBottom: '14px' }} />
+
+            {/* Input row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <input
+                type="text"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder="Ask Clark — scan a wallet, find early pumps, track smart money..."
+                style={{
+                  flex: 1,
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  color: 'rgba(255,255,255,0.75)',
+                  fontSize: '13px',
+                  fontFamily: 'inherit',
+                  minWidth: 0,
+                }}
+              />
+              <Link href="/terminal" style={{
+                width: '34px',
+                height: '34px',
+                borderRadius: '50%',
+                background: '#8b5cf6',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                boxShadow: '0 0 16px rgba(139,92,246,0.5)',
+                textDecoration: 'none',
+              }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
               </Link>
             </div>
-            <Link href="/terminal" style={{ padding: '12px 24px', borderRadius: '10px', background: '#2DD4BF', color: '#06060a', fontSize: '13px', fontWeight: 700, textDecoration: 'none', letterSpacing: '0.06em', textTransform: 'uppercase', boxShadow: '0 0 22px rgba(45,212,191,0.3)' }}>
+
+            {/* Box footer */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginTop: '12px',
+            }}>
+              <span style={{
+                fontSize: '9px',
+                fontWeight: 600,
+                color: 'rgba(255,255,255,0.25)',
+                letterSpacing: '0.13em',
+                fontFamily: 'var(--font-plex-mono, IBM Plex Mono, monospace)',
+                textTransform: 'uppercase',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+              }}>
+                <span style={{ fontSize: '11px', opacity: 0.5 }}>⊙</span>
+                CORTEX
+              </span>
+              <span style={{
+                fontSize: '9px',
+                color: 'rgba(255,255,255,0.2)',
+                fontFamily: 'var(--font-plex-mono, IBM Plex Mono, monospace)',
+              }}>
+                Ask anything — powered by CORTEX
+              </span>
+            </div>
+
+          </div>
+
+          {/* CTA buttons */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+
+            {/* Primary — Enter Terminal */}
+            <Link href="/terminal" style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '10px',
+              padding: '16px 40px',
+              borderRadius: '12px',
+              background: 'linear-gradient(90deg, #2DD4BF 0%, #8b5cf6 100%)',
+              color: '#fff',
+              fontSize: '14px',
+              fontWeight: 800,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              textDecoration: 'none',
+              boxShadow: '0 0 36px rgba(45,212,191,0.5), 0 0 36px rgba(139,92,246,0.3)',
+              transition: 'opacity 0.15s, box-shadow 0.15s, transform 0.15s',
+            }}
+              onMouseEnter={e => {
+                const el = e.currentTarget as HTMLAnchorElement
+                el.style.opacity    = '0.92'
+                el.style.transform  = 'translateY(-2px)'
+                el.style.boxShadow  = '0 0 52px rgba(45,212,191,0.65), 0 0 52px rgba(139,92,246,0.4)'
+              }}
+              onMouseLeave={e => {
+                const el = e.currentTarget as HTMLAnchorElement
+                el.style.opacity    = '1'
+                el.style.transform  = 'translateY(0)'
+                el.style.boxShadow  = '0 0 36px rgba(45,212,191,0.5), 0 0 36px rgba(139,92,246,0.3)'
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2"/>
+                <path d="M8 21h8M12 17v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M7 8l3 3-3 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                <line x1="13" y1="11" x2="17" y2="11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+              </svg>
               Enter Terminal
             </Link>
+
+            {/* Secondary pair */}
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
+              <button
+                style={{
+                  padding: '11px 28px',
+                  borderRadius: '10px',
+                  background: 'transparent',
+                  color: 'rgba(255,255,255,0.65)',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  letterSpacing: '0.10em',
+                  textTransform: 'uppercase',
+                  border: '1px solid rgba(255,255,255,0.18)',
+                  cursor: 'pointer',
+                  transition: 'border-color 0.15s, color 0.15s',
+                }}
+                onMouseEnter={e => {
+                  const el = e.currentTarget as HTMLButtonElement
+                  el.style.borderColor = 'rgba(255,255,255,0.38)'
+                  el.style.color       = '#fff'
+                }}
+                onMouseLeave={e => {
+                  const el = e.currentTarget as HTMLButtonElement
+                  el.style.borderColor = 'rgba(255,255,255,0.18)'
+                  el.style.color       = 'rgba(255,255,255,0.65)'
+                }}
+              >
+                Connect Wallet
+              </button>
+              <Link href="/app" style={{
+                display: 'inline-block',
+                padding: '11px 28px',
+                borderRadius: '10px',
+                background: 'rgba(139,92,246,0.18)',
+                color: 'rgba(255,255,255,0.75)',
+                fontSize: '12px',
+                fontWeight: 700,
+                letterSpacing: '0.10em',
+                textTransform: 'uppercase',
+                textDecoration: 'none',
+                border: '1px solid rgba(139,92,246,0.35)',
+                transition: 'background 0.15s, color 0.15s',
+              }}
+                onMouseEnter={e => {
+                  const el = e.currentTarget as HTMLAnchorElement
+                  el.style.background = 'rgba(139,92,246,0.28)'
+                  el.style.color      = '#fff'
+                }}
+                onMouseLeave={e => {
+                  const el = e.currentTarget as HTMLAnchorElement
+                  el.style.background = 'rgba(139,92,246,0.18)'
+                  el.style.color      = 'rgba(255,255,255,0.75)'
+                }}
+              >
+                Start Free
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
 
-      {/* ── Ticker ── */}
-      <TickerBar />
+        </main>
 
-      {/* ── Pricing ── */}
-      <section style={{ padding: '80px 0 100px', position: 'relative' }}>
-        {/* Background glow */}
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(139,92,246,0.06), transparent)', pointerEvents: 'none' }} />
-
-        <div style={{ ...CONT, position: 'relative', zIndex: 1 }}>
-          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-            <SectionEyebrow label="Pricing" />
-            <h2 style={{ fontSize: 'clamp(24px, 3vw, 40px)', fontWeight: 800, letterSpacing: '-1px', lineHeight: 1.15, color: '#fff', marginBottom: '12px' }}>
-              One price.{' '}
-              <span style={{ background: 'linear-gradient(110deg,#ec4899,#8b5cf6,#64ffda)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-                Worldwide.
+        {/* Bottom token ticker */}
+        <div style={{
+          position: 'relative',
+          zIndex: 1,
+          borderTop: '1px solid rgba(255,255,255,0.07)',
+          background: '#05050c',
+          height: '40px',
+          overflow: 'hidden',
+          display: 'flex',
+          alignItems: 'center',
+        }}>
+          {/* Double the list so the scroll loops seamlessly */}
+          <div style={{
+            display: 'flex',
+            gap: '0',
+            whiteSpace: 'nowrap',
+            animation: 'ticker-scroll 40s linear infinite',
+            willChange: 'transform',
+          }}>
+            {[...TICKER, ...TICKER].map((t, i) => (
+              <span
+                key={i}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '0 28px',
+                  fontSize: '12px',
+                  color: 'rgba(255,255,255,0.55)',
+                  fontFamily: 'var(--font-plex-mono, IBM Plex Mono, monospace)',
+                  borderRight: '1px solid rgba(255,255,255,0.07)',
+                }}
+              >
+                <span style={{ fontWeight: 600, color: 'rgba(255,255,255,0.8)' }}>{t.sym}</span>
+                <span>{t.price}</span>
+                <span style={{ color: '#4ade80', fontWeight: 600 }}>{t.pct}</span>
               </span>
-            </h2>
-            <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.45)', maxWidth: '460px', margin: '0 auto', lineHeight: 1.7 }}>
-              No dark patterns. No regional pricing. Start free — upgrade when you&apos;re ready. Cancel any time.
-            </p>
+            ))}
           </div>
-
-          {/* Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', maxWidth: '960px', margin: '0 auto', alignItems: 'start' }}>
-
-            {/* Free */}
-            <div style={{
-              background: 'rgba(11,9,16,0.72)',
-              border: '1px solid rgba(139,92,246,0.15)',
-              borderRadius: '20px',
-              padding: '30px 26px',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-            }}>
-              <div style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '2.5px', textTransform: 'uppercase', color: 'rgba(167,139,250,0.9)', marginBottom: '10px', fontFamily: 'var(--font-mono, IBM Plex Mono, monospace)' }}>Free</div>
-              <div style={{ fontFamily: 'var(--font-mono, IBM Plex Mono, monospace)', fontSize: '42px', fontWeight: 700, color: '#fff', lineHeight: 1, marginBottom: '4px' }}>$0</div>
-              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '20px' }}>forever free · no card required</div>
-              <div style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '1.8px', textTransform: 'uppercase', fontFamily: 'var(--font-mono, IBM Plex Mono, monospace)', background: 'linear-gradient(135deg,#ec4899,#8b5cf6,#64ffda)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', opacity: 0.7, marginBottom: '18px', display: 'block' }}>
-                ⬡ CORTEX lite
-              </div>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '9px', marginBottom: '24px' }}>
-                {FREE_FEATURES.map(f => (
-                  <li key={f} style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', display: 'flex', alignItems: 'flex-start', gap: '8px', lineHeight: 1.45 }}>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.25)', flexShrink: 0, marginTop: '1px' }}>✓</span>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/app" style={{ display: 'block', textAlign: 'center', padding: '11px 20px', borderRadius: '10px', border: '1px solid rgba(139,92,246,0.3)', background: 'transparent', color: 'rgba(255,255,255,0.7)', fontSize: '12px', fontWeight: 700, textDecoration: 'none', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                Get Started Free
-              </Link>
-            </div>
-
-            {/* Pro — featured */}
-            <div style={{
-              position: 'relative',
-              background: 'linear-gradient(160deg, rgba(11,9,16,0.9) 0%, rgba(139,92,246,0.12) 100%)',
-              border: '1px solid rgba(236,72,153,0.5)',
-              borderRadius: '20px',
-              padding: '36px 26px 30px',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              boxShadow: '0 0 60px rgba(139,92,246,0.25), 0 0 120px rgba(139,92,246,0.1), inset 0 1px 0 rgba(236,72,153,0.2)',
-              transform: 'scale(1.03)',
-            }}>
-              {/* Most Popular badge */}
-              <div style={{ position: 'absolute', top: '-13px', left: '50%', transform: 'translateX(-50%)', background: '#ec4899', color: '#fff', fontSize: '9px', fontWeight: 800, padding: '5px 18px', borderRadius: '20px', letterSpacing: '2px', textTransform: 'uppercase', whiteSpace: 'nowrap', boxShadow: '0 0 24px rgba(236,72,153,0.6)' }}>
-                Most Popular
-              </div>
-              <div style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '2.5px', textTransform: 'uppercase', color: '#ec4899', marginBottom: '10px', fontFamily: 'var(--font-mono, IBM Plex Mono, monospace)' }}>Pro</div>
-              <div style={{ fontFamily: 'var(--font-mono, IBM Plex Mono, monospace)', fontSize: '42px', fontWeight: 700, color: '#fff', lineHeight: 1, marginBottom: '4px' }}>$30</div>
-              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '20px' }}>per month · 7-day free trial</div>
-              <div style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '1.8px', textTransform: 'uppercase', fontFamily: 'var(--font-mono, IBM Plex Mono, monospace)', background: 'linear-gradient(135deg,#ec4899,#8b5cf6,#64ffda)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', opacity: 0.8, marginBottom: '18px', display: 'block' }}>
-                ⬡ CORTEX standard
-              </div>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '9px', marginBottom: '24px' }}>
-                {PRO_FEATURES.map(f => (
-                  <li key={f} style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'flex-start', gap: '8px', lineHeight: 1.45 }}>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(100,255,218,0.7)', flexShrink: 0, marginTop: '1px' }}>✓</span>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/app" style={{ display: 'block', textAlign: 'center', padding: '11px 20px', borderRadius: '10px', background: '#ec4899', color: '#fff', fontSize: '12px', fontWeight: 700, textDecoration: 'none', letterSpacing: '0.06em', textTransform: 'uppercase', boxShadow: '0 0 20px rgba(236,72,153,0.4)' }}>
-                Start Free Trial
-              </Link>
-            </div>
-
-            {/* Elite */}
-            <div style={{
-              position: 'relative',
-              background: 'linear-gradient(160deg, rgba(11,9,16,0.9) 0%, rgba(139,92,246,0.08) 100%)',
-              border: '1px solid rgba(139,92,246,0.35)',
-              borderRadius: '20px',
-              padding: '30px 26px',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              animation: 'cl-elite-glow 3.5s ease-in-out infinite',
-              overflow: 'hidden',
-            }}>
-              {/* Top shimmer line */}
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, transparent, #8b5cf6, rgba(167,139,250,0.8), #8b5cf6, transparent)', animation: 'cl-elite-top-line 3.5s ease-in-out infinite' }} />
-              <div style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '2.5px', textTransform: 'uppercase', color: '#8b5cf6', marginBottom: '10px', fontFamily: 'var(--font-mono, IBM Plex Mono, monospace)', textShadow: '0 0 20px rgba(139,92,246,0.5)' }}>Elite</div>
-              <div style={{ fontFamily: 'var(--font-mono, IBM Plex Mono, monospace)', fontSize: '42px', fontWeight: 700, color: '#fff', lineHeight: 1, marginBottom: '4px' }}>$60</div>
-              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '20px' }}>per month · 7-day free trial</div>
-              <div style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '1.8px', textTransform: 'uppercase', fontFamily: 'var(--font-mono, IBM Plex Mono, monospace)', background: 'linear-gradient(135deg,#ec4899,#8b5cf6,#64ffda)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', opacity: 0.8, marginBottom: '18px', display: 'block' }}>
-                ⬡ CORTEX full intelligence
-              </div>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '9px', marginBottom: '24px' }}>
-                {ELITE_FEATURES.map(f => (
-                  <li key={f} style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'flex-start', gap: '8px', lineHeight: 1.45 }}>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(139,92,246,0.9)', flexShrink: 0, marginTop: '1px' }}>✓</span>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/app" style={{ display: 'block', textAlign: 'center', padding: '11px 20px', borderRadius: '10px', background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.5)', color: 'rgba(167,139,250,1)', fontSize: '12px', fontWeight: 700, textDecoration: 'none', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                Start Free Trial
-              </Link>
-            </div>
-
-          </div>
-
-          {/* Fine print */}
-          <p style={{ textAlign: 'center', marginTop: '28px', fontSize: '11px', color: 'rgba(255,255,255,0.25)', letterSpacing: '0.04em' }}>
-            Free to start. No credit card required. Cancel any time.
-          </p>
         </div>
-      </section>
-    </main>
+
+      </div>
+    </>
+ 
   )
 }
