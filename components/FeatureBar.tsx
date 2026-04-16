@@ -151,7 +151,7 @@ function SectionLabel({ children }: { children: ReactNode }) {
         fontWeight: 700,
         letterSpacing: '0.18em',
         textTransform: 'uppercase',
-        color: '#2d4a63',
+        color: '#3d6478',
         fontFamily: 'var(--font-plex-mono)',
         padding: '16px 4px 6px',
       }}
@@ -178,19 +178,19 @@ function NavItem({ item, active, onSelect }: { item: Item; active: string | null
 
   // Per-accent active shadow (left glow + top inset shimmer)
   const activeGlow =
-    accent === PURPLE ? `0 0 18px rgba(139,92,246,0.18), inset 0 1px 0 rgba(139,92,246,0.18)`
-    : accent === PINK ? `0 0 18px rgba(236,72,153,0.14), inset 0 1px 0 rgba(236,72,153,0.16)`
-    : accent === WHITE ? `inset 0 1px 0 rgba(226,232,240,0.12)`
-    : accent === SLATE ? `inset 0 1px 0 rgba(148,163,184,0.10)`
-    : /* MINT */ `0 0 18px rgba(45,212,191,0.14), inset 0 1px 0 rgba(45,212,191,0.16)`
+    accent === PURPLE ? `0 0 24px rgba(139,92,246,0.26), inset 0 1px 0 rgba(139,92,246,0.22)`
+    : accent === PINK ? `0 0 22px rgba(236,72,153,0.22), inset 0 1px 0 rgba(236,72,153,0.20)`
+    : accent === WHITE ? `inset 0 1px 0 rgba(226,232,240,0.16)`
+    : accent === SLATE ? `inset 0 1px 0 rgba(148,163,184,0.14)`
+    : /* MINT */ `0 0 26px rgba(45,212,191,0.22), inset 0 1px 0 rgba(45,212,191,0.22)`
 
-  // Idle icon colour — dim version of each accent
+  // Idle icon colour — dim but readable version of each accent
   const idleIconColor =
-    accent === PURPLE ? '#3d2f68'
-    : accent === PINK  ? '#5e2040'
-    : accent === WHITE ? '#3d5268'
-    : accent === SLATE ? '#334155'
-    : /* MINT */ '#1e4040'
+    accent === PURPLE ? '#5a4492'
+    : accent === PINK  ? '#7e3060'
+    : accent === WHITE ? '#4e6880'
+    : accent === SLATE ? '#445870'
+    : /* MINT */ '#286060'
 
   return (
     <motion.button
@@ -207,7 +207,7 @@ function NavItem({ item, active, onSelect }: { item: Item; active: string | null
         borderRight:  '1px solid transparent',
         borderBottom: '1px solid transparent',
         boxShadow: on ? activeGlow : 'none',
-        color: on ? accent : '#4a6380',
+        color: on ? accent : '#536e88',
         fontSize: '13px',
         fontWeight: on ? 600 : 500,
         fontFamily: 'var(--font-inter)',
@@ -220,15 +220,15 @@ function NavItem({ item, active, onSelect }: { item: Item; active: string | null
       onMouseEnter={e => {
         if (!on) {
           const el = e.currentTarget as HTMLButtonElement
-          el.style.color      = '#a0b4c8'
-          el.style.background = 'rgba(255,255,255,0.045)'
-          el.style.boxShadow  = 'inset 0 1px 0 rgba(255,255,255,0.04)'
+          el.style.color      = '#b0c4d8'
+          el.style.background = 'rgba(255,255,255,0.05)'
+          el.style.boxShadow  = 'inset 0 1px 0 rgba(255,255,255,0.05)'
         }
       }}
       onMouseLeave={e => {
         if (!on) {
           const el = e.currentTarget as HTMLButtonElement
-          el.style.color      = '#4a6380'
+          el.style.color      = '#536e88'
           el.style.background = 'transparent'
           el.style.boxShadow  = 'none'
         }
@@ -272,24 +272,18 @@ export default function FeatureBar({ active = 'dashboard', onSelect = () => {} }
       <div
         className="shrink-0 flex items-center gap-3"
         style={{
-          padding: '24px 20px 20px',
+          padding: '20px 20px 18px',
           borderBottom: '1px solid rgba(255,255,255,0.07)',
         }}
       >
-        {/* Logo */}
-        <div
-          className="shrink-0 flex items-center justify-center"
-          style={{
-            width: '38px',
-            height: '38px',
-            borderRadius: '10px',
-            background: 'rgba(45,212,191,0.09)',
-            border: '1px solid rgba(45,212,191,0.2)',
-            boxShadow: '0 0 16px rgba(45,212,191,0.18)',
-          }}
-        >
-          <Image src="/cl-logo.png" alt="ChainLens" width={26} height={26} />
-        </div>
+        {/* Logo — unboxed, large, clean */}
+        <Image
+          src="/cl-logo.png"
+          alt="ChainLens"
+          width={48}
+          height={48}
+          style={{ display: 'block', flexShrink: 0 }}
+        />
 
         {/* Wordmark */}
         <span
@@ -301,7 +295,17 @@ export default function FeatureBar({ active = 'dashboard', onSelect = () => {} }
             fontFamily: 'var(--font-inter)',
           }}
         >
-          Chain<span style={{ color: '#2DD4BF' }}>Lens</span>
+          Chain
+          <span
+            style={{
+              background: 'linear-gradient(105deg, #2DD4BF 0%, #8b5cf6 55%, #ec4899 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+          >
+            Lens
+          </span>
         </span>
       </div>
 
@@ -377,7 +381,7 @@ export default function FeatureBar({ active = 'dashboard', onSelect = () => {} }
               borderRadius: '8px',
               background: 'rgba(255,255,255,0.03)',
               border: '1px solid rgba(255,255,255,0.08)',
-              color: '#4a6380',
+              color: '#5a7490',
               fontSize: '12px',
               fontWeight: 500,
               cursor: 'pointer',
@@ -392,7 +396,7 @@ export default function FeatureBar({ active = 'dashboard', onSelect = () => {} }
             }}
             onMouseLeave={e => {
               const el = e.currentTarget as HTMLButtonElement
-              el.style.color       = '#4a6380'
+              el.style.color       = '#5a7490'
               el.style.borderColor = 'rgba(255,255,255,0.08)'
               el.style.background  = 'rgba(255,255,255,0.03)'
             }}
