@@ -2,7 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+/* Apply Inter as the default UI font — the CSS variable is set in layout.tsx
+   via next/font but Tailwind's Preflight doesn't consume it automatically. */
+html {
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 
 ::-webkit-scrollbar { width: 4px; }
@@ -24,4 +30,59 @@ html { scroll-behavior: smooth; }
 @keyframes shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-slideIn {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.7); }
+  50% { box-shadow: 0 0 20px 4px rgba(45, 212, 191, 0.4); }
+  100% { box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.7); }
+}
+.animate-pulse-glow {
+  animation: pulseGlow 2s infinite;
+}
+
+@keyframes cl-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+@keyframes clarkDot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+@keyframes cl-send-pulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(100,255,218,0.3), 0 0 20px rgba(139,92,246,0.2); }
+  50% { box-shadow: 0 0 18px rgba(100,255,218,0.55), 0 0 36px rgba(139,92,246,0.35); }
+}
+
+@keyframes cl-fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cl-elite-glow {
+  0%, 100% { box-shadow: 0 0 35px rgba(236,72,153,0.2), 0 0 70px rgba(139,92,246,0.1); border-color: rgba(232,213,255,0.35); }
+  50% { box-shadow: 0 0 55px rgba(236,72,153,0.38), 0 0 110px rgba(139,92,246,0.18); border-color: rgba(232,213,255,0.6); }
+}
+
+@keyframes cl-elite-top-line {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
 }
