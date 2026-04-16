@@ -90,6 +90,21 @@ const NAV: Item[] = [
   { key: 'settings',    label: 'Settings',    icon: <IcSettings />   },
 ]
 
+// ─── SectionDivider ───────────────────────────────────────────────────────
+
+function SectionDivider() {
+  return (
+    <div
+      className="mx-3"
+      style={{
+        height: '1px',
+        background: 'rgba(255,255,255,0.05)',
+        margin: '8px 12px',
+      }}
+    />
+  )
+}
+
 // ─── NavItem ──────────────────────────────────────────────────────────────
 
 interface NavItemProps {
@@ -104,21 +119,28 @@ function NavItem({ item, active, onSelect }: NavItemProps) {
   return (
     <motion.button
       onClick={() => onSelect(item.key)}
-      className="w-full flex items-center gap-3 px-3 text-[13px] font-medium transition-colors"
+      className="w-full flex items-center gap-3 px-3 text-[13px] font-medium transition-colors relative"
       style={{
-        height: '40px',
+        height: '42px',
         borderRadius: '10px',
-        background: on ? 'rgba(45,212,191,0.12)' : 'transparent',
-        border:     on ? '1px solid rgba(45,212,191,0.22)' : '1px solid transparent',
-        color:      on ? '#2DD4BF' : '#4d6280',
+        background: on
+          ? 'linear-gradient(90deg, rgba(45,212,191,0.15), rgba(45,212,191,0.05))'
+          : 'transparent',
+        borderLeft:   on ? '3px solid #2DD4BF' : '3px solid transparent',
+        borderTop:    '1px solid transparent',
+        borderRight:  '1px solid transparent',
+        borderBottom: '1px solid transparent',
+        boxShadow: on ? 'inset 0 1px 0 rgba(45,212,191,0.12)' : 'none',
+        color: on ? '#2DD4BF' : '#4d6280',
+        paddingLeft: on ? '10px' : '12px',
       }}
-      whileHover={!on ? { x: 2 } : {}}
+      whileHover={!on ? { x: 3 } : {}}
       transition={{ duration: 0.12 }}
       onMouseEnter={e => {
         if (!on) {
           const el = e.currentTarget as HTMLButtonElement
           el.style.color      = '#94a3b8'
-          el.style.background = 'rgba(255,255,255,0.04)'
+          el.style.background = 'rgba(255,255,255,0.05)'
         }
       }}
       onMouseLeave={e => {
@@ -129,7 +151,7 @@ function NavItem({ item, active, onSelect }: NavItemProps) {
         }
       }}
     >
-      <span style={{ color: on ? '#2DD4BF' : '#3d5268' }}>
+      <span style={{ color: '#2DD4BF' }}>
         {item.icon}
       </span>
       {item.label}
@@ -147,36 +169,54 @@ interface Props {
 export default function FeatureBar({ active = 'dashboard', onSelect = () => {} }: Props) {
   return (
     <aside
-      className="w-[250px] h-screen shrink-0 flex flex-col"
+      className="w-[260px] h-screen shrink-0 flex flex-col relative"
       style={{ background: '#07090f', borderRight: '1px solid rgba(255,255,255,0.07)' }}
     >
+
+      {/* Left edge gradient accent — teal to purple */}
+      <div
+        className="absolute left-0 top-0 bottom-0 w-px pointer-events-none"
+        style={{ background: 'linear-gradient(180deg, #2DD4BF 0%, rgba(139,92,246,0.6) 55%, transparent 100%)', zIndex: 10 }}
+      />
 
       {/* ── Branding ─────────────────────────────────────────────── */}
       <div
         className="relative px-5 pt-6 pb-5 shrink-0 overflow-hidden"
         style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
       >
+        {/* Subtle teal glow behind logo */}
         <div
           className="absolute inset-0 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse at 10% 60%, rgba(45,212,191,0.07) 0%, transparent 65%)' }}
+          style={{ background: 'radial-gradient(ellipse at 15% 50%, rgba(45,212,191,0.11) 0%, transparent 65%)' }}
         />
         <div className="relative flex items-center gap-3">
+          {/* Logo with teal glow container */}
           <div
             className="shrink-0 rounded-xl p-1.5"
             style={{
-              background: 'rgba(45,212,191,0.08)',
-              border: '1px solid rgba(45,212,191,0.18)',
-              boxShadow: '0 0 14px rgba(45,212,191,0.1)',
+              background: 'rgba(45,212,191,0.1)',
+              border: '1px solid rgba(45,212,191,0.22)',
+              boxShadow: '0 0 20px rgba(45,212,191,0.18), 0 0 40px rgba(45,212,191,0.08)',
             }}
           >
-            <Image src="/cl-logo.png" alt="ChainLens AI" width={32} height={32} className="shrink-0" />
+            <Image src="/cl-logo.png" alt="ChainLens AI" width={36} height={36} className="shrink-0" />
           </div>
           <div>
-            <p className="text-[15px] font-extrabold leading-tight tracking-tight" style={{ color: '#f8fafc' }}>
+            <p
+              className="text-[16px] font-extrabold leading-tight tracking-tight"
+              style={{ color: '#f8fafc' }}
+            >
               Chain<span style={{ color: '#2DD4BF' }}>Lens</span>
             </p>
-            <p className="text-[10px] font-medium mt-0.5" style={{ color: '#2d4258' }}>
-              Base Intelligence Terminal
+            <p
+              className="text-[10px] mt-0.5 tracking-[0.06em]"
+              style={{
+                color: '#2d4258',
+                fontFamily: 'var(--font-plex-mono)',
+                fontWeight: 400,
+              }}
+            >
+              Intelligence Terminal
             </p>
           </div>
         </div>
@@ -184,23 +224,31 @@ export default function FeatureBar({ active = 'dashboard', onSelect = () => {} }
 
       {/* ── Navigation ───────────────────────────────────────────── */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-0.5">
-        {NAV.map(item => (
-          <NavItem key={item.key} item={item} active={active} onSelect={onSelect} />
+        {NAV.map((item, idx) => (
+          <>
+            <NavItem key={item.key} item={item} active={active} onSelect={onSelect} />
+            {/* Divider between portfolio and ai-insights */}
+            {idx === 3 && <SectionDivider key="div-1" />}
+            {/* Divider between security and reports */}
+            {idx === 5 && <SectionDivider key="div-2" />}
+          </>
         ))}
       </nav>
 
       {/* ── Bottom CTAs ──────────────────────────────────────────── */}
       <div
-        className="shrink-0 px-3 py-4 flex flex-col gap-2"
-        style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
+        className="shrink-0 px-3 py-4 flex flex-col"
+        style={{ borderTop: '1px solid rgba(255,255,255,0.07)', gap: '8px' }}
       >
 
-        {/* Connect Wallet — large, solid teal */}
+        {/* Connect Wallet — full width, gradient teal */}
         <button
-          className="w-full h-11 rounded-xl text-[13px] font-bold tracking-wide transition-all active:scale-[0.98]"
+          className="w-full rounded-xl text-[13px] font-bold tracking-wide transition-all active:scale-[0.98]"
           style={{
+            height: '40px',
             background: 'linear-gradient(90deg, #2DD4BF 0%, #14b8a6 100%)',
             color: '#061210',
+            fontWeight: 700,
             boxShadow: '0 0 22px rgba(45,212,191,0.28)',
           }}
           onMouseEnter={e => {
@@ -218,35 +266,37 @@ export default function FeatureBar({ active = 'dashboard', onSelect = () => {} }
         </button>
 
         {/* Sign In / Sign Up row */}
-        <div className="flex gap-2">
+        <div className="flex" style={{ gap: '8px' }}>
           <button
-            className="flex-1 h-9 rounded-xl text-[12px] font-medium transition-all"
+            className="flex-1 rounded-lg text-[12px] font-medium transition-all"
             style={{
+              height: '36px',
               color: '#64748b',
-              border: '1px solid rgba(255,255,255,0.08)',
-              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              background: 'transparent',
             }}
             onMouseEnter={e => {
               const el = e.currentTarget as HTMLButtonElement
               el.style.color       = '#e2e8f0'
-              el.style.background  = 'rgba(255,255,255,0.06)'
-              el.style.borderColor = 'rgba(255,255,255,0.13)'
+              el.style.background  = 'rgba(255,255,255,0.05)'
+              el.style.borderColor = 'rgba(255,255,255,0.16)'
             }}
             onMouseLeave={e => {
               const el = e.currentTarget as HTMLButtonElement
               el.style.color       = '#64748b'
-              el.style.background  = 'rgba(255,255,255,0.03)'
-              el.style.borderColor = 'rgba(255,255,255,0.08)'
+              el.style.background  = 'transparent'
+              el.style.borderColor = 'rgba(255,255,255,0.1)'
             }}
           >
             Sign In
           </button>
           <button
-            className="flex-1 h-9 rounded-xl text-[12px] font-bold transition-all active:scale-[0.98]"
+            className="flex-1 rounded-lg text-[12px] font-bold transition-all active:scale-[0.98]"
             style={{
+              height: '36px',
               background: 'rgba(45,212,191,0.1)',
               color: '#2DD4BF',
-              border: '1px solid rgba(45,212,191,0.28)',
+              border: '1px solid rgba(45,212,191,0.25)',
             }}
             onMouseEnter={e => {
               const el = e.currentTarget as HTMLButtonElement
@@ -257,7 +307,7 @@ export default function FeatureBar({ active = 'dashboard', onSelect = () => {} }
             onMouseLeave={e => {
               const el = e.currentTarget as HTMLButtonElement
               el.style.background  = 'rgba(45,212,191,0.1)'
-              el.style.borderColor = 'rgba(45,212,191,0.28)'
+              el.style.borderColor = 'rgba(45,212,191,0.25)'
               el.style.boxShadow   = 'none'
             }}
           >
