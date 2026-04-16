@@ -95,7 +95,6 @@ const NAV: Item[] = [
 function SectionDivider() {
   return (
     <div
-      className="mx-3"
       style={{
         height: '1px',
         background: 'rgba(255,255,255,0.05)',
@@ -119,7 +118,7 @@ function NavItem({ item, active, onSelect }: NavItemProps) {
   return (
     <motion.button
       onClick={() => onSelect(item.key)}
-      className="w-full flex items-center gap-3 px-3 text-[13px] font-medium transition-colors relative"
+      className="w-full flex items-center gap-3 text-[13px] font-medium transition-colors relative"
       style={{
         height: '42px',
         borderRadius: '10px',
@@ -133,6 +132,7 @@ function NavItem({ item, active, onSelect }: NavItemProps) {
         boxShadow: on ? 'inset 0 1px 0 rgba(45,212,191,0.12)' : 'none',
         color: on ? '#2DD4BF' : '#4d6280',
         paddingLeft: on ? '10px' : '12px',
+        paddingRight: '12px',
       }}
       whileHover={!on ? { x: 3 } : {}}
       transition={{ duration: 0.12 }}
@@ -151,7 +151,7 @@ function NavItem({ item, active, onSelect }: NavItemProps) {
         }
       }}
     >
-      <span style={{ color: '#2DD4BF' }}>
+      <span style={{ color: '#2DD4BF', display: 'flex', alignItems: 'center' }}>
         {item.icon}
       </span>
       {item.label}
@@ -175,8 +175,12 @@ export default function FeatureBar({ active = 'dashboard', onSelect = () => {} }
 
       {/* Left edge gradient accent — teal to purple */}
       <div
-        className="absolute left-0 top-0 bottom-0 w-px pointer-events-none"
-        style={{ background: 'linear-gradient(180deg, #2DD4BF 0%, rgba(139,92,246,0.6) 55%, transparent 100%)', zIndex: 10 }}
+        className="absolute left-0 top-0 bottom-0 pointer-events-none"
+        style={{
+          width: '1px',
+          background: 'linear-gradient(180deg, #2DD4BF 0%, rgba(139,92,246,0.6) 55%, transparent 100%)',
+          zIndex: 10,
+        }}
       />
 
       {/* ── Branding ─────────────────────────────────────────────── */}
@@ -184,10 +188,12 @@ export default function FeatureBar({ active = 'dashboard', onSelect = () => {} }
         className="relative px-5 pt-6 pb-5 shrink-0 overflow-hidden"
         style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
       >
-        {/* Subtle teal glow behind logo */}
+        {/* Subtle teal ambient glow */}
         <div
           className="absolute inset-0 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse at 15% 50%, rgba(45,212,191,0.11) 0%, transparent 65%)' }}
+          style={{
+            background: 'radial-gradient(ellipse at 20% 50%, rgba(45,212,191,0.13) 0%, transparent 65%)',
+          }}
         />
         <div className="relative flex items-center gap-3">
           {/* Logo with teal glow container */}
@@ -196,21 +202,35 @@ export default function FeatureBar({ active = 'dashboard', onSelect = () => {} }
             style={{
               background: 'rgba(45,212,191,0.1)',
               border: '1px solid rgba(45,212,191,0.22)',
-              boxShadow: '0 0 20px rgba(45,212,191,0.18), 0 0 40px rgba(45,212,191,0.08)',
+              boxShadow: '0 0 20px rgba(45,212,191,0.2), 0 0 44px rgba(45,212,191,0.09)',
             }}
           >
-            <Image src="/cl-logo.png" alt="ChainLens AI" width={36} height={36} className="shrink-0" />
+            <Image
+              src="/cl-logo.png"
+              alt="ChainLens AI"
+              width={36}
+              height={36}
+              className="shrink-0"
+            />
           </div>
           <div>
             <p
-              className="text-[16px] font-extrabold leading-tight tracking-tight"
-              style={{ color: '#f8fafc' }}
+              className="leading-tight"
+              style={{
+                fontSize: '16px',
+                fontWeight: 800,
+                letterSpacing: '-0.02em',
+                color: '#f8fafc',
+                fontFamily: 'var(--font-inter)',
+              }}
             >
               Chain<span style={{ color: '#2DD4BF' }}>Lens</span>
             </p>
             <p
-              className="text-[10px] mt-0.5 tracking-[0.06em]"
+              className="mt-0.5"
               style={{
+                fontSize: '10px',
+                letterSpacing: '0.06em',
                 color: '#2d4258',
                 fontFamily: 'var(--font-plex-mono)',
                 fontWeight: 400,
@@ -227,9 +247,7 @@ export default function FeatureBar({ active = 'dashboard', onSelect = () => {} }
         {NAV.map((item, idx) => (
           <>
             <NavItem key={item.key} item={item} active={active} onSelect={onSelect} />
-            {/* Divider between portfolio and ai-insights */}
             {idx === 3 && <SectionDivider key="div-1" />}
-            {/* Divider between security and reports */}
             {idx === 5 && <SectionDivider key="div-2" />}
           </>
         ))}
@@ -240,16 +258,16 @@ export default function FeatureBar({ active = 'dashboard', onSelect = () => {} }
         className="shrink-0 px-3 py-4 flex flex-col"
         style={{ borderTop: '1px solid rgba(255,255,255,0.07)', gap: '8px' }}
       >
-
-        {/* Connect Wallet — full width, gradient teal */}
+        {/* Connect Wallet — full width gradient teal */}
         <button
-          className="w-full rounded-xl text-[13px] font-bold tracking-wide transition-all active:scale-[0.98]"
+          className="w-full rounded-xl text-[13px] tracking-wide transition-all active:scale-[0.98]"
           style={{
             height: '40px',
             background: 'linear-gradient(90deg, #2DD4BF 0%, #14b8a6 100%)',
             color: '#061210',
             fontWeight: 700,
             boxShadow: '0 0 22px rgba(45,212,191,0.28)',
+            fontFamily: 'var(--font-inter)',
           }}
           onMouseEnter={e => {
             const el = e.currentTarget as HTMLButtonElement
@@ -274,6 +292,7 @@ export default function FeatureBar({ active = 'dashboard', onSelect = () => {} }
               color: '#64748b',
               border: '1px solid rgba(255,255,255,0.1)',
               background: 'transparent',
+              fontFamily: 'var(--font-inter)',
             }}
             onMouseEnter={e => {
               const el = e.currentTarget as HTMLButtonElement
@@ -297,6 +316,7 @@ export default function FeatureBar({ active = 'dashboard', onSelect = () => {} }
               background: 'rgba(45,212,191,0.1)',
               color: '#2DD4BF',
               border: '1px solid rgba(45,212,191,0.25)',
+              fontFamily: 'var(--font-inter)',
             }}
             onMouseEnter={e => {
               const el = e.currentTarget as HTMLButtonElement
@@ -314,7 +334,6 @@ export default function FeatureBar({ active = 'dashboard', onSelect = () => {} }
             Sign Up
           </button>
         </div>
-
       </div>
     </aside>
   )
